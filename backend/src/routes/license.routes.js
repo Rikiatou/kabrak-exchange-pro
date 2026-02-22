@@ -19,4 +19,37 @@ router.put('/:id', authenticate, authorize('admin'), updateLicense);
 router.post('/:id/renew', authenticate, authorize('admin'), renewLicense);
 router.delete('/:id', authenticate, authorize('admin'), deleteLicense);
 
+// GET /api/licenses/check/:licenseKey — vérification pour app mobile
+router.get('/check/:licenseKey', async (req, res) => {
+  try {
+    const { licenseKey } = req.params;
+    const { License } = require('../models');
+    const { Op } = require('sequelize');
+    
+    const license = await License.findOne({ where: { licenseKey } });
+    
+    if (!license) {
+      return res.status(404).json({ 
+        active: false, 
+        message: 'License not found' 
+      });
+    }
+    
+    const now = new Date();
+    const isActive = license.status === 'active' && license.expiresAt && license.expiresAt > now;
+    const daysLeft = license.expiresAt ? Math.ceil((license.expiresAt - now) / (1000 * 60 * 60 * 24)) : 0;
+    
+    res.json({
+      active: isActive,
+      plan: license.plan,
+      expiresAt: license.expiresAt,
+      daysLeft,
+      businessName: license.businessName,
+      message: isActive ? 'License active' : 'License expired'
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
