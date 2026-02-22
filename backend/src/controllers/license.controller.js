@@ -174,11 +174,7 @@ const requestLicense = async (req, res) => {
     if (!businessName || !ownerName || !ownerEmail) {
       return res.status(400).json({ success: false, message: 'businessName, ownerName and ownerEmail are required.' });
     }
-    const existing = await License.findOne({ where: { ownerEmail } });
-    if (existing) {
-      return res.status(409).json({ success: false, message: 'A request already exists for this email.' });
-    }
-    const licenseKey = generateLicenseKey();
+        const licenseKey = generateLicenseKey();
     const expiresAt = getExpiryDate('trial');
     await License.create({
       businessName, ownerName, ownerEmail, ownerPhone: ownerPhone || null,
