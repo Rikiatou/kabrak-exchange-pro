@@ -189,6 +189,7 @@ const requestLicense = async (req, res) => {
     res.status(201).json({ success: true, message: 'Your request has been received. We will contact you within 24 hours. / Votre demande a été reçue. Nous vous contacterons dans les 24 heures.' });
     sendNotificationEmail({ businessName, ownerName, ownerEmail, ownerPhone, country, message });
   } catch (e) {
+    console.error('License request error:', e);
     res.status(500).json({ success: false, message: e.message });
   }
 };
