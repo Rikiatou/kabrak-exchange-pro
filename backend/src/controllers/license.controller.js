@@ -1,23 +1,15 @@
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const { License } = require('../models');
 const { Op } = require('sequelize');
 
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 const sendNotificationEmail = async ({ businessName, ownerName, ownerEmail, ownerPhone, country, message }) => {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
+  if (!process.env.RESEND_API_KEY) return;
   try {
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
-      tls: { rejectUnauthorized: false },
-      connectionTimeout: 10000,
-      greetingTimeout: 5000,
-      socketTimeout: 10000,
-    });
-    await transporter.sendMail({
-      from: `"KABRAK Exchange Pro" <${process.env.GMAIL_USER}>`,
+    await resend.emails.send({
+      from: 'KABRAK Exchange Pro <onboarding@resend.dev>',
       to: process.env.NOTIFY_EMAIL || 'kabrakeng@gmail.com',
       subject: `🔔 Nouvelle demande de licence — ${businessName}`,
       html: `
