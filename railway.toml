@@ -1,0 +1,25 @@
+# Railway configuration for KABRAK Exchange Pro
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30000
+healthcheckInterval = 15000
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[[services]]
+name = "backend"
+source = "."
+[services.environment]
+NODE_ENV = "production"
+PORT = "10000"
+DB_DIALECT = "postgres"
+
+[[services]]
+name = "database"
+[services.database]
+type = "postgres"

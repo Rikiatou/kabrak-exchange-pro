@@ -97,8 +97,26 @@ app.use('/api/search', searchRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/admin', express.static(path.join(__dirname, '../public')));
 
-app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'Exchange Management API is running', version: '1.0.0' });
+app.get('/api/health', async (req, res) => {
+  try {
+    // Test database connection
+    await sequelize.authenticate();
+    
+    res.json({ 
+      success: true, 
+      message: 'Exchange Management API is running',
+      version: '1.0.0',
+      database: 'connected',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(503).json({ 
+      success: false, 
+      message: 'Database not connected',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 app.use((err, req, res, next) => {
