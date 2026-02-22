@@ -87,4 +87,4 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = { login, getMe, changePassword };
+module.exports = { login, getMe, changePassword, refreshToken };
