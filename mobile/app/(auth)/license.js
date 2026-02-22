@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, StatusBar, ScrollView, Dimensions
+  ActivityIndicator, Alert, StatusBar, ScrollView, Dimensions, Linking
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -139,10 +139,19 @@ export default function LicenseScreen() {
         {/* Contact */}
         <View style={styles.contactRow}>
           <Text style={styles.contactLabel}>{L.noKey}</Text>
-          <TouchableOpacity>
-            <Text style={styles.contactLink}>{L.contact}</Text>
+          <TouchableOpacity onPress={() => Linking.openURL('https://wa.me/237653561862?text=Bonjour%20KABRAK%20ENG%2C%20je%20voudrais%20obtenir%20une%20licence%20Exchange%20Pro.')}>
+            <Text style={styles.contactLink}>{L.contact} 💬</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Payment Button */}
+        <TouchableOpacity 
+          style={styles.paymentButton}
+          onPress={() => router.push('/(auth)/payment')}
+        >
+          <Ionicons name="card-outline" size={20} color={WHITE} style={{ marginRight: 8 }} />
+          <Text style={styles.paymentButtonText}>🔥 Activer une licence maintenant</Text>
+        </TouchableOpacity>
 
         <Text style={styles.footer}>KABRAK Exchange Pro v1.0 — KABRAK ENG</Text>
       </ScrollView>
@@ -173,5 +182,24 @@ const styles = StyleSheet.create({
   contactRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 20 },
   contactLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 13 },
   contactLink: { color: GOLD, fontSize: 13, fontWeight: '700' },
+  paymentButton: {
+    height: 54,
+    borderRadius: 10,
+    backgroundColor: GOLD,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: GOLD,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 10,
+    marginBottom: 20
+  },
+  paymentButtonText: { 
+    color: GREEN_DARK, 
+    fontSize: 16, 
+    fontWeight: '700' 
+  },
   footer: { textAlign: 'center', color: 'rgba(255,255,255,0.2)', fontSize: 11 },
 });
