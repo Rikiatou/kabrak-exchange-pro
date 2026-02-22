@@ -14,14 +14,31 @@ router.post('/', authenticate, auditLog('CREATE', 'payment'), create);
 // USSD Payment routes
 router.post('/ussd-proof', async (req, res) => {
   try {
+    console.log('📝 USSD Proof submission:', { userId, plan, amount, reference, phoneNumber });
+    
     const { userId, plan, amount, reference, phoneNumber } = req.body;
     
-    // Vérifier si la référence existe déjà
-    const existingProof = await PaymentProof.findOne({ where: { reference } });
+    // Validation de base
+    if (!userId || !plan || !amount || !reference || !phoneNumber) {
+      console.log('❌ Missing required fields');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Tous les champs sont requis' 
+      });
+    }
+    
+    // Vérifier si la référence existe déjà (mais permettre les doublons pour Orange Money)
+    const existingProof = await PaymentProof.findOne({ 
+      where: { 
+        reference,
+        userId,
+        status: ['pending', 'validated']
+      } 
+    });
     if (existingProof) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Cette référence a déjà été utilisée' 
+        message: 'Vous avez déjà soumis cette référence' 
       });
     }
     
@@ -40,6 +57,7 @@ router.post('/ussd-proof', async (req, res) => {
     }
     
     // Créer la preuve de paiement
+    console.log('✅ Creating payment proof...');
     const paymentProof = await PaymentProof.create({
       userId,
       plan,
@@ -48,6 +66,8 @@ router.post('/ussd-proof', async (req, res) => {
       phoneNumber,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h pour valider
     });
+    
+    console.log('✅ Payment proof created:', paymentProof.id);
     
     res.json({
       success: true,
@@ -61,6 +81,7 @@ router.post('/ussd-proof', async (req, res) => {
       }
     });
   } catch (e) {
+    console.error('❌ Error creating payment proof:', e);
     res.status(500).json({ success: false, message: e.message });
   }
 });
