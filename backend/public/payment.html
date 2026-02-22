@@ -39,6 +39,7 @@
                             <h3 class="font-semibold">🥉 BASIC</h3>
                             <p class="text-sm text-gray-400">1 mois d'accès</p>
                             <div class="text-xs text-gray-300">✓ Toutes les fonctionnalités</div>
+                            <div class="text-xs text-gray-400">~152 EUR</div>
                         </div>
                         <div class="text-right">
                             <div class="text-xl font-bold green-accent">100,000</div>
@@ -54,11 +55,51 @@
                             <p class="text-sm text-gray-400">1 an d'accès</p>
                             <div class="text-xs text-gray-300">✓ Toutes les fonctionnalités</div>
                             <div class="text-xs text-green-400">🎉 Économisez 200,000 XOF</div>
+                            <div class="text-xs text-gray-400">~1,527 EUR</div>
                         </div>
                         <div class="text-right">
                             <div class="text-xl font-bold green-accent">1,000,000</div>
                             <div class="text-xs">XOF</div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Method Selection -->
+        <div id="paymentMethodSelection" class="bg-gray-800 p-6 rounded-lg mb-6 hidden">
+            <h2 class="text-lg font-semibold mb-4">Choisissez votre moyen de paiement</h2>
+            
+            <div class="space-y-3">
+                <!-- Orange Money -->
+                <div onclick="selectPaymentMethod('ussd')" class="payment-method bg-gray-700 p-4 rounded cursor-pointer hover:bg-gray-600 border-2 border-transparent">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center mr-3">
+                                📱
+                            </div>
+                            <div>
+                                <div class="font-semibold">Orange Money</div>
+                                <div class="text-sm text-gray-400">Paiement local instantané</div>
+                            </div>
+                        </div>
+                        <div class="text-green-400">✓ Recommandé</div>
+                    </div>
+                </div>
+                
+                <!-- Carte bancaire -->
+                <div onclick="selectPaymentMethod('stripe')" class="payment-method bg-gray-700 p-4 rounded cursor-pointer hover:bg-gray-600 border-2 border-transparent">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                                💳
+                            </div>
+                            <div>
+                                <div class="font-semibold">Carte bancaire</div>
+                                <div class="text-sm text-gray-400">Visa, Mastercard, etc.</div>
+                            </div>
+                        </div>
+                        <div class="text-blue-400">International</div>
                     </div>
                 </div>
             </div>
@@ -97,9 +138,9 @@
             </div>
         </div>
 
-        <!-- Payment Proof -->
-        <div id="paymentProof" class="bg-gray-800 p-6 rounded-lg hidden">
-            <h2 class="text-lg font-semibold mb-4">Confirmer votre paiement</h2>
+        <!-- USSD Payment Proof -->
+        <div id="ussdPaymentProof" class="bg-gray-800 p-6 rounded-lg hidden">
+            <h2 class="text-lg font-semibold mb-4">Confirmer votre paiement Orange Money</h2>
             
             <div class="space-y-4">
                 <div>
@@ -114,11 +155,34 @@
                            class="w-full p-2 bg-gray-700 rounded" required>
                 </div>
                 
-                <button onclick="submitPaymentProof()" 
+                <button onclick="submitUSSDPaymentProof()" 
                         class="w-full btn-green py-2 rounded hover:bg-green-600">
                     Envoyer pour validation
                 </button>
             </div>
+        </div>
+
+        <!-- Stripe Payment -->
+        <div id="stripePayment" class="bg-gray-800 p-6 rounded-lg hidden">
+            <h2 class="text-lg font-semibold mb-4">Paiement par carte bancaire</h2>
+            
+            <div class="bg-gray-700 p-4 rounded mb-4">
+                <div class="text-center">
+                    <p class="text-sm text-gray-400 mb-2">Vous allez être redirigé vers Stripe</p>
+                    <p class="text-sm text-gray-300">Paiement sécurisé avec Visa, Mastercard, etc.</p>
+                </div>
+            </div>
+
+            <div class="bg-yellow-900 bg-opacity-30 p-3 rounded mb-4">
+                <p class="text-sm text-yellow-400">
+                    💡 Le montant sera affiché en EUR (conversion automatique)
+                </p>
+            </div>
+            
+            <button onclick="payWithStripe()" 
+                    class="w-full bg-blue-600 py-2 rounded hover:bg-blue-700 text-white font-semibold">
+                💳 Payer avec Stripe
+            </button>
         </div>
 
         <!-- Message -->
@@ -135,6 +199,7 @@
     <script>
         const API_URL = 'https://kabrak-exchange-pro-production.up.railway.app/api';
         let selectedPlan = null;
+        let selectedPaymentMethod = null;
         let currentUser = null;
         const MERCHANT_CODE = '1341156'; // Ton code marchand
 
@@ -170,16 +235,39 @@
             event.currentTarget.classList.remove('border-transparent');
             event.currentTarget.classList.add('border-green-500');
             
-            // Afficher les instructions
-            const amount = planAmounts[plan];
-            const ussdCode = `#150*1*1*${MERCHANT_CODE}*${amount}#`;
-            
-            document.getElementById('ussdCode').textContent = ussdCode;
-            document.getElementById('paymentInstructions').classList.remove('hidden');
-            document.getElementById('paymentProof').classList.remove('hidden');
+            // Afficher le choix du moyen de paiement
+            document.getElementById('paymentMethodSelection').classList.remove('hidden');
         }
 
-        async function submitPaymentProof() {
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            
+            // Mettre à jour l'UI
+            document.querySelectorAll('.payment-method').forEach(card => {
+                card.classList.remove('border-green-500');
+                card.classList.add('border-transparent');
+            });
+            
+            event.currentTarget.classList.remove('border-transparent');
+            event.currentTarget.classList.add('border-green-500');
+            
+            // Afficher les instructions selon le moyen
+            if (method === 'ussd') {
+                const amount = planAmounts[selectedPlan];
+                const ussdCode = `#150*1*1*${MERCHANT_CODE}*${amount}#`;
+                
+                document.getElementById('ussdCode').textContent = ussdCode;
+                document.getElementById('paymentInstructions').classList.remove('hidden');
+                document.getElementById('ussdPaymentProof').classList.remove('hidden');
+                document.getElementById('stripePayment').classList.add('hidden');
+            } else if (method === 'stripe') {
+                document.getElementById('paymentInstructions').classList.add('hidden');
+                document.getElementById('ussdPaymentProof').classList.add('hidden');
+                document.getElementById('stripePayment').classList.remove('hidden');
+            }
+        }
+
+        async function submitUSSDPaymentProof() {
             const reference = document.getElementById('reference').value.trim();
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
             
@@ -227,6 +315,43 @@
                     }, 3000);
                 } else {
                     showMessage(data.message || 'Erreur lors de l\'envoi', 'error');
+                }
+            } catch (e) {
+                showMessage('Erreur réseau. Réessayez.', 'error');
+            }
+            
+            messageDiv.classList.remove('hidden');
+        }
+
+        async function payWithStripe() {
+            if (!currentUser || !selectedPlan) {
+                showMessage('Erreur : utilisateur ou plan non sélectionné', 'error');
+                return;
+            }
+            
+            const messageDiv = document.getElementById('message');
+            messageDiv.classList.add('hidden');
+            
+            try {
+                const response = await fetch(`${API_URL}/payments/stripe/create`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('kabrakToken')}`
+                    },
+                    body: JSON.stringify({
+                        userId: currentUser.id,
+                        plan: selectedPlan
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Rediriger vers Stripe
+                    window.location.href = data.url;
+                } else {
+                    showMessage(data.message || 'Erreur lors de la création du paiement', 'error');
                 }
             } catch (e) {
                 showMessage('Erreur réseau. Réessayez.', 'error');
