@@ -12,6 +12,7 @@ const Setting = require('./Setting');
 const Deposit = require('./Deposit');
 const DepositOrder = require('./DepositOrder');
 const CashClose = require('./CashClose');
+const PaymentProof = require('./paymentProof.model');
 
 // User associations
 User.hasMany(Transaction, { foreignKey: 'userId', as: 'transactions' });
@@ -21,6 +22,8 @@ User.hasMany(Deposit, { foreignKey: 'userId', as: 'deposits' });
 User.hasMany(DepositOrder, { foreignKey: 'userId', as: 'depositOrders' });
 User.hasMany(License, { foreignKey: 'userId', as: 'licenses' });
 License.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+User.hasMany(PaymentProof, { foreignKey: 'userId', as: 'paymentProofs' });
+PaymentProof.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 DepositOrder.belongsTo(User, { foreignKey: 'userId', as: 'operator' });
 Deposit.belongsTo(User, { foreignKey: 'userId', as: 'operator' });
 
@@ -65,4 +68,5 @@ module.exports = {
   DepositOrder,
   Setting,
   CashClose,
+  PaymentProof,
 };
