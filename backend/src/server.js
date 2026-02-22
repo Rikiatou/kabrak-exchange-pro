@@ -41,7 +41,7 @@ app.use(cors({
     if (!origin) return callback(null, true);
     const isAllowed = allowedOrigins.some(o => origin === o) ||
       /^https:\/\/kabrak-exchange-website(-[a-z0-9]+-rikiatous-projects)?\.vercel\.app$/.test(origin);
-    callback(isAllowed ? null : new Error('Not allowed by CORS'), isAllowed);
+    callback(null, isAllowed);
   },
   credentials: true,
 }));
