@@ -2,9 +2,36 @@ const express = require('express');
 const router = express.Router();
 const { License } = require('../models');
 const { Op } = require('sequelize');
+const jwt = require('jsonwebtoken');
+const { adminAuth } = require('../middleware/admin.middleware');
 
-// GET /admin/licenses — voir toutes les licences
-router.get('/licenses', async (req, res) => {
+// POST /admin/login — login admin
+router.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    
+    // Admin credentials (à remplacer par variables d'environnement)
+    const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'kabrak';
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Kabrak2026!';
+    
+    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    const token = jwt.sign(
+      { role: 'admin', username },
+      process.env.JWT_SECRET || 'kabrak-admin-secret-2026',
+      { expiresIn: '24h' }
+    );
+    
+    res.json({ success: true, token, message: 'Logged in successfully' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /admin/licenses — voir toutes les licences (protégé)
+router.get('/licenses', adminAuth, async (req, res) => {
   try {
     const licenses = await License.findAll({
       order: [['createdAt', 'DESC']]
@@ -15,8 +42,8 @@ router.get('/licenses', async (req, res) => {
   }
 });
 
-// POST /admin/licenses/:id/approve — approuver une licence avec durée personnalisée
-router.post('/licenses/:id/approve', async (req, res) => {
+// POST /admin/licenses/:id/approve — approuver une licence avec durée personnalisée (protégé)
+router.post('/licenses/:id/approve', adminAuth, async (req, res) => {
   try {
     const { days = 90 } = req.body; // durée par défaut 90 jours
     const license = await License.findByPk(req.params.id);
@@ -35,8 +62,8 @@ router.post('/licenses/:id/approve', async (req, res) => {
   }
 });
 
-// POST /admin/licenses/:id/extend — étendre une licence existante
-router.post('/licenses/:id/extend', async (req, res) => {
+// POST /admin/licenses/:id/extend — étendre une licence existante (protégé)
+router.post('/licenses/:id/extend', adminAuth, async (req, res) => {
   try {
     const { days = 30 } = req.body;
     const license = await License.findByPk(req.params.id);
@@ -56,8 +83,8 @@ router.post('/licenses/:id/extend', async (req, res) => {
   }
 });
 
-// POST /admin/licenses/:id/plan — changer le plan d'une licence
-router.post('/licenses/:id/plan', async (req, res) => {
+// POST /admin/licenses/:id/plan — changer le plan d'une licence (protégé)
+router.post('/licenses/:id/plan', adminAuth, async (req, res) => {
   try {
     const { plan } = req.body; // basic, pro, premium
     const license = await License.findByPk(req.params.id);
@@ -70,8 +97,8 @@ router.post('/licenses/:id/plan', async (req, res) => {
   }
 });
 
-// GET /admin/licenses/stats — statistiques
-router.get('/licenses/stats', async (req, res) => {
+// GET /admin/licenses/stats — statistiques (protégé)
+router.get('/licenses/stats', adminAuth, async (req, res) => {
   try {
     const now = new Date();
     const total = await License.count();
