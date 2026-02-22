@@ -9,7 +9,7 @@ const sendNotificationEmail = async ({ businessName, ownerName, ownerEmail, owne
   if (!process.env.RESEND_API_KEY) return;
   try {
     await resend.emails.send({
-      from: 'KABRAK Exchange Pro <kabrakeng@gmail.com>',
+      from: 'KABRAK Exchange Pro <noreply@kabrakeng.com>',
       to: process.env.NOTIFY_EMAIL || 'kabrakeng@gmail.com',
       subject: `🔔 Nouvelle demande de licence — ${businessName}`,
       html: `
