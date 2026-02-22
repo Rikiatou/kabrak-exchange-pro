@@ -1,6 +1,40 @@
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const { License } = require('../models');
 const { Op } = require('sequelize');
+
+const sendNotificationEmail = async ({ businessName, ownerName, ownerEmail, ownerPhone, country, message }) => {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) return;
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
+    });
+    await transporter.sendMail({
+      from: `"KABRAK Exchange Pro" <${process.env.GMAIL_USER}>`,
+      to: process.env.NOTIFY_EMAIL || 'kabrakeng@gmail.com',
+      subject: `🔔 Nouvelle demande de licence — ${businessName}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#071a12;color:#fff;padding:30px;border-radius:12px">
+          <h2 style="color:#e8a020;margin-bottom:20px">🔔 Nouvelle demande de licence</h2>
+          <table style="width:100%;border-collapse:collapse">
+            <tr><td style="padding:8px 0;color:#9ca3af;width:140px">Bureau de change</td><td style="padding:8px 0;font-weight:bold">${businessName}</td></tr>
+            <tr><td style="padding:8px 0;color:#9ca3af">Nom</td><td style="padding:8px 0">${ownerName}</td></tr>
+            <tr><td style="padding:8px 0;color:#9ca3af">Email</td><td style="padding:8px 0"><a href="mailto:${ownerEmail}" style="color:#0B6E4F">${ownerEmail}</a></td></tr>
+            <tr><td style="padding:8px 0;color:#9ca3af">Téléphone</td><td style="padding:8px 0"><a href="https://wa.me/${(ownerPhone||'').replace(/[^0-9]/g,'')}" style="color:#25D366">${ownerPhone || '-'}</a></td></tr>
+            <tr><td style="padding:8px 0;color:#9ca3af">Pays</td><td style="padding:8px 0">${country || '-'}</td></tr>
+            ${message ? `<tr><td style="padding:8px 0;color:#9ca3af">Message</td><td style="padding:8px 0">${message}</td></tr>` : ''}
+          </table>
+          <div style="margin-top:24px;padding:16px;background:rgba(11,110,79,0.2);border-radius:8px">
+            <p style="margin:0;font-size:13px;color:#9ca3af">Réponds directement à cet email ou contacte le client sur WhatsApp.</p>
+          </div>
+        </div>
+      `,
+    });
+  } catch (e) {
+    console.error('Email notification failed:', e.message);
+  }
+};
 
 const generateLicenseKey = () => {
   return crypto.randomBytes(16).toString('hex').toUpperCase().match(/.{4}/g).join('-');
@@ -159,6 +193,7 @@ const requestLicense = async (req, res) => {
       notes: message || null
     });
     res.status(201).json({ success: true, message: 'Your request has been received. We will contact you within 24 hours. / Votre demande a été reçue. Nous vous contacterons dans les 24 heures.' });
+    sendNotificationEmail({ businessName, ownerName, ownerEmail, ownerPhone, country, message });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
   }
