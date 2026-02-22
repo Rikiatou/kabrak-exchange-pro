@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KABRAK Admin - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #071a12; }
+        .green-accent { color: #e8a020; }
+        .btn-green { background: #0B6E4F; }
+        .btn-green:hover { background: #0a5d41; }
+    </style>
+</head>
+<body class="min-h-screen text-white flex items-center justify-center">
+    <div class="bg-gray-800 p-8 rounded-lg max-w-md w-full mx-4">
+        <h1 class="text-2xl font-bold green-accent mb-6 text-center">🔐 KABRAK Admin</h1>
+        
+        <div id="loginForm">
+            <h2 class="text-lg mb-4">Connexion Administrateur</h2>
+            <form onsubmit="login(event)">
+                <div class="mb-4">
+                    <label class="block mb-2">Nom d'utilisateur:</label>
+                    <input type="text" id="username" class="w-full p-2 bg-gray-700 rounded" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block mb-2">Mot de passe:</label>
+                    <input type="password" id="password" class="w-full p-2 bg-gray-700 rounded" required>
+                </div>
+                <button type="submit" class="w-full btn-green py-2 rounded hover:bg-green-600">
+                    Se connecter
+                </button>
+            </form>
+            <div id="loginError" class="text-red-500 mt-4 hidden"></div>
+        </div>
+
+        <div id="adminPanel" class="hidden">
+            <div class="mb-4 flex justify-between items-center">
+                <h2 class="text-lg">Gestion des Licences</h2>
+                <button onclick="logout()" class="px-3 py-1 bg-red-600 rounded text-sm hover:bg-red-700">
+                    Déconnexion
+                </button>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="bg-gray-700 p-3 rounded text-center">
+                    <div class="text-2xl font-bold green-accent" id="totalLicenses">0</div>
+                    <div class="text-xs">Total</div>
+                </div>
+                <div class="bg-gray-700 p-3 rounded text-center">
+                    <div class="text-2xl font-bold text-yellow-500" id="pendingLicenses">0</div>
+                    <div class="text-xs">Attente</div>
+                </div>
+                <div class="bg-gray-700 p-3 rounded text-center">
+                    <div class="text-2xl font-bold text-green-500" id="activeLicenses">0</div>
+                    <div class="text-xs">Actives</div>
+                </div>
+            </div>
+
+            <!-- Licences List -->
+            <div class="bg-gray-700 rounded p-4 max-h-96 overflow-y-auto">
+                <h3 class="font-semibold mb-3">Licences</h3>
+                <div id="licensesList" class="space-y-2">
+                    <div class="text-center text-gray-500">Chargement...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Modal -->
+    <div id="actionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
+            <h3 class="text-xl font-semibold mb-4" id="modalTitle">Action</h3>
+            <div id="modalContent"></div>
+            <div class="flex gap-3 mt-4">
+                <button onclick="closeModal()" class="px-4 py-2 bg-gray-600 rounded hover:bg-gray-700">Annuler</button>
+                <button id="modalConfirm" class="px-4 py-2 btn-green rounded hover:bg-green-600">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://kabrak-exchange-pro-production.up.railway.app/api';
+        let adminToken = localStorage.getItem('kabrakAdminToken');
+        let currentLicenseId = null;
+
+        // Check if already logged in
+        if (adminToken) {
+            showAdminPanel();
+        }
+
+        // Login
+        async function login(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+
+            try {
+                const response = await fetch(`${API_URL}/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    adminToken = data.token;
+                    localStorage.setItem('kabrakAdminToken', adminToken);
+                    showAdminPanel();
+                } else {
+                    errorDiv.textContent = data.error || 'Erreur de connexion';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (e) {
+                errorDiv.textContent = 'Erreur réseau';
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        // Logout
+        function logout() {
+            adminToken = null;
+            localStorage.removeItem('kabrakAdminToken');
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        // Show admin panel
+        function showAdminPanel() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('adminPanel').classList.remove('hidden');
+            loadStats();
+            loadLicenses();
+        }
+
+        // API calls with auth
+        async function apiCall(endpoint, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminToken}`,
+                ...options.headers
+            };
+            return fetch(`${API_URL}${endpoint}`, { ...options, headers });
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const response = await apiCall('/admin/licenses/stats');
+                const stats = await response.json();
+                document.getElementById('totalLicenses').textContent = stats.total || 0;
+                document.getElementById('pendingLicenses').textContent = stats.pending || 0;
+                document.getElementById('activeLicenses').textContent = stats.active || 0;
+            } catch (e) {
+                console.error('Error loading stats:', e);
+            }
+        }
+
+        // Load licenses
+        async function loadLicenses() {
+            try {
+                const response = await apiCall('/admin/licenses');
+                const licenses = await response.json();
+                
+                const listDiv = document.getElementById('licensesList');
+                listDiv.innerHTML = '';
+                
+                licenses.forEach(license => {
+                    const statusColor = license.status === 'active' ? 'text-green-500' : 
+                                     license.status === 'pending' ? 'text-yellow-500' : 'text-red-500';
+                    const statusText = license.status === 'active' ? 'Actif' : 
+                                      license.status === 'pending' ? 'Attente' : 'Expiré';
+                    
+                    const expiryDate = license.expiresAt ? new Date(license.expiresAt).toLocaleDateString('fr-FR') : 'N/A';
+                    
+                    const licenseDiv = document.createElement('div');
+                    licenseDiv.className = 'bg-gray-600 p-3 rounded';
+                    licenseDiv.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <div class="font-semibold">${license.businessName}</div>
+                                <div class="text-sm text-gray-300">${license.ownerEmail}</div>
+                            </div>
+                            <div class="${statusColor} text-sm">${statusText}</div>
+                        </div>
+                        <div class="text-sm text-gray-400 mb-2">
+                            Plan: ${license.plan || 'trial'} | Expire: ${expiryDate}
+                        </div>
+                        <div class="flex gap-2">
+                            ${license.status === 'pending' ? `<button onclick="approveLicense('${license.id}')" class="px-2 py-1 btn-green text-xs rounded">Approuver</button>` : ''}
+                            <button onclick="extendLicense('${license.id}')" class="px-2 py-1 bg-blue-600 text-xs rounded hover:bg-blue-700">Étendre</button>
+                            <button onclick="changePlan('${license.id}')" class="px-2 py-1 bg-purple-600 text-xs rounded hover:bg-purple-700">Plan</button>
+                        </div>
+                    `;
+                    listDiv.appendChild(licenseDiv);
+                });
+            } catch (e) {
+                console.error('Error loading licenses:', e);
+                document.getElementById('licensesList').innerHTML = '<div class="text-center text-red-500">Erreur de chargement</div>';
+            }
+        }
+
+        // Action functions
+        function approveLicense(id) {
+            currentLicenseId = id;
+            document.getElementById('modalTitle').textContent = 'Approuver Licence';
+            document.getElementById('modalContent').innerHTML = `
+                <label class="block mb-2">Durée (jours):</label>
+                <select id="approveDays" class="w-full p-2 bg-gray-700 rounded">
+                    <option value="30">30 jours</option>
+                    <option value="90" selected>90 jours</option>
+                    <option value="180">180 jours</option>
+                    <option value="365">1 an</option>
+                </select>
+            `;
+            document.getElementById('modalConfirm').onclick = confirmApprove;
+            document.getElementById('actionModal').classList.remove('hidden');
+        }
+
+        function extendLicense(id) {
+            currentLicenseId = id;
+            document.getElementById('modalTitle').textContent = 'Étendre Licence';
+            document.getElementById('modalContent').innerHTML = `
+                <label class="block mb-2">Ajouter (jours):</label>
+                <select id="extendDays" class="w-full p-2 bg-gray-700 rounded">
+                    <option value="7">7 jours</option>
+                    <option value="30" selected>30 jours</option>
+                    <option value="90">90 jours</option>
+                    <option value="365">1 an</option>
+                </select>
+            `;
+            document.getElementById('modalConfirm').onclick = confirmExtend;
+            document.getElementById('actionModal').classList.remove('hidden');
+        }
+
+        function changePlan(id) {
+            currentLicenseId = id;
+            document.getElementById('modalTitle').textContent = 'Changer Plan';
+            document.getElementById('modalContent').innerHTML = `
+                <label class="block mb-2">Nouveau plan:</label>
+                <select id="newPlan" class="w-full p-2 bg-gray-700 rounded">
+                    <option value="basic">Basic</option>
+                    <option value="pro">Pro</option>
+                    <option value="premium">Premium</option>
+                </select>
+            `;
+            document.getElementById('modalConfirm').onclick = confirmPlan;
+            document.getElementById('actionModal').classList.remove('hidden');
+        }
+
+        // Confirm actions
+        async function confirmApprove() {
+            const days = document.getElementById('approveDays').value;
+            try {
+                const response = await apiCall(`/admin/licenses/${currentLicenseId}/approve`, {
+                    method: 'POST',
+                    body: JSON.stringify({ days: parseInt(days) })
+                });
+                if (response.ok) {
+                    closeModal();
+                    loadLicenses();
+                    loadStats();
+                }
+            } catch (e) {
+                console.error('Error approving license:', e);
+            }
+        }
+
+        async function confirmExtend() {
+            const days = document.getElementById('extendDays').value;
+            try {
+                const response = await apiCall(`/admin/licenses/${currentLicenseId}/extend`, {
+                    method: 'POST',
+                    body: JSON.stringify({ days: parseInt(days) })
+                });
+                if (response.ok) {
+                    closeModal();
+                    loadLicenses();
+                    loadStats();
+                }
+            } catch (e) {
+                console.error('Error extending license:', e);
+            }
+        }
+
+        async function confirmPlan() {
+            const plan = document.getElementById('newPlan').value;
+            try {
+                const response = await apiCall(`/admin/licenses/${currentLicenseId}/plan`, {
+                    method: 'POST',
+                    body: JSON.stringify({ plan })
+                });
+                if (response.ok) {
+                    closeModal();
+                    loadLicenses();
+                }
+            } catch (e) {
+                console.error('Error changing plan:', e);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('actionModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

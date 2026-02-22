@@ -95,6 +95,7 @@ app.use('/api/exchange-rates', exchangeRatesRoutes);
 app.use('/api/cash-close', cashCloseRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/admin', express.static(path.join(__dirname, '../public')));
 
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'Exchange Management API is running', version: '1.0.0' });
