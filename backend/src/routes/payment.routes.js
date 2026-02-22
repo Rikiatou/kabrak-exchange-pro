@@ -27,9 +27,8 @@ router.post('/ussd-proof', async (req, res) => {
     // Vérifier que le montant correspond au plan
     const planAmounts = {
       trial: 0,
-      basic: 10000,
-      pro: 25000,
-      premium: 80000
+      basic: 100000,    // 100,000 XOF/mois
+      premium: 990000   // 990,000 XOF/an
     };
     
     if (planAmounts[plan] !== amount) {
@@ -113,9 +112,8 @@ router.post('/:id/validate', adminAuth, async (req, res) => {
     
     // Activer ou étendre la licence
     const licenseDurations = {
-      basic: 30,    // 30 jours
-      pro: 90,      // 90 jours
-      premium: 365  // 1 an
+      basic: 30,      // 1 mois
+      premium: 365    // 1 an
     };
     
     const days = licenseDurations[paymentProof.plan];
