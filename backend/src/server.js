@@ -34,7 +34,7 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet());
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-  : ['http://localhost:3000', 'http://localhost:8090', 'http://localhost:19006'];
+  : ['http://localhost:3000', 'http://localhost:8090', 'http://localhost:19006', 'https://exchange.kabrakeng.com'];
 
 app.use(cors({
   origin: (origin, callback) => {
