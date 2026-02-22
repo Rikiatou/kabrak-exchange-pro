@@ -24,7 +24,7 @@ router.post('/licenses/:id/approve', async (req, res) => {
     await license.update({
       status: 'active',
       startsAt: new Date(),
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 jours
+      expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 90 jours
     });
     
     res.json({ success: true, license });
