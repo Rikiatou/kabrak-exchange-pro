@@ -38,4 +38,4 @@ const Client = sequelize.define('Client', {
   }
 });
 
-module.exports = Client;
+module.exports = (sequelize) => Client;

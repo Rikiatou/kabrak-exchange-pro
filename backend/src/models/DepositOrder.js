@@ -35,4 +35,4 @@ const DepositOrder = sequelize.define('DepositOrder', {
   }
 });
 
-module.exports = DepositOrder;
+module.exports = (sequelize) => DepositOrder;

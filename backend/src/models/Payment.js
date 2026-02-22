@@ -15,4 +15,4 @@ const Payment = sequelize.define('Payment', {
   tableName: 'payments'
 });
 
-module.exports = Payment;
+module.exports = (sequelize) => Payment;

@@ -34,4 +34,4 @@ const License = sequelize.define('License', {
   tableName: 'licenses'
 });
 
-module.exports = License;
+module.exports = (sequelize) => License;

@@ -1,18 +1,20 @@
-const User = require('./user.model');
-const Client = require('./Client');
-const Currency = require('./Currency');
-const Transaction = require('./Transaction');
-const Payment = require('./Payment');
-const CashBook = require('./CashBook');
-const RateHistory = require('./RateHistory');
-const AuditLog = require('./AuditLog');
-const Alert = require('./Alert');
-const License = require('./License');
-const Setting = require('./Setting');
-const Deposit = require('./Deposit');
-const DepositOrder = require('./DepositOrder');
-const CashClose = require('./CashClose');
-const PaymentProof = require('./paymentProof.model');
+const { sequelize } = require('../database/connection');
+
+const User = require('./user.model')(sequelize);
+const Client = require('./Client')(sequelize);
+const Currency = require('./Currency')(sequelize);
+const Transaction = require('./Transaction')(sequelize);
+const Payment = require('./Payment')(sequelize);
+const CashBook = require('./CashBook')(sequelize);
+const RateHistory = require('./RateHistory')(sequelize);
+const AuditLog = require('./AuditLog')(sequelize);
+const Alert = require('./Alert')(sequelize);
+const License = require('./License')(sequelize);
+const Setting = require('./Setting')(sequelize);
+const Deposit = require('./Deposit')(sequelize);
+const DepositOrder = require('./DepositOrder')(sequelize);
+const CashClose = require('./CashClose')(sequelize);
+const PaymentProof = require('./paymentProof.model')(sequelize);
 
 // User associations
 User.hasMany(Transaction, { foreignKey: 'userId', as: 'transactions' });

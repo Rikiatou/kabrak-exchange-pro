@@ -15,4 +15,4 @@ const Alert = sequelize.define('Alert', {
   updatedAt: false
 });
 
-module.exports = Alert;
+module.exports = (sequelize) => Alert;

@@ -12,4 +12,4 @@ const RateHistory = sequelize.define('RateHistory', {
   tableName: 'rate_history'
 });
 
-module.exports = RateHistory;
+module.exports = (sequelize) => RateHistory;

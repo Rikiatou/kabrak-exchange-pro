@@ -10,4 +10,4 @@ const Setting = sequelize.define('Setting', {
   timestamps: false,
 });
 
-module.exports = Setting;
+module.exports = (sequelize) => Setting;

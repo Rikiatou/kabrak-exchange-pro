@@ -17,4 +17,4 @@ const Currency = sequelize.define('Currency', {
   tableName: 'currencies'
 });
 
-module.exports = Currency;
+module.exports = (sequelize) => Currency;

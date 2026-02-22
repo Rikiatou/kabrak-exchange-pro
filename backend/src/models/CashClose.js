@@ -20,4 +20,4 @@ const CashClose = sequelize.define('CashClose', {
   tableName: 'cash_closes',
 });
 
-module.exports = CashClose;
+module.exports = (sequelize) => CashClose;

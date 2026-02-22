@@ -17,4 +17,4 @@ const AuditLog = sequelize.define('AuditLog', {
   updatedAt: false
 });
 
-module.exports = AuditLog;
+module.exports = (sequelize) => AuditLog;

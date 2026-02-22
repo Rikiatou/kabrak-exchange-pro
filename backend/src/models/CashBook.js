@@ -18,4 +18,4 @@ const CashBook = sequelize.define('CashBook', {
   tableName: 'cashbook'
 });
 
-module.exports = CashBook;
+module.exports = (sequelize) => CashBook;

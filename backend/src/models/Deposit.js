@@ -36,4 +36,4 @@ const Deposit = sequelize.define('Deposit', {
   }
 });
 
-module.exports = Deposit;
+module.exports = (sequelize) => Deposit;
