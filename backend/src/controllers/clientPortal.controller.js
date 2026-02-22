@@ -1,14 +1,14 @@
 const { Client, DepositOrder, Deposit, User } = require('../models');
-const { Expo } = require('expo-server-sdk');
+const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 
-const expo = new Expo();
+const isExpoPushToken = (token) => typeof token === 'string' && /^Expo(nent)?PushToken\[.+\]$/.test(token);
 
 const sendPush = async (token, title, body, data = {}) => {
-  if (!token || !Expo.isExpoPushToken(token)) return;
+  if (!token || !isExpoPushToken(token)) return;
   try {
-    await expo.sendPushNotificationsAsync([{ to: token, title, body, data, sound: 'default' }]);
+    await axios.post('https://exp.host/--/api/v2/push/send', { to: token, title, body, data, sound: 'default' }, { headers: { 'Content-Type': 'application/json' } });
   } catch (_) {}
 };
 
