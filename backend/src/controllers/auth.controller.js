@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const bcrypt = require('bcryptjs');
+const { User, License } = require('../models');
 
 const ACCESS_EXPIRES = '1h';
 const REFRESH_EXPIRES = '30d';
@@ -87,4 +88,83 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = { login, getMe, changePassword, refreshToken };
+const register = async (req, res) => {
+  try {
+    const { email, password, firstName, lastName, phone, businessName } = req.body;
+    
+    // Vérifier si l'utilisateur existe déjà
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'Cet email est déjà utilisé' });
+    }
+    
+    // Hasher le mot de passe
+    const hashedPassword = await bcrypt.hash(password, 12);
+    
+    // Créer l'utilisateur
+    const user = await User.create({
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      phone,
+      businessName
+    });
+    
+    // Créer une licence trial
+    const licenseKey = generateLicenseKey();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours trial
+    
+    await License.create({
+      userId: user.id,
+      businessName: businessName || `${firstName} ${lastName}`,
+      ownerName: `${firstName} ${lastName}`,
+      ownerEmail: email,
+      ownerPhone: phone,
+      plan: 'trial',
+      status: 'active',
+      licenseKey,
+      startsAt: new Date(),
+      expiresAt
+    });
+    
+    // Générer le token
+    const token = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Compte créé avec succès',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        businessName: user.businessName
+      },
+      token,
+      refreshToken,
+      license: {
+        licenseKey,
+        plan: 'trial',
+        expiresAt
+      }
+    });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+};
+
+function generateLicenseKey() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = 'KAB-';
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    if (i < 3) result += '-';
+  }
+  return result;
+}
+
+module.exports = { login, getMe, changePassword, refreshToken, register };

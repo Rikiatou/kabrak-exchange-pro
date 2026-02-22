@@ -1,4 +1,4 @@
-const User = require('./User');
+const User = require('./user.model');
 const Client = require('./Client');
 const Currency = require('./Currency');
 const Transaction = require('./Transaction');
@@ -19,6 +19,8 @@ User.hasMany(Payment, { foreignKey: 'userId', as: 'payments' });
 User.hasMany(CashBook, { foreignKey: 'userId', as: 'cashbooks' });
 User.hasMany(Deposit, { foreignKey: 'userId', as: 'deposits' });
 User.hasMany(DepositOrder, { foreignKey: 'userId', as: 'depositOrders' });
+User.hasMany(License, { foreignKey: 'userId', as: 'licenses' });
+License.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 DepositOrder.belongsTo(User, { foreignKey: 'userId', as: 'operator' });
 Deposit.belongsTo(User, { foreignKey: 'userId', as: 'operator' });
 

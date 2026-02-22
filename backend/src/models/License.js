@@ -3,9 +3,17 @@ const { sequelize } = require('../database/connection');
 
 const License = sequelize.define('License', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  userId: { 
+    type: DataTypes.UUID, 
+    allowNull: false,
+    references: {
+      model: 'users',
+      key: 'id'
+    }
+  },
   businessName: { type: DataTypes.STRING, allowNull: false },
   ownerName: { type: DataTypes.STRING, allowNull: false },
-  ownerEmail: { type: DataTypes.STRING, allowNull: false, unique: true, validate: { isEmail: true } },
+  ownerEmail: { type: DataTypes.STRING, allowNull: false, validate: { isEmail: true } },
   ownerPhone: { type: DataTypes.STRING, allowNull: true },
   country: { type: DataTypes.STRING, allowNull: true },
   plan: {
