@@ -27,8 +27,8 @@ router.post('/ussd-proof', async (req, res) => {
     // Vérifier que le montant correspond au plan
     const planAmounts = {
       trial: 0,
-      basic: 100000,    // 100,000 XOF/mois
-      premium: 900000   // 900,000 XOF/an
+      basic: 100000,     // 100,000 XOF/mois
+      premium: 1000000   // 1,000,000 XOF/an
     };
     
     if (planAmounts[plan] !== amount) {
