@@ -128,6 +128,10 @@ const migrateClientCodes = async () => {
   if (clients.length > 0) console.log(`Generated clientCode for ${clients.length} existing clients.`);
 };
 
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
 sequelize.authenticate()
   .then(() => {
     console.log('Database connected successfully.');
@@ -135,13 +139,10 @@ sequelize.authenticate()
   })
   .then(async () => {
     await migrateClientCodes();
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    console.log('Database synced successfully.');
   })
   .catch(err => {
     console.error('Unable to connect to database:', err);
-    process.exit(1);
   });
 
 module.exports = app;
