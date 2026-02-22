@@ -5,6 +5,11 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 
+console.log('🚀 Starting KABRAK Exchange Pro Backend...');
+console.log('📊 Environment:', process.env.NODE_ENV);
+console.log('🔌 Port:', process.env.PORT || 5000);
+console.log('🗄️ Database URL exists:', !!process.env.DATABASE_URL);
+
 const { sequelize } = require('./database/connection');
 const authRoutes = require('./routes/auth.routes');
 const clientRoutes = require('./routes/client.routes');
@@ -97,25 +102,55 @@ app.use('/api/search', searchRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/admin', express.static(path.join(__dirname, '../public')));
 
+// Simple healthcheck without database dependency
+app.get('/api/health-simple', (req, res) => {
+  console.log('🏥 Simple healthcheck requested at:', new Date().toISOString());
+  
+  const response = { 
+    success: true, 
+    message: 'Exchange Management API is running (simple check)',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  };
+  
+  console.log('🟢 Simple healthcheck passed:', response);
+  res.json(response);
+});
+
+// Full healthcheck with database
 app.get('/api/health', async (req, res) => {
+  console.log('🏥 Full healthcheck requested at:', new Date().toISOString());
+  
   try {
+    console.log('🔍 Testing database connection...');
     // Test database connection
     await sequelize.authenticate();
+    console.log('✅ Database connection successful');
     
-    res.json({ 
+    const response = { 
       success: true, 
       message: 'Exchange Management API is running',
       version: '1.0.0',
       database: 'connected',
       timestamp: new Date().toISOString()
-    });
+    };
+    
+    console.log('🟢 Full healthcheck passed:', response);
+    res.json(response);
   } catch (error) {
-    res.status(503).json({ 
+    console.error('❌ Database connection failed:', error.message);
+    console.error('🔥 Full database error:', error);
+    
+    const response = { 
       success: false, 
       message: 'Database not connected',
       error: error.message,
       timestamp: new Date().toISOString()
-    });
+    };
+    
+    console.log('🔴 Full healthcheck failed:', response);
+    res.status(503).json(response);
   }
 });
 
@@ -150,20 +185,26 @@ const migrateClientCodes = async () => {
 };
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🌐 Server running on port ${PORT}`);
+  console.log(`🔗 Healthcheck available at: http://localhost:${PORT}/api/health`);
 });
 
+console.log('🗄️ Starting database connection...');
 sequelize.authenticate()
   .then(() => {
-    console.log('Database connected successfully.');
+    console.log('✅ Database connected successfully.');
+    console.log('🔄 Syncing database models...');
     return sequelize.sync({ alter: true });
   })
   .then(async () => {
+    console.log('🔄 Running client code migration...');
     await migrateClientCodes();
-    console.log('Database synced successfully.');
+    console.log('✅ Database synced successfully.');
+    console.log('🚀 KABRAK Exchange Pro Backend is ready!');
   })
   .catch(err => {
-    console.error('Unable to connect to database:', err);
+    console.error('❌ Unable to connect to database:', err);
+    console.error('🔥 Full database error:', err);
   });
 
 module.exports = app;
