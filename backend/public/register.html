@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KABRAK Exchange - Inscription</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #071a12; }
+        .green-accent { color: #e8a020; }
+        .btn-green { background: #0B6E4F; }
+        .btn-green:hover { background: #0a5d41; }
+    </style>
+</head>
+<body class="min-h-screen text-white flex items-center justify-center">
+    <div class="bg-gray-800 p-8 rounded-lg max-w-md w-full mx-4">
+        <h1 class="text-2xl font-bold green-accent mb-6 text-center">🏪 KABRAK Exchange</h1>
+        <h2 class="text-lg mb-6 text-center">Créer votre compte</h2>
+        
+        <form onsubmit="register(event)">
+            <div class="mb-4">
+                <label class="block mb-2">Email:</label>
+                <input type="email" id="email" class="w-full p-2 bg-gray-700 rounded" required>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block mb-2">Mot de passe:</label>
+                <input type="password" id="password" class="w-full p-2 bg-gray-700 rounded" required>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block mb-2">Prénom:</label>
+                    <input type="text" id="firstName" class="w-full p-2 bg-gray-700 rounded" required>
+                </div>
+                <div>
+                    <label class="block mb-2">Nom:</label>
+                    <input type="text" id="lastName" class="w-full p-2 bg-gray-700 rounded" required>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block mb-2">Nom du bureau (optionnel):</label>
+                <input type="text" id="businessName" class="w-full p-2 bg-gray-700 rounded">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block mb-2">Téléphone (optionnel):</label>
+                <input type="tel" id="phone" class="w-full p-2 bg-gray-700 rounded">
+            </div>
+            
+            <button type="submit" class="w-full btn-green py-2 rounded hover:bg-green-600">
+                Créer mon compte
+            </button>
+        </form>
+        
+        <div id="message" class="mt-4 text-center hidden"></div>
+        
+        <div class="mt-6 text-center text-sm text-gray-400">
+            <p>Déjà un compte ? <a href="login.html" class="green-accent">Connectez-vous</a></p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://kabrak-exchange-pro-production.up.railway.app/api';
+
+        async function register(event) {
+            event.preventDefault();
+            
+            const userData = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                businessName: document.getElementById('businessName').value,
+                phone: document.getElementById('phone').value
+            };
+            
+            const messageDiv = document.getElementById('message');
+            messageDiv.classList.add('hidden');
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    messageDiv.className = 'mt-4 text-center text-green-500';
+                    messageDiv.innerHTML = `
+                        <div class="mb-2">✅ Compte créé avec succès !</div>
+                        <div class="text-sm">
+                            Votre licence: <strong>${data.license.licenseKey}</strong><br>
+                            Plan: ${data.license.plan} | Valide 7 jours<br>
+                            <a href="login.html" class="green-accent">Connectez-vous maintenant</a>
+                        </div>
+                    `;
+                    
+                    // Sauvegarder le token
+                    localStorage.setItem('kabrakToken', data.token);
+                    localStorage.setItem('kabrakUser', JSON.stringify(data.user));
+                } else {
+                    messageDiv.className = 'mt-4 text-center text-red-500';
+                    messageDiv.textContent = data.message || 'Erreur lors de l\'inscription';
+                }
+            } catch (e) {
+                messageDiv.className = 'mt-4 text-center text-red-500';
+                messageDiv.textContent = 'Erreur réseau. Réessayez.';
+            }
+            
+            messageDiv.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
