@@ -5,7 +5,7 @@ const License = sequelize.define('License', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   userId: { 
     type: DataTypes.UUID, 
-    allowNull: false,
+    allowNull: true,
     references: {
       model: 'users',
       key: 'id'

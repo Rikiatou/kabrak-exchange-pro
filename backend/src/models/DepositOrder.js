@@ -16,7 +16,7 @@ const DepositOrder = sequelize.define('DepositOrder', {
     type: DataTypes.ENUM('pending', 'partial', 'completed', 'cancelled'),
     defaultValue: 'pending'
   },
-  userId: { type: DataTypes.UUID, allowNull: false },
+  userId: { type: DataTypes.UUID, allowNull: true },
   clientId: { type: DataTypes.UUID, allowNull: true },
   expoPushToken: { type: DataTypes.STRING, allowNull: true },
 }, {

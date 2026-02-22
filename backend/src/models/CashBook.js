@@ -3,7 +3,7 @@ const { sequelize } = require('../database/connection');
 
 const CashBook = sequelize.define('CashBook', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  userId: { type: DataTypes.UUID, allowNull: false },
+  userId: { type: DataTypes.UUID, allowNull: true },
   date: { type: DataTypes.DATEONLY, allowNull: false },
   currency: { type: DataTypes.STRING(10), allowNull: false },
   openingBalance: { type: DataTypes.DECIMAL(20, 4), defaultValue: 0 },

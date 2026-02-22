@@ -5,7 +5,7 @@ const Payment = sequelize.define('Payment', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   transactionId: { type: DataTypes.UUID, allowNull: false },
   clientId: { type: DataTypes.UUID, allowNull: false },
-  userId: { type: DataTypes.UUID, allowNull: false },
+  userId: { type: DataTypes.UUID, allowNull: true },
   amount: { type: DataTypes.DECIMAL(20, 4), allowNull: false },
   currency: { type: DataTypes.STRING(10), allowNull: false },
   paymentMethod: { type: DataTypes.ENUM('cash', 'bank_transfer', 'mobile_money', 'other'), defaultValue: 'cash' },

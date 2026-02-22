@@ -5,7 +5,7 @@ const Transaction = sequelize.define('Transaction', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   reference: { type: DataTypes.STRING, allowNull: false, unique: true },
   clientId: { type: DataTypes.UUID, allowNull: false },
-  userId: { type: DataTypes.UUID, allowNull: false },
+  userId: { type: DataTypes.UUID, allowNull: true },
   currencyFrom: { type: DataTypes.STRING(10), allowNull: false },
   currencyTo: { type: DataTypes.STRING(10), allowNull: false },
   amountFrom: { type: DataTypes.DECIMAL(20, 4), allowNull: false },

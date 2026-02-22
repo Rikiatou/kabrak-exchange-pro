@@ -18,7 +18,7 @@ const Deposit = sequelize.define('Deposit', {
   receiptUploadedAt: { type: DataTypes.DATE, allowNull: true },
   confirmedAt: { type: DataTypes.DATE, allowNull: true },
   orderId: { type: DataTypes.UUID, allowNull: true },
-  userId: { type: DataTypes.UUID, allowNull: false },
+  userId: { type: DataTypes.UUID, allowNull: true },
   expoPushToken: { type: DataTypes.STRING, allowNull: true },
 }, {
   tableName: 'deposits',
