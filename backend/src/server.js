@@ -32,10 +32,17 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(helmet());
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : ['http://localhost:3000', 'http://localhost:8090', 'http://localhost:19006'];
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-    : ['http://localhost:3000', 'http://localhost:8090', 'http://localhost:19006'],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const isAllowed = allowedOrigins.some(o => origin === o) ||
+      /^https:\/\/kabrak-exchange-website(-[a-z0-9]+-rikiatous-projects)?\.vercel\.app$/.test(origin);
+    callback(isAllowed ? null : new Error('Not allowed by CORS'), isAllowed);
+  },
   credentials: true,
 }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
