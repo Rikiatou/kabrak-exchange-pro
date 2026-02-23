@@ -65,6 +65,55 @@ router.post('/ussd-proof', async (req, res) => {
       });
     }
     
+    // Pour les trials, valider automatiquement et créer la licence
+    if (plan === 'trial') {
+      console.log('🎯 Trial plan detected - creating license automatically...');
+      
+      // Créer la licence trial directement
+      const user = await User.findByPk(userId);
+      const licenseKey = generateLicenseKey();
+      const trialExpiry = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 jours
+      
+      const license = await License.create({
+        userId,
+        businessName: user.businessName || `${user.firstName} ${user.lastName}`,
+        ownerName: `${user.firstName} ${user.lastName}`,
+        ownerEmail: user.email,
+        ownerPhone: user.phone,
+        plan: 'trial',
+        status: 'active',
+        licenseKey,
+        startsAt: new Date(),
+        expiresAt: trialExpiry
+      });
+      
+      console.log(`✅ Trial license created: ${license.licenseKey}, expires: ${trialExpiry}`);
+      
+      // Créer la preuve de paiement pour suivi
+      const paymentProof = await PaymentProof.create({
+        userId,
+        plan: 'trial',
+        amount: 0,
+        reference,
+        phoneNumber,
+        method: 'trial',
+        status: 'validated',
+        validatedAt: new Date(),
+        notes: 'Essai gratuit de 14 jours - Activé automatiquement'
+      });
+      
+      return res.json({
+        success: true,
+        message: 'Essai gratuit de 14 jours activé !',
+        license: {
+          licenseKey: license.licenseKey,
+          plan: license.plan,
+          expiresAt: license.expiresAt,
+          daysLeft: Math.ceil((license.expiresAt - new Date()) / (1000 * 60 * 60 * 24))
+        }
+      });
+    }
+    
     // Créer la preuve de paiement
     console.log('✅ Creating payment proof...');
     const paymentProof = await PaymentProof.create({

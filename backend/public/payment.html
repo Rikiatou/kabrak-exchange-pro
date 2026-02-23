@@ -387,18 +387,47 @@
             messageDiv.classList.remove('hidden');
         }
 
-        function activateFreeTrial() {
+        async function activateFreeTrial() {
             if (!currentUser) {
                 showMessage('Erreur : utilisateur non connecté', 'error');
                 return;
             }
             
-            showMessage('🎉 Activation de votre essai gratuit de 14 jours...', 'success');
+            showMessage('🎉 Création de votre essai gratuit de 14 jours...', 'success');
             
-            // Créer une licence trial directement
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 2000);
+            try {
+                const response = await fetch(`${API_URL}/payments/ussd-proof`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('kabrakToken')}`
+                    },
+                    body: JSON.stringify({
+                        userId: currentUser.id,
+                        plan: 'trial',
+                        amount: 0,
+                        reference: 'TRIAL-' + Date.now(),
+                        phoneNumber: currentUser.phone || '+237000000000',
+                        method: 'trial',
+                        notes: 'Essai gratuit de 14 jours - Activation automatique'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('✅ Essai gratuit de 14 jours activé !', 'success');
+                    
+                    // Rediriger après 2 secondes
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    showMessage(data.message || 'Erreur lors de l\'activation', 'error');
+                }
+            } catch (e) {
+                showMessage('Erreur réseau. Réessayez.', 'error');
+            }
         }
 
         function showMessage(text, type) {
