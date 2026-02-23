@@ -87,7 +87,7 @@
             <h2 class="text-lg font-semibold mb-4">Choisissez votre moyen de paiement</h2>
             
             <div class="space-y-3">
-                <!-- Orange Money -->
+                <!-- Mobile Money -->
                 <div onclick="selectPaymentMethod('ussd')" class="payment-method bg-gray-700 p-4 rounded cursor-pointer hover:bg-gray-600 border-2 border-transparent">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
@@ -95,11 +95,27 @@
                                 📱
                             </div>
                             <div>
-                                <div class="font-semibold">Orange Money</div>
-                                <div class="text-sm text-gray-400">Paiement local instantané</div>
+                                <div class="font-semibold">Mobile Money</div>
+                                <div class="text-sm text-gray-400">Orange Money, MTN Money, etc.</div>
                             </div>
                         </div>
-                        <div class="text-green-400">✓ Recommandé</div>
+                        <div class="text-green-400">✓ Local</div>
+                    </div>
+                </div>
+                
+                <!-- Banque -->
+                <div onclick="selectPaymentMethod('bank')" class="payment-method bg-gray-700 p-4 rounded cursor-pointer hover:bg-gray-600 border-2 border-transparent">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                                🏦
+                            </div>
+                            <div>
+                                <div class="font-semibold">Banque</div>
+                                <div class="text-sm text-gray-400">Virement, carte, dépôt</div>
+                            </div>
+                        </div>
+                        <div class="text-blue-400">✓ Traditionnel</div>
                     </div>
                 </div>
                 
@@ -107,11 +123,11 @@
                 <div onclick="selectPaymentMethod('stripe')" class="payment-method bg-gray-700 p-4 rounded cursor-pointer hover:bg-gray-600 border-2 border-transparent">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
-                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                            <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mr-3">
                                 💳
                             </div>
                             <div>
-                                <div class="font-semibold">Carte bancaire</div>
+                                <div class="font-semibold">Carte Internationale</div>
                                 <div class="text-sm text-gray-400">Visa, Mastercard, etc.</div>
                             </div>
                         </div>
@@ -154,26 +170,62 @@
             </div>
         </div>
 
-        <!-- USSD Payment Proof -->
-        <div id="ussdPaymentProof" class="bg-gray-800 p-6 rounded-lg hidden">
-            <h2 class="text-lg font-semibold mb-4">Confirmer votre paiement Orange Money</h2>
+        <!-- Payment Proof -->
+        <div id="paymentProof" class="bg-gray-800 p-6 rounded-lg hidden">
+            <h2 class="text-lg font-semibold mb-4">Prouvez votre paiement</h2>
             
             <div class="space-y-4">
+                <!-- Reference -->
                 <div>
-                    <label class="block mb-2">Référence du paiement (SMS reçu) :</label>
-                    <input type="text" id="reference" placeholder="TX123456789" 
+                    <label class="block mb-2">📱 Référence du paiement (SMS, reçu, etc.) :</label>
+                    <input type="text" id="reference" placeholder="TX123456789, REF001, Virement2024..." 
                            class="w-full p-2 bg-gray-700 rounded" required>
                 </div>
                 
+                <!-- Phone -->
                 <div>
-                    <label class="block mb-2">Numéro de téléphone utilisé :</label>
+                    <label class="block mb-2">📞 Numéro de téléphone utilisé :</label>
                     <input type="tel" id="phoneNumber" placeholder="+237699123456" 
                            class="w-full p-2 bg-gray-700 rounded" required>
                 </div>
                 
-                <button onclick="submitUSSDPaymentProof()" 
+                <!-- Payment Method -->
+                <div>
+                    <label class="block mb-2">💳 Moyen de paiement utilisé :</label>
+                    <select id="paymentMethodType" class="w-full p-2 bg-gray-700 rounded">
+                        <option value="orange_money">📱 Orange Money (USSD)</option>
+                        <option value="mtn_money">📱 MTN Money</option>
+                        <option value="bank_transfer">🏦 Virement bancaire</option>
+                        <option value="card_payment">💳 Paiement par carte</option>
+                        <option value="cash_deposit">💰 Dépôt en agence</option>
+                        <option value="other">📄 Autre</option>
+                    </select>
+                </div>
+                
+                <!-- Amount -->
+                <div>
+                    <label class="block mb-2">💰 Montant payé (XOF) :</label>
+                    <input type="number" id="paymentAmount" placeholder="100000" 
+                           class="w-full p-2 bg-gray-700 rounded" required>
+                </div>
+                
+                <!-- Date -->
+                <div>
+                    <label class="block mb-2">📅 Date du paiement :</label>
+                    <input type="date" id="paymentDate" 
+                           class="w-full p-2 bg-gray-700 rounded" required>
+                </div>
+                
+                <!-- Notes -->
+                <div>
+                    <label class="block mb-2">📝 Notes supplémentaires (optionnel) :</label>
+                    <textarea id="paymentNotes" placeholder="Détails supplémentaires sur le paiement..." 
+                              class="w-full p-2 bg-gray-700 rounded" rows="3"></textarea>
+                </div>
+                
+                <button onclick="submitPaymentProof()" 
                         class="w-full btn-green py-2 rounded hover:bg-green-600">
-                    Envoyer pour validation
+                    📸 Envoyer la preuve pour validation
                 </button>
             </div>
         </div>
@@ -273,28 +325,34 @@
             event.currentTarget.classList.remove('border-transparent');
             event.currentTarget.classList.add('border-green-500');
             
-            // Afficher les instructions selon le moyen
+            // Afficher le formulaire de preuve de paiement
+            document.getElementById('paymentProof').classList.remove('hidden');
+            
+            // Cacher les autres sections
+            document.getElementById('paymentInstructions').classList.add('hidden');
+            document.getElementById('ussdPaymentProof').classList.add('hidden');
+            document.getElementById('stripePayment').classList.add('hidden');
+            
+            // Pré-remplir le type de paiement selon le choix
             if (method === 'ussd') {
-                const amount = planAmounts[selectedPlan];
-                const ussdCode = `#150*1*1*${MERCHANT_CODE}*${amount}#`;
-                
-                document.getElementById('ussdCode').textContent = ussdCode;
-                document.getElementById('paymentInstructions').classList.remove('hidden');
-                document.getElementById('ussdPaymentProof').classList.remove('hidden');
-                document.getElementById('stripePayment').classList.add('hidden');
+                document.getElementById('paymentMethodType').value = 'orange_money';
+            } else if (method === 'bank') {
+                document.getElementById('paymentMethodType').value = 'bank_transfer';
             } else if (method === 'stripe') {
-                document.getElementById('paymentInstructions').classList.add('hidden');
-                document.getElementById('ussdPaymentProof').classList.add('hidden');
-                document.getElementById('stripePayment').classList.remove('hidden');
+                document.getElementById('paymentMethodType').value = 'card_payment';
             }
         }
 
-        async function submitUSSDPaymentProof() {
+        async function submitPaymentProof() {
             const reference = document.getElementById('reference').value.trim();
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const paymentMethodType = document.getElementById('paymentMethodType').value;
+            const paymentAmount = document.getElementById('paymentAmount').value.trim();
+            const paymentDate = document.getElementById('paymentDate').value;
+            const paymentNotes = document.getElementById('paymentNotes').value.trim();
             
-            if (!reference || !phoneNumber) {
-                showMessage('Veuillez remplir tous les champs', 'error');
+            if (!reference || !phoneNumber || !paymentAmount || !paymentDate) {
+                showMessage('Veuillez remplir tous les champs obligatoires', 'error');
                 return;
             }
             
@@ -316,9 +374,11 @@
                     body: JSON.stringify({
                         userId: currentUser.id,
                         plan: selectedPlan,
-                        amount: planAmounts[selectedPlan],
+                        amount: parseInt(paymentAmount),
                         reference,
-                        phoneNumber
+                        phoneNumber,
+                        method: paymentMethodType,
+                        notes: paymentNotes || `Paiement par ${paymentMethodType} le ${paymentDate}`
                     })
                 });
 
@@ -330,6 +390,9 @@
                     // Vider le formulaire
                     document.getElementById('reference').value = '';
                     document.getElementById('phoneNumber').value = '';
+                    document.getElementById('paymentAmount').value = '';
+                    document.getElementById('paymentDate').value = '';
+                    document.getElementById('paymentNotes').value = '';
                     
                     // Rediriger après 3 secondes
                     setTimeout(() => {
@@ -406,6 +469,10 @@
         // Initialisation
         if (getCurrentUser()) {
             // L'utilisateur est connecté, on peut continuer
+            
+            // Mettre la date du jour par défaut
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('paymentDate').value = today;
         }
     </script>
 </body>
