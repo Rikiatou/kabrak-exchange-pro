@@ -83,6 +83,7 @@ export default function MoreScreen() {
         <MenuSection title={t.users.title}>
           <MenuItem icon="people-outline" label={t.more.users} onPress={() => router.push('/users')} color={COLORS.primary} />
           <MenuItem icon="people-circle-outline" label="Mon Équipe" subtitle="Gérer les membres du bureau" onPress={() => router.push('/settings/team')} color="#7c3aed" />
+          <MenuItem icon="images-outline" label="Galerie des reçus" subtitle="Reçus uploadés par client" onPress={() => router.push('/receipts')} color="#0891b2" />
           <MenuItem icon="cash-outline" label={t.currencies.title} onPress={() => router.push('/(tabs)/currencies')} color={COLORS.success} />
           <MenuItem icon="lock-closed-outline" label="Clôture de caisse" subtitle="Bilan journalier" onPress={() => router.push('/cashclose')} color="#d97706" />
           <MenuItem icon="cube-outline" label="Stock de devises" subtitle="Inventaire physique" onPress={() => router.push('/stock')} color="#0891b2" />

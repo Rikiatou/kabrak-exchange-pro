@@ -13,6 +13,8 @@ const {
   confirmDeposit,
   rejectDeposit,
   savePushToken,
+  getClientReceipts,
+  getAllReceipts,
 } = require('../controllers/deposit.controller');
 
 // Ensure uploads directory exists
@@ -44,6 +46,8 @@ router.post('/public/:code/upload', upload.single('receipt'), uploadReceipt);
 router.use(authenticate);
 router.post('/', createDeposit);
 router.get('/', getDeposits);
+router.get('/all-receipts', getAllReceipts);
+router.get('/client-receipts/:clientName', getClientReceipts);
 router.get('/:id', getDeposit);
 router.put('/:id/confirm', confirmDeposit);
 router.put('/:id/reject', rejectDeposit);

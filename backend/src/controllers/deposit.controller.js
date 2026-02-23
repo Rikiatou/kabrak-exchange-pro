@@ -1,4 +1,4 @@
-const { Deposit, User } = require('../models');
+const { Deposit, User, DepositOrder, Client } = require('../models');
 const { recalcOrder } = require('./depositOrder.controller');
 const { Op } = require('sequelize');
 const path = require('path');
@@ -115,7 +115,7 @@ const uploadReceipt = async (req, res) => {
       status: 'receipt_uploaded',
     });
 
-    // Notify operator via push notification
+    // Notify operator via deposit push token
     if (deposit.expoPushToken) {
       await sendPushNotification(
         deposit.expoPushToken,
@@ -123,6 +123,21 @@ const uploadReceipt = async (req, res) => {
         `${deposit.clientName} — ${deposit.amount} ${deposit.currency} — Code: ${deposit.code}`,
         { depositId: deposit.id, code: deposit.code }
       );
+    }
+
+    // Also notify the User owner via their account push token
+    if (deposit.userId) {
+      try {
+        const owner = await User.findByPk(deposit.userId, { attributes: ['id', 'expoPushToken'] });
+        if (owner?.expoPushToken && owner.expoPushToken !== deposit.expoPushToken) {
+          await sendPushNotification(
+            owner.expoPushToken,
+            '📸 Nouveau reçu uploadé',
+            `${deposit.clientName} a uploadé un reçu — ${deposit.amount} ${deposit.currency}`,
+            { depositId: deposit.id, code: deposit.code }
+          );
+        }
+      } catch (_) {}
     }
 
     res.json({ success: true, message: 'Reçu uploadé avec succès / Receipt uploaded successfully' });
@@ -170,6 +185,48 @@ const savePushToken = async (req, res) => {
   }
 };
 
+// GET /api/deposits/client-receipts/:clientName — get all receipts for a client
+const getClientReceipts = async (req, res) => {
+  try {
+    const { clientName } = req.params;
+    const deposits = await Deposit.findAll({
+      where: {
+        clientName: { [Op.like]: `%${clientName}%` },
+        receiptImageUrl: { [Op.ne]: null },
+      },
+      attributes: ['id', 'code', 'clientName', 'amount', 'currency', 'status', 'receiptImageUrl', 'receiptUploadedAt', 'createdAt'],
+      order: [['receiptUploadedAt', 'DESC']],
+    });
+    res.json({ success: true, data: deposits });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// GET /api/deposits/all-receipts — get all receipts grouped by client
+const getAllReceipts = async (req, res) => {
+  try {
+    const deposits = await Deposit.findAll({
+      where: { receiptImageUrl: { [Op.ne]: null } },
+      attributes: ['id', 'code', 'clientName', 'amount', 'currency', 'status', 'receiptImageUrl', 'receiptUploadedAt', 'createdAt'],
+      order: [['receiptUploadedAt', 'DESC']],
+    });
+
+    // Group by clientName
+    const grouped = {};
+    deposits.forEach(d => {
+      const name = d.clientName;
+      if (!grouped[name]) grouped[name] = { clientName: name, receipts: [], total: 0 };
+      grouped[name].receipts.push(d);
+      grouped[name].total += 1;
+    });
+
+    res.json({ success: true, data: Object.values(grouped) });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 module.exports = {
   createDeposit,
   getDeposits,
@@ -179,4 +236,6 @@ module.exports = {
   confirmDeposit,
   rejectDeposit,
   savePushToken,
+  getClientReceipts,
+  getAllReceipts,
 };
