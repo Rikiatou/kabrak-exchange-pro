@@ -101,6 +101,12 @@ app.use('/api/cash-close', cashCloseRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/admin', express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Homepage redirect to payment
+app.get('/', (req, res) => {
+  res.redirect('/payment.html');
+});
 
 // Simple healthcheck without database dependency
 app.get('/api/health-simple', (req, res) => {
