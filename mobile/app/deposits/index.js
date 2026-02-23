@@ -15,8 +15,8 @@ import useSettingStore from '../../src/store/settingStore';
 import { shareDepositReceipt } from '../../src/utils/generateReceipt';
 import useAuthStore from '../../src/store/authStore';
 
-const UPLOAD_BASE = 'https://kabrak.com/upload';
-const BACKEND_URL = 'http://localhost:5000';
+const UPLOAD_BASE = 'https://kabrak-exchange-pro-production.up.railway.app/deposit';
+const BACKEND_URL = 'https://kabrak-exchange-pro-production.up.railway.app';
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 const ORDER_STATUS = {

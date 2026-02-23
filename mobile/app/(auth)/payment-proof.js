@@ -6,6 +6,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import useAuthStore from '../../src/store/authStore';
+import useLicenseStore from '../../src/store/licenseStore';
 import api from '../../src/services/api';
 
 const GREEN_DARK = '#071a12';
@@ -18,6 +19,7 @@ export default function PaymentProofScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const { user } = useAuthStore();
+  const { verifyLicense } = useLicenseStore();
   const router = useRouter();
   const { plan, amount } = useLocalSearchParams();
 
@@ -38,16 +40,21 @@ export default function PaymentProofScreen() {
       });
 
       if (response.data.success) {
-        Alert.alert(
-          'Succès',
-          'Preuve de paiement envoyée ! Validation en cours...',
-          [
-            {
-              text: 'OK',
-              onPress: () => router.replace('/(auth)/license')
-            }
-          ]
-        );
+        // Si licence créée automatiquement (trial), la charger
+        if (response.data.license?.licenseKey) {
+          await verifyLicense(response.data.license.licenseKey);
+          Alert.alert(
+            '✅ Licence activée !',
+            `Votre licence est active.\nClé : ${response.data.license.licenseKey}`,
+            [{ text: 'Commencer', onPress: () => router.replace('/(auth)/login') }]
+          );
+        } else {
+          Alert.alert(
+            'Transaction ID envoyé !',
+            'Votre Transaction ID a été enregistré. Un administrateur va valider votre paiement sous 24h. Vous recevrez votre clé de licence par email.',
+            [{ text: 'OK', onPress: () => router.replace('/(auth)/license') }]
+          );
+        }
       }
     } catch (error) {
       Alert.alert(
@@ -87,14 +94,14 @@ export default function PaymentProofScreen() {
         {/* Form */}
         <View style={styles.form}>
           <View style={styles.field}>
-            <Text style={styles.fieldLabel}>Référence du paiement</Text>
+            <Text style={styles.fieldLabel}>Transaction ID (SMS Orange Money)</Text>
             <View style={styles.inputWrapper}>
               <Ionicons name="key-outline" size={18} color={GREEN_MAIN} />
               <TextInput
                 style={styles.input}
                 value={reference}
                 onChangeText={setReference}
-                placeholder="TX123456789"
+                placeholder="PP260220.2301.D61601NN"
                 placeholderTextColor="#9ca3af"
                 autoCapitalize="characters"
               />

@@ -17,6 +17,7 @@ const WHITE      = '#ffffff';
 
 export default function LicenseScreen() {
   const [licenseKey, setLicenseKey] = useState('');
+  const { error: licenseError } = useLicenseStore();
   const { verifyLicense, isChecking } = useLicenseStore();
   const { t, language } = useLanguageStore();
   const router = useRouter();
@@ -104,8 +105,19 @@ export default function LicenseScreen() {
           <Ionicons name="shield-checkmark" size={56} color={GOLD} />
         </View>
 
-        <Text style={styles.title}>{L.title}</Text>
-        <Text style={styles.subtitle}>{L.subtitle}</Text>
+        {/* Expired trial banner */}
+        {licenseError?.code === 'EXPIRED' && (
+          <View style={styles.expiredBanner}>
+            <Ionicons name="time-outline" size={20} color={GOLD} />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={styles.expiredTitle}>Votre essai gratuit est terminé</Text>
+              <Text style={styles.expiredSub}>Activez une licence pour continuer à utiliser KABRAK Exchange Pro.</Text>
+            </View>
+          </View>
+        )}
+
+        <Text style={styles.title}>{licenseError?.code === 'EXPIRED' ? 'Renouveler votre accès' : L.title}</Text>
+        <Text style={styles.subtitle}>{licenseError?.code === 'EXPIRED' ? 'Choisissez un plan pour continuer' : L.subtitle}</Text>
 
         {/* Card */}
         <View style={styles.card}>
@@ -147,7 +159,7 @@ export default function LicenseScreen() {
         {/* Free Trial Button */}
         <TouchableOpacity 
           style={styles.trialButton}
-          onPress={() => router.push('/(auth)/payment')}
+          onPress={() => router.push('/(auth)/register-trial')}
         >
           <Ionicons name="gift-outline" size={20} color={WHITE} style={{ marginRight: 8 }} />
           <Text style={styles.trialButtonText}>🎁 ESSAI GRATUIT 14 JOURS</Text>
@@ -231,4 +243,7 @@ const styles = StyleSheet.create({
     fontWeight: '700' 
   },
   footer: { textAlign: 'center', color: 'rgba(255,255,255,0.2)', fontSize: 11 },
+  expiredBanner: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: 'rgba(232,160,32,0.15)', borderWidth: 1, borderColor: 'rgba(232,160,32,0.4)', borderRadius: 12, padding: 14, marginBottom: 20, width: '100%' },
+  expiredTitle: { color: GOLD, fontWeight: '700', fontSize: 14, marginBottom: 4 },
+  expiredSub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, lineHeight: 18 },
 });
