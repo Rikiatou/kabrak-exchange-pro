@@ -18,21 +18,21 @@ export default function Index() {
       await loadStoredLicense();
       const licenseState = useLicenseStore.getState();
       if (!licenseState.isValid) {
-        router.replace('/(auth)/license');
+        router.replace('/(auth)/welcome');
         return;
       }
       await checkOnline();
       const licenseStateAfter = useLicenseStore.getState();
       if (!licenseStateAfter.isValid) {
-        router.replace('/(auth)/license');
+        router.replace('/(auth)/welcome');
         return;
       }
       await loadUser();
       const { isAuthenticated } = useAuthStore.getState();
       if (isAuthenticated) {
-        router.replace('/(tabs)/dashboard');
+        router.replace('/tabs)/dashboard');
       } else {
-        router.replace('/(auth)/welcome');
+        router.replace('/auth)/welcome');
       }
     };
     init();
