@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - KABRAK Exchange Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid #667eea;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-64 glass-morphism text-white z-50">
+        <div class="p-6">
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                    <span class="text-purple-600 font-bold text-xl">K</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold">KABRAK Exchange</h1>
+                    <p class="text-xs opacity-75">Admin Panel</p>
+                </div>
+            </div>
+            
+            <nav class="space-y-2">
+                <a href="#" class="sidebar-item block px-4 py-3 rounded-lg">
+                    <i class="fas fa-chart-line mr-3"></i> Dashboard
+                </a>
+                <a href="#" class="sidebar-item block px-4 py-3 rounded-lg">
+                    <i class="fas fa-users mr-3"></i> Clients
+                </a>
+                <a href="#" class="sidebar-item block px-4 py-3 rounded-lg">
+                    <i class="fas fa-credit-card mr-3"></i> Paiements
+                </a>
+                <a href="#" class="sidebar-item block px-4 py-3 rounded-lg">
+                    <i class="fas fa-certificate mr-3"></i> Licences
+                </a>
+                <a href="#" class="sidebar-item block px-4 py-3 rounded-lg">
+                    <i class="fas fa-chart-bar mr-3"></i> Rapports
+                </a>
+                <a href="#" class="sidebar-item block px-4 py-3 rounded-lg">
+                    <i class="fas fa-cog mr-3"></i> Paramètres
+                </a>
+            </nav>
+        </div>
+        
+        <div class="absolute bottom-0 left-0 right-0 p-6">
+            <div class="flex items-center space-x-3">
+                <img src="https://picsum.photos/seed/admin/40/40" alt="Admin" class="w-10 h-10 rounded-full">
+                <div>
+                    <p class="font-medium">Admin</p>
+                    <p class="text-xs opacity-75">Super Admin</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="ml-64 p-8">
+        <!-- Header -->
+        <div class="glass-morphism rounded-xl p-6 mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-white mb-2">Dashboard</h2>
+                    <p class="text-white opacity-75">Bienvenue sur le panel d'administration</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="glass-morphism px-4 py-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition">
+                        <i class="fas fa-bell mr-2"></i> Notifications
+                        <span class="bg-red-500 text-xs px-2 py-1 rounded-full">3</span>
+                    </button>
+                    <button class="glass-morphism px-4 py-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Déconnexion
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card rounded-xl p-6 text-white card-hover">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <p class="text-white opacity-75 text-sm">Total Clients</p>
+                        <p class="text-3xl font-bold mt-2">1,234</p>
+                    </div>
+                    <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                        <i class="fas fa-users text-2xl"></i>
+                    </div>
+                </div>
+                <div class="flex items-center text-sm">
+                    <i class="fas fa-arrow-up mr-1 text-green-300"></i>
+                    <span class="text-green-300">12% ce mois</span>
+                </div>
+            </div>
+            
+            <div class="stat-card rounded-xl p-6 text-white card-hover">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <p class="text-white opacity-75 text-sm">Revenus Mensuels</p>
+                        <p class="text-3xl font-bold mt-2">2.4M</p>
+                    </div>
+                    <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                        <i class="fas fa-dollar-sign text-2xl"></i>
+                    </div>
+                </div>
+                <div class="flex items-center text-sm">
+                    <i class="fas fa-arrow-up mr-1 text-green-300"></i>
+                    <span class="text-green-300">8% ce mois</span>
+                </div>
+            </div>
+            
+            <div class="stat-card rounded-xl p-6 text-white card-hover">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <p class="text-white opacity-75 text-sm">Licences Actives</p>
+                        <p class="text-3xl font-bold mt-2">856</p>
+                    </div>
+                    <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                        <i class="fas fa-certificate text-2xl"></i>
+                    </div>
+                </div>
+                <div class="flex items-center text-sm">
+                    <i class="fas fa-arrow-up mr-1 text-green-300"></i>
+                    <span class="text-green-300">23% ce mois</span>
+                </div>
+            </div>
+            
+            <div class="stat-card rounded-xl p-6 text-white card-hover">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <p class="text-white opacity-75 text-sm">Taux de Conversion</p>
+                        <p class="text-3xl font-bold mt-2">68%</p>
+                    </div>
+                    <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                        <i class="fas fa-chart-line text-2xl"></i>
+                    </div>
+                </div>
+                <div class="flex items-center text-sm">
+                    <i class="fas fa-arrow-down mr-1 text-red-300"></i>
+                    <span class="text-red-300">3% ce mois</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activities -->
+        <div class="glass-morphism rounded-xl p-6">
+            <h3 class="text-xl font-bold text-white mb-6">Activités Récentes</h3>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-4 bg-white bg-opacity-5 rounded-lg">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-green-500 bg-opacity-20 rounded-full p-2">
+                            <i class="fas fa-check text-green-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-white font-medium">Nouvelle licence Premium</p>
+                            <p class="text-white opacity-75 text-sm">John Doe - il y a 2 minutes</p>
+                        </div>
+                    </div>
+                    <span class="text-green-400 text-sm">+1,000,000 XOF</span>
+                </div>
+                
+                <div class="flex items-center justify-between p-4 bg-white bg-opacity-5 rounded-lg">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-blue-500 bg-opacity-20 rounded-full p-2">
+                            <i class="fas fa-user-plus text-blue-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-white font-medium">Nouveau client inscrit</p>
+                            <p class="text-white opacity-75 text-sm">Jane Smith - il y a 5 minutes</p>
+                        </div>
+                    </div>
+                    <span class="text-blue-400 text-sm">Trial 14 jours</span>
+                </div>
+                
+                <div class="flex items-center justify-between p-4 bg-white bg-opacity-5 rounded-lg">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-orange-500 bg-opacity-20 rounded-full p-2">
+                            <i class="fas fa-clock text-orange-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-white font-medium">Paiement en attente</p>
+                            <p class="text-white opacity-75 text-sm">Mike Johnson - il y a 10 minutes</p>
+                        </div>
+                    </div>
+                    <span class="text-orange-400 text-sm">100,000 XOF</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Sidebar toggle for mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        }
+        
+        // Add loading states
+        function showLoading() {
+            document.body.innerHTML += '<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div class="loading-spinner"></div></div>';
+        }
+        
+        // Remove loading
+        function hideLoading() {
+            const loader = document.querySelector('.fixed.inset-0');
+            if (loader) loader.remove();
+        }
+        
+        // Simulate real-time updates
+        setInterval(() => {
+            const stats = document.querySelectorAll('.stat-card p.text-3xl');
+            stats.forEach(stat => {
+                const currentValue = parseInt(stat.textContent.replace(/[^0-9]/g, ''));
+                const change = Math.floor(Math.random() * 10) - 5;
+                stat.textContent = (currentValue + change).toLocaleString();
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - KABRAK Exchange Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid #667eea;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .tab-active {
+            background: rgba(102, 126, 234, 0.2);
+            border-left: 3px solid #667eea;
+        }
+        
+        .badge-success {
+            background: #10b981;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .badge-warning {
+            background: #f59e0b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .badge-danger {
+            background: #ef4444;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-64 glass-morphism text-white z-50">
+        <div class="p-6">
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                    <span class="text-purple-600 font-bold text-xl">K</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold">KABRAK Exchange</h1>
+                    <p class="text-xs opacity-75">Admin Panel</p>
+                </div>
+            </div>
+            
+            <nav class="space-y-2">
+                <a href="#" onclick="showTab('dashboard')" class="sidebar-item block px-4 py-3 rounded-lg tab-active">
+                    <i class="fas fa-chart-line mr-3"></i> Dashboard
+                </a>
+                <a href="#" onclick="showTab('clients')" class="sidebar-item block px-4 py-3 rounded-lg">
+                    <i class="fas fa-users mr-3"></i> Clients
+                </a>
+                <a href="#" onclick="showTab('payments')" class="sidebar-item block px-4 py-3 rounded-lg">
+                    <i class="fas fa-credit-card mr-3"></i> Paiements
+                </a>
+                <a href="#" onclick="showTab('licenses')" class="sidebar-item block px-4 py-3 rounded-lg">
+                    <i class="fas fa-certificate mr-3"></i> Licences
+                </a>
+                <a href="#" onclick="showTab('reports')" class="sidebar-item block px-4 py-3 rounded-lg">
+                    <i class="fas fa-chart-bar mr-3"></i> Rapports
+                </a>
+                <a href="#" onclick="showTab('settings')" class="sidebar-item block px-4 py-3 rounded-lg">
+                    <i class="fas fa-cog mr-3"></i> Paramètres
+                </a>
+            </nav>
+        </div>
+        
+        <div class="absolute bottom-0 left-0 right-0 p-6">
+            <div class="flex items-center space-x-3">
+                <img src="https://picsum.photos/seed/admin/40/40" alt="Admin" class="w-10 h-10 rounded-full">
+                <div>
+                    <p class="font-medium">Admin</p>
+                    <p class="text-xs opacity-75">Super Admin</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="ml-64 p-8">
+        <!-- Header -->
+        <div class="glass-morphism rounded-xl p-6 mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-white mb-2">Dashboard</h2>
+                    <p class="text-white opacity-75">Bienvenue sur le panel d'administration</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="glass-morphism px-4 py-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition">
+                        <i class="fas fa-bell mr-2"></i> Notifications
+                        <span class="bg-red-500 text-xs px-2 py-1 rounded-full">3</span>
+                    </button>
+                    <button class="glass-morphism px-4 py-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Déconnexion
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="tab-content">
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stat-card rounded-xl p-6 text-white card-hover">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-white opacity-75 text-sm">Total Clients</p>
+                            <p class="text-3xl font-bold mt-2" id="total-clients">1,234</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                            <i class="fas fa-users text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-arrow-up mr-1 text-green-300"></i>
+                        <span class="text-green-300">12% ce mois</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card rounded-xl p-6 text-white card-hover">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-white opacity-75 text-sm">Revenus Mensuels</p>
+                            <p class="text-3xl font-bold mt-2" id="monthly-revenue">2.4M</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                            <i class="fas fa-dollar-sign text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-arrow-up mr-1 text-green-300"></i>
+                        <span class="text-green-300">8% ce mois</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card rounded-xl p-6 text-white card-hover">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-white opacity-75 text-sm">Licences Actives</p>
+                            <p class="text-3xl font-bold mt-2" id="active-licenses">856</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                            <i class="fas fa-certificate text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-arrow-up mr-1 text-green-300"></i>
+                        <span class="text-green-300">23% ce mois</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card rounded-xl p-6 text-white card-hover">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-white opacity-75 text-sm">Taux de Conversion</p>
+                            <p class="text-3xl font-bold mt-2" id="conversion-rate">68%</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                            <i class="fas fa-chart-line text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-arrow-down mr-1 text-red-300"></i>
+                        <span class="text-red-300">3% ce mois</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activities -->
+            <div class="glass-morphism rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-6">Activités Récentes</h3>
+                <div class="space-y-4" id="recent-activities">
+                    <!-- Activities will be loaded here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payments Tab -->
+        <div id="payments-tab" class="tab-content hidden">
+            <div class="glass-morphism rounded-xl p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-white">Paiements en attente</h3>
+                    <button onclick="refreshPendingPayments()" class="glass-morphism px-4 py-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition">
+                        <i class="fas fa-sync-alt mr-2"></i> Actualiser
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-white">
+                        <thead>
+                            <tr class="border-b border-white border-opacity-20">
+                                <th class="text-left py-3 px-4">Client</th>
+                                <th class="text-left py-3 px-4">Plan</th>
+                                <th class="text-left py-3 px-4">Montant</th>
+                                <th class="text-left py-3 px-4">Référence</th>
+                                <th class="text-left py-3 px-4">Date</th>
+                                <th class="text-left py-3 px-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pending-payments-table">
+                            <!-- Pending payments will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Other tabs (hidden by default) -->
+        <div id="clients-tab" class="tab-content hidden">
+            <div class="glass-morphism rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-6">Gestion des Clients</h3>
+                <p class="text-white opacity-75">Fonctionnalité à venir...</p>
+            </div>
+        </div>
+        
+        <div id="licenses-tab" class="tab-content hidden">
+            <div class="glass-morphism rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-6">Gestion des Licences</h3>
+                <p class="text-white opacity-75">Fonctionnalité à venir...</p>
+            </div>
+        </div>
+        
+        <div id="reports-tab" class="tab-content hidden">
+            <div class="glass-morphism rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-6">Rapports</h3>
+                <p class="text-white opacity-75">Fonctionnalité à venir...</p>
+            </div>
+        </div>
+        
+        <div id="settings-tab" class="tab-content hidden">
+            <div class="glass-morphism rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-6">Paramètres</h3>
+                <p class="text-white opacity-75">Fonctionnalité à venir...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'https://kabrak-exchange-pro-production.up.railway.app/api';
+        
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remove active class from all sidebar items
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('tab-active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            
+            // Add active class to clicked item
+            event.target.classList.add('tab-active');
+            
+            // Load data for specific tabs
+            if (tabName === 'payments') {
+                loadPendingPayments();
+            }
+        }
+        
+        // Load pending payments
+        async function loadPendingPayments() {
+            try {
+                const response = await fetch(`${API_URL}/payments/pending`);
+                const payments = await response.json();
+                
+                const tbody = document.getElementById('pending-payments-table');
+                tbody.innerHTML = '';
+                
+                payments.forEach(payment => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-white border-opacity-10';
+                    row.innerHTML = `
+                        <td class="py-3 px-4">${payment.user?.firstName || ''} ${payment.user?.lastName || ''}</td>
+                        <td class="py-3 px-4">
+                            <span class="badge-${payment.plan === 'premium' ? 'warning' : 'success'}">
+                                ${payment.plan.toUpperCase()}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">${payment.amount?.toLocaleString()} XOF</td>
+                        <td class="py-3 px-4 font-mono text-sm">${payment.reference}</td>
+                        <td class="py-3 px-4">${new Date(payment.createdAt).toLocaleDateString()}</td>
+                        <td class="py-3 px-4">
+                            <button onclick="validatePayment('${payment.id}')" class="bg-green-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button onclick="rejectPayment('${payment.id}')" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading pending payments:', error);
+            }
+        }
+        
+        // Validate payment
+        async function validatePayment(paymentId) {
+            if (!confirm('Valider ce paiement ?')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/payments/${paymentId}/validate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notes: 'Validé via admin panel' })
+                });
+                
+                if (response.ok) {
+                    alert('Paiement validé avec succès !');
+                    loadPendingPayments();
+                } else {
+                    alert('Erreur lors de la validation');
+                }
+            } catch (error) {
+                console.error('Error validating payment:', error);
+                alert('Erreur réseau');
+            }
+        }
+        
+        // Reject payment
+        async function rejectPayment(paymentId) {
+            const reason = prompt('Raison du rejet :');
+            if (!reason) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/payments/${paymentId}/reject`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason })
+                });
+                
+                if (response.ok) {
+                    alert('Paiement rejeté');
+                    loadPendingPayments();
+                } else {
+                    alert('Erreur lors du rejet');
+                }
+            } catch (error) {
+                console.error('Error rejecting payment:', error);
+                alert('Erreur réseau');
+            }
+        }
+        
+        // Refresh pending payments
+        function refreshPendingPayments() {
+            loadPendingPayments();
+        }
+        
+        // Load recent activities
+        async function loadRecentActivities() {
+            try {
+                const response = await fetch(`${API_URL}/payments/pending`);
+                const payments = await response.json();
+                
+                const activitiesDiv = document.getElementById('recent-activities');
+                activitiesDiv.innerHTML = '';
+                
+                payments.slice(0, 5).forEach(payment => {
+                    const activity = document.createElement('div');
+                    activity.className = 'flex items-center justify-between p-4 bg-white bg-opacity-5 rounded-lg';
+                    activity.innerHTML = `
+                        <div class="flex items-center space-x-4">
+                            <div class="bg-orange-500 bg-opacity-20 rounded-full p-2">
+                                <i class="fas fa-clock text-orange-400"></i>
+                            </div>
+                            <div>
+                                <p class="text-white font-medium">Paiement en attente</p>
+                                <p class="text-white opacity-75 text-sm">${payment.user?.firstName} ${payment.user?.lastName} - ${payment.reference}</p>
+                            </div>
+                        </div>
+                        <span class="text-orange-400 text-sm">${payment.amount?.toLocaleString()} XOF</span>
+                    `;
+                    activitiesDiv.appendChild(activity);
+                });
+            } catch (error) {
+                console.error('Error loading activities:', error);
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRecentActivities();
+            
+            // Simulate real-time updates
+            setInterval(() => {
+                const stats = document.querySelectorAll('.stat-card p.text-3xl');
+                stats.forEach(stat => {
+                    const currentValue = parseInt(stat.textContent.replace(/[^0-9]/g, ''));
+                    const change = Math.floor(Math.random() * 10) - 5;
+                    if (stat.id === 'monthly-revenue') {
+                        stat.textContent = (currentValue + change * 10000).toLocaleString();
+                    } else {
+                        stat.textContent = (currentValue + change).toLocaleString();
+                    }
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

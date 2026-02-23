@@ -101,7 +101,7 @@ app.use('/api/cash-close', cashCloseRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/admin', express.static(path.join(__dirname, '../public')));
-app.use(express.static(path.join(__dirname, '../public')));
+app.use('/admin-pro', express.static(path.join(__dirname, '../public')));
 
 // Homepage redirect to payment
 app.get('/', (req, res) => {
