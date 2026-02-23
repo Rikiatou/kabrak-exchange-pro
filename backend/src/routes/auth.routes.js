@@ -11,4 +11,16 @@ router.post('/refresh', refreshToken);
 router.get('/me', authenticate, getMe);
 router.put('/change-password', authenticate, validate(schemas.changePassword), changePassword);
 
+// Save Expo push token for push notifications
+router.put('/push-token', authenticate, async (req, res) => {
+  try {
+    const { expoPushToken } = req.body;
+    const { User } = require('../models');
+    await User.update({ expoPushToken }, { where: { id: req.user.id } });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 module.exports = router;

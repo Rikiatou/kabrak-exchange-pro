@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { License } = require('../models');
+const { License, User, PaymentProof } = require('../models');
 const { Op } = require('sequelize');
 const jwt = require('jsonwebtoken');
 const { adminAuth } = require('../middleware/admin.middleware');
@@ -136,6 +136,83 @@ router.get('/licenses/check/:licenseKey', async (req, res) => {
       businessName: license.businessName,
       message: isActive ? 'License active' : 'License expired'
     });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /admin/dashboard — full dashboard stats
+router.get('/dashboard', adminAuth, async (req, res) => {
+  try {
+    const now = new Date();
+    const totalUsers = await User.count();
+    const activeUsers = await User.count({ where: { isActive: true } });
+    const totalLicenses = await License.count();
+    const activeLicenses = await License.count({ where: { status: 'active', expiresAt: { [Op.gt]: now } } });
+    const pendingPayments = await PaymentProof.count({ where: { status: 'pending' } });
+    const totalPayments = await PaymentProof.count();
+    const expiringSoon = await License.count({
+      where: { status: 'active', expiresAt: { [Op.between]: [now, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)] } }
+    });
+
+    // Recent activity
+    const recentUsers = await User.findAll({ order: [['createdAt', 'DESC']], limit: 5, attributes: ['id', 'email', 'firstName', 'lastName', 'businessName', 'createdAt'] });
+    const recentPayments = await PaymentProof.findAll({
+      order: [['createdAt', 'DESC']], limit: 5,
+      include: [{ model: User, as: 'user', attributes: ['email', 'firstName', 'lastName', 'businessName'] }]
+    });
+
+    res.json({
+      success: true,
+      data: {
+        users: { total: totalUsers, active: activeUsers },
+        licenses: { total: totalLicenses, active: activeLicenses, expiringSoon },
+        payments: { total: totalPayments, pending: pendingPayments },
+        recentUsers,
+        recentPayments
+      }
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /admin/users — list all users
+router.get('/users', adminAuth, async (req, res) => {
+  try {
+    const users = await User.findAll({
+      order: [['createdAt', 'DESC']],
+      attributes: ['id', 'email', 'firstName', 'lastName', 'phone', 'businessName', 'role', 'isActive', 'teamRole', 'lastLogin', 'createdAt']
+    });
+    res.json({ success: true, data: users });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// PUT /admin/users/:id/toggle — activate/deactivate user
+router.put('/users/:id/toggle', adminAuth, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    await user.update({ isActive: !user.isActive });
+    res.json({ success: true, user });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /admin/payments — list all payment proofs
+router.get('/payments', adminAuth, async (req, res) => {
+  try {
+    const { status } = req.query;
+    const where = status ? { status } : {};
+    const payments = await PaymentProof.findAll({
+      where,
+      order: [['createdAt', 'DESC']],
+      include: [{ model: User, as: 'user', attributes: ['email', 'firstName', 'lastName', 'businessName'] }]
+    });
+    res.json({ success: true, data: payments });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

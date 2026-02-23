@@ -10,7 +10,8 @@ const User = sequelize.define('User', {
   role: { type: DataTypes.ENUM('admin', 'employee'), defaultValue: 'employee' },
   isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
   phone: { type: DataTypes.STRING, allowNull: true },
-  lastLogin: { type: DataTypes.DATE, allowNull: true }
+  lastLogin: { type: DataTypes.DATE, allowNull: true },
+  expoPushToken: { type: DataTypes.STRING, allowNull: true }
 }, {
   tableName: 'users',
   hooks: {

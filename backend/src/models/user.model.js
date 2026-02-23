@@ -46,6 +46,20 @@ module.exports = (sequelize) => {
     lastLogin: {
       type: DataTypes.DATE,
       allowNull: true
+    },
+    teamOwnerId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      comment: 'ID of the bureau owner this user belongs to (null = owner)'
+    },
+    teamRole: {
+      type: DataTypes.ENUM('owner', 'manager', 'cashier'),
+      defaultValue: 'owner',
+      comment: 'Role within the team: owner, manager, or cashier'
+    },
+    expoPushToken: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
   }, {
     tableName: 'users',

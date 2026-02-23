@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KABRAK Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root { --green: #0B6E4F; --gold: #e8a020; --dark: #071a12; --darker: #050f0b; }
+        body { background: var(--dark); font-family: 'Inter', system-ui, sans-serif; }
+        .sidebar { background: var(--darker); width: 240px; min-height: 100vh; transition: width .2s; }
+        .sidebar.collapsed { width: 64px; }
+        .sidebar.collapsed .nav-label, .sidebar.collapsed .logo-text, .sidebar.collapsed .user-info { display: none; }
+        .sidebar.collapsed .nav-item { justify-content: center; padding: 12px; }
+        .main-content { margin-left: 240px; transition: margin-left .2s; }
+        .main-content.expanded { margin-left: 64px; }
+        .stat-card { background: linear-gradient(135deg, #1a2e24 0%, #0d1f16 100%); border: 1px solid #1a3d2e; }
+        .stat-card:hover { border-color: var(--green); transform: translateY(-2px); transition: all .2s; }
+        .tab-btn { transition: all .15s; }
+        .tab-btn.active { background: var(--green); color: white; }
+        .table-row:hover { background: rgba(11,110,79,0.08); }
+        .badge { padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+        .badge-active { background: #065f4620; color: #10b981; }
+        .badge-pending { background: #f59e0b20; color: #f59e0b; }
+        .badge-expired { background: #ef444420; color: #ef4444; }
+        .badge-validated { background: #065f4620; color: #10b981; }
+        .badge-rejected { background: #ef444420; color: #ef4444; }
+        .modal-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+        .spinner { border: 3px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; width: 20px; height: 20px; animation: spin .6s linear infinite; display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .toast { animation: slideIn .3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; z-index: 50; transform: translateX(-100%); }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; }
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+
+<!-- Login Screen -->
+<div id="loginScreen" class="min-h-screen flex items-center justify-center">
+    <div class="bg-gray-800 p-8 rounded-xl max-w-sm w-full mx-4 shadow-2xl border border-gray-700">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-green-900 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-shield-halved text-2xl text-green-400"></i>
+            </div>
+            <h1 class="text-xl font-bold" style="color: var(--gold);">KABRAK Admin</h1>
+            <p class="text-gray-400 text-sm mt-1">Panneau d'administration</p>
+        </div>
+        <form onsubmit="handleLogin(event)">
+            <div class="mb-4">
+                <label class="block text-sm text-gray-400 mb-1">Identifiant</label>
+                <input type="text" id="loginUser" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:border-green-500 focus:outline-none text-white" required>
+            </div>
+            <div class="mb-5">
+                <label class="block text-sm text-gray-400 mb-1">Mot de passe</label>
+                <input type="password" id="loginPass" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:border-green-500 focus:outline-none text-white" required>
+            </div>
+            <button type="submit" id="loginBtn" class="w-full py-3 rounded-lg font-semibold text-white" style="background:var(--green)">
+                Se connecter
+            </button>
+            <div id="loginError" class="text-red-400 text-sm text-center mt-3 hidden"></div>
+        </form>
+    </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboardScreen" class="hidden">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar fixed top-0 left-0 flex flex-col">
+        <div class="p-4 flex items-center gap-3 border-b border-gray-800">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--green)">
+                <i class="fas fa-exchange-alt text-white text-sm"></i>
+            </div>
+            <span class="logo-text font-bold text-sm" style="color:var(--gold)">KABRAK Admin</span>
+        </div>
+        <nav class="flex-1 py-4 space-y-1 px-2">
+            <a onclick="switchTab('dashboard')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-gray-800 text-sm tab-btn active" data-tab="dashboard">
+                <i class="fas fa-chart-pie w-5 text-center"></i><span class="nav-label">Tableau de bord</span>
+            </a>
+            <a onclick="switchTab('licenses')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-gray-800 text-sm tab-btn" data-tab="licenses">
+                <i class="fas fa-key w-5 text-center"></i><span class="nav-label">Licences</span>
+            </a>
+            <a onclick="switchTab('payments')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-gray-800 text-sm tab-btn" data-tab="payments">
+                <i class="fas fa-credit-card w-5 text-center"></i><span class="nav-label">Paiements</span>
+                <span id="pendingBadge" class="ml-auto bg-yellow-600 text-white text-xs px-2 py-0.5 rounded-full hidden">0</span>
+            </a>
+            <a onclick="switchTab('users')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-gray-800 text-sm tab-btn" data-tab="users">
+                <i class="fas fa-users w-5 text-center"></i><span class="nav-label">Utilisateurs</span>
+            </a>
+        </nav>
+        <div class="p-4 border-t border-gray-800">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-green-900 flex items-center justify-center">
+                    <i class="fas fa-user-shield text-green-400 text-xs"></i>
+                </div>
+                <div class="user-info">
+                    <div class="text-xs font-semibold">Admin</div>
+                    <button onclick="handleLogout()" class="text-xs text-red-400 hover:text-red-300">Déconnexion</button>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main id="mainContent" class="main-content min-h-screen">
+        <!-- Top bar -->
+        <div class="sticky top-0 z-10 bg-gray-900 bg-opacity-90 backdrop-blur border-b border-gray-800 px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-gray-800 rounded-lg">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h2 id="pageTitle" class="text-lg font-bold">Tableau de bord</h2>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="refreshData()" class="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white" title="Rafraîchir">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <span class="text-xs text-gray-500" id="lastRefresh"></span>
+            </div>
+        </div>
+
+        <!-- Tab Contents -->
+        <div class="p-6">
+            <!-- Dashboard Tab -->
+            <div id="tab-dashboard" class="tab-content">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="stat-card rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-400 text-sm">Utilisateurs</span>
+                            <i class="fas fa-users text-green-500"></i>
+                        </div>
+                        <div class="text-2xl font-bold" id="statUsers">-</div>
+                        <div class="text-xs text-gray-500" id="statUsersActive">- actifs</div>
+                    </div>
+                    <div class="stat-card rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-400 text-sm">Licences actives</span>
+                            <i class="fas fa-key text-yellow-500"></i>
+                        </div>
+                        <div class="text-2xl font-bold" id="statLicenses">-</div>
+                        <div class="text-xs text-gray-500" id="statLicensesTotal">/ - total</div>
+                    </div>
+                    <div class="stat-card rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-400 text-sm">Paiements en attente</span>
+                            <i class="fas fa-clock text-orange-500"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-orange-400" id="statPending">-</div>
+                        <div class="text-xs text-gray-500" id="statPaymentsTotal">/ - total</div>
+                    </div>
+                    <div class="stat-card rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-400 text-sm">Expirent bientôt</span>
+                            <i class="fas fa-exclamation-triangle text-red-500"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-red-400" id="statExpiring">-</div>
+                        <div class="text-xs text-gray-500">dans 7 jours</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-gray-800 rounded-xl p-5 border border-gray-700">
+                        <h3 class="font-semibold mb-4"><i class="fas fa-user-plus mr-2 text-green-400"></i>Derniers inscrits</h3>
+                        <div id="recentUsersList" class="space-y-3">
+                            <div class="text-gray-500 text-sm text-center py-4">Chargement...</div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-800 rounded-xl p-5 border border-gray-700">
+                        <h3 class="font-semibold mb-4"><i class="fas fa-receipt mr-2 text-yellow-400"></i>Derniers paiements</h3>
+                        <div id="recentPaymentsList" class="space-y-3">
+                            <div class="text-gray-500 text-sm text-center py-4">Chargement...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Licenses Tab -->
+            <div id="tab-licenses" class="tab-content hidden">
+                <div class="flex flex-wrap items-center gap-3 mb-4">
+                    <button onclick="filterLicenses('')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 license-filter active">Toutes</button>
+                    <button onclick="filterLicenses('active')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 license-filter">Actives</button>
+                    <button onclick="filterLicenses('pending')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 license-filter">En attente</button>
+                    <button onclick="filterLicenses('expired')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 license-filter">Expirées</button>
+                    <input type="text" id="licenseSearch" placeholder="Rechercher..." oninput="renderLicenses()" class="ml-auto px-3 py-1.5 bg-gray-700 rounded-lg text-sm border border-gray-600 focus:border-green-500 focus:outline-none w-48">
+                </div>
+                <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-700 text-gray-400 text-xs uppercase">
+                                    <th class="px-4 py-3 text-left">Entreprise</th>
+                                    <th class="px-4 py-3 text-left">Email</th>
+                                    <th class="px-4 py-3 text-center">Plan</th>
+                                    <th class="px-4 py-3 text-center">Statut</th>
+                                    <th class="px-4 py-3 text-center">Expiration</th>
+                                    <th class="px-4 py-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="licensesTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments Tab -->
+            <div id="tab-payments" class="tab-content hidden">
+                <div class="flex flex-wrap items-center gap-3 mb-4">
+                    <button onclick="filterPayments('')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 payment-filter active">Tous</button>
+                    <button onclick="filterPayments('pending')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 payment-filter">En attente</button>
+                    <button onclick="filterPayments('validated')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 payment-filter">Validés</button>
+                    <button onclick="filterPayments('rejected')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 payment-filter">Rejetés</button>
+                </div>
+                <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-700 text-gray-400 text-xs uppercase">
+                                    <th class="px-4 py-3 text-left">Utilisateur</th>
+                                    <th class="px-4 py-3 text-center">Plan</th>
+                                    <th class="px-4 py-3 text-right">Montant</th>
+                                    <th class="px-4 py-3 text-center">Méthode</th>
+                                    <th class="px-4 py-3 text-center">Référence</th>
+                                    <th class="px-4 py-3 text-center">Statut</th>
+                                    <th class="px-4 py-3 text-center">Date</th>
+                                    <th class="px-4 py-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="tab-users" class="tab-content hidden">
+                <div class="flex items-center gap-3 mb-4">
+                    <input type="text" id="userSearch" placeholder="Rechercher par email ou nom..." oninput="renderUsers()" class="px-3 py-1.5 bg-gray-700 rounded-lg text-sm border border-gray-600 focus:border-green-500 focus:outline-none w-64">
+                </div>
+                <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-700 text-gray-400 text-xs uppercase">
+                                    <th class="px-4 py-3 text-left">Nom</th>
+                                    <th class="px-4 py-3 text-left">Email</th>
+                                    <th class="px-4 py-3 text-left">Entreprise</th>
+                                    <th class="px-4 py-3 text-center">Rôle</th>
+                                    <th class="px-4 py-3 text-center">Statut</th>
+                                    <th class="px-4 py-3 text-center">Dernière connexion</th>
+                                    <th class="px-4 py-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Action Modal -->
+<div id="modal" class="fixed inset-0 modal-overlay hidden flex items-center justify-center z-50 p-4">
+    <div class="bg-gray-800 rounded-xl max-w-md w-full p-6 border border-gray-700 shadow-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="modalTitle" class="text-lg font-bold"></h3>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="modalBody"></div>
+        <div class="flex gap-3 mt-5">
+            <button onclick="closeModal()" class="flex-1 py-2.5 bg-gray-700 rounded-lg hover:bg-gray-600 text-sm font-semibold">Annuler</button>
+            <button id="modalConfirmBtn" class="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white" style="background:var(--green)">Confirmer</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+<script>
+const API = 'https://kabrak-exchange-pro-production.up.railway.app/api';
+let token = localStorage.getItem('kabrak_admin_token');
+let allLicenses = [], allPayments = [], allUsers = [];
+let licenseFilter = '', paymentFilter = '';
+
+// ─── Auth ───
+if (token) showDashboard();
+
+async function handleLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    btn.innerHTML = '<span class="spinner"></span>';
+    btn.disabled = true;
+    try {
+        const res = await fetch(`${API}/admin/login`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: document.getElementById('loginUser').value, password: document.getElementById('loginPass').value })
+        });
+        const data = await res.json();
+        if (res.ok && data.token) {
+            token = data.token;
+            localStorage.setItem('kabrak_admin_token', token);
+            showDashboard();
+        } else {
+            document.getElementById('loginError').textContent = data.error || 'Identifiants invalides';
+            document.getElementById('loginError').classList.remove('hidden');
+        }
+    } catch (err) {
+        document.getElementById('loginError').textContent = 'Erreur réseau';
+        document.getElementById('loginError').classList.remove('hidden');
+    }
+    btn.innerHTML = 'Se connecter';
+    btn.disabled = false;
+}
+
+function handleLogout() {
+    token = null;
+    localStorage.removeItem('kabrak_admin_token');
+    document.getElementById('dashboardScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+}
+
+function showDashboard() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('dashboardScreen').classList.remove('hidden');
+    refreshData();
+}
+
+// ─── API Helper ───
+async function api(endpoint, opts = {}) {
+    const res = await fetch(`${API}${endpoint}`, {
+        ...opts,
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...opts.headers }
+    });
+    if (res.status === 401) { handleLogout(); throw new Error('Session expirée'); }
+    return res;
+}
+
+// ─── Data Loading ───
+async function refreshData() {
+    document.getElementById('lastRefresh').textContent = 'Chargement...';
+    try {
+        await Promise.all([loadDashboard(), loadLicenses(), loadPayments(), loadUsers()]);
+        document.getElementById('lastRefresh').textContent = `Mis à jour: ${new Date().toLocaleTimeString('fr-FR')}`;
+    } catch (e) {
+        document.getElementById('lastRefresh').textContent = 'Erreur de chargement';
+        console.error(e);
+    }
+}
+
+async function loadDashboard() {
+    const res = await api('/admin/dashboard');
+    const { data } = await res.json();
+    document.getElementById('statUsers').textContent = data.users.total;
+    document.getElementById('statUsersActive').textContent = `${data.users.active} actifs`;
+    document.getElementById('statLicenses').textContent = data.licenses.active;
+    document.getElementById('statLicensesTotal').textContent = `/ ${data.licenses.total} total`;
+    document.getElementById('statPending').textContent = data.payments.pending;
+    document.getElementById('statPaymentsTotal').textContent = `/ ${data.payments.total} total`;
+    document.getElementById('statExpiring').textContent = data.licenses.expiringSoon;
+
+    // Pending badge
+    const badge = document.getElementById('pendingBadge');
+    if (data.payments.pending > 0) { badge.textContent = data.payments.pending; badge.classList.remove('hidden'); }
+    else { badge.classList.add('hidden'); }
+
+    // Recent users
+    const ul = document.getElementById('recentUsersList');
+    ul.innerHTML = (data.recentUsers || []).map(u => `
+        <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700">
+            <div class="w-8 h-8 rounded-full bg-green-900 flex items-center justify-center text-green-400 text-xs font-bold">${(u.firstName||'?')[0]}</div>
+            <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium truncate">${u.firstName || ''} ${u.lastName || ''}</div>
+                <div class="text-xs text-gray-500 truncate">${u.email}</div>
+            </div>
+            <div class="text-xs text-gray-500">${fmtDate(u.createdAt)}</div>
+        </div>
+    `).join('') || '<div class="text-gray-500 text-sm text-center py-4">Aucun</div>';
+
+    // Recent payments
+    const pl = document.getElementById('recentPaymentsList');
+    pl.innerHTML = (data.recentPayments || []).map(p => `
+        <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700">
+            <div class="w-8 h-8 rounded-full ${p.status === 'pending' ? 'bg-yellow-900 text-yellow-400' : p.status === 'validated' ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'} flex items-center justify-center text-xs">
+                <i class="fas ${p.status === 'pending' ? 'fa-clock' : p.status === 'validated' ? 'fa-check' : 'fa-times'}"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium truncate">${p.user?.firstName || ''} ${p.user?.lastName || ''}</div>
+                <div class="text-xs text-gray-500">${p.plan || '-'} · ${fmtAmount(p.amount)} XOF</div>
+            </div>
+            <span class="badge badge-${p.status}">${statusLabel(p.status)}</span>
+        </div>
+    `).join('') || '<div class="text-gray-500 text-sm text-center py-4">Aucun</div>';
+}
+
+async function loadLicenses() {
+    const res = await api('/admin/licenses');
+    allLicenses = await res.json();
+    if (Array.isArray(allLicenses)) renderLicenses();
+}
+
+async function loadPayments() {
+    const res = await api('/admin/payments');
+    const data = await res.json();
+    allPayments = data.data || [];
+    renderPayments();
+}
+
+async function loadUsers() {
+    const res = await api('/admin/users');
+    const data = await res.json();
+    allUsers = data.data || [];
+    renderUsers();
+}
+
+// ─── Render Functions ───
+function renderLicenses() {
+    const search = (document.getElementById('licenseSearch')?.value || '').toLowerCase();
+    const filtered = allLicenses.filter(l => {
+        if (licenseFilter && l.status !== licenseFilter) return false;
+        if (search && !(l.businessName||'').toLowerCase().includes(search) && !(l.ownerEmail||'').toLowerCase().includes(search)) return false;
+        return true;
+    });
+    const tbody = document.getElementById('licensesTable');
+    tbody.innerHTML = filtered.map(l => {
+        const now = new Date();
+        const isExpired = l.status === 'active' && l.expiresAt && new Date(l.expiresAt) < now;
+        const displayStatus = isExpired ? 'expired' : l.status;
+        const daysLeft = l.expiresAt ? Math.ceil((new Date(l.expiresAt) - now) / 86400000) : 0;
+        return `<tr class="table-row border-b border-gray-700">
+            <td class="px-4 py-3 font-medium">${l.businessName || '-'}</td>
+            <td class="px-4 py-3 text-gray-400">${l.ownerEmail || '-'}</td>
+            <td class="px-4 py-3 text-center"><span class="badge bg-gray-700">${(l.plan||'trial').toUpperCase()}</span></td>
+            <td class="px-4 py-3 text-center"><span class="badge badge-${displayStatus}">${statusLabel(displayStatus)}</span></td>
+            <td class="px-4 py-3 text-center text-xs">${l.expiresAt ? fmtDate(l.expiresAt) : '-'}${daysLeft > 0 && daysLeft < 30 ? ` <span class="text-orange-400">(${daysLeft}j)</span>` : ''}</td>
+            <td class="px-4 py-3 text-center">
+                <div class="flex items-center justify-center gap-1">
+                    ${l.status === 'pending' ? `<button onclick="approveLicense('${l.id}')" class="px-2 py-1 text-xs rounded bg-green-700 hover:bg-green-600" title="Approuver"><i class="fas fa-check"></i></button>` : ''}
+                    <button onclick="extendLicense('${l.id}')" class="px-2 py-1 text-xs rounded bg-blue-700 hover:bg-blue-600" title="Étendre"><i class="fas fa-calendar-plus"></i></button>
+                    <button onclick="changePlan('${l.id}')" class="px-2 py-1 text-xs rounded bg-purple-700 hover:bg-purple-600" title="Plan"><i class="fas fa-arrow-up"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('') || '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Aucune licence trouvée</td></tr>';
+}
+
+function renderPayments() {
+    const filtered = allPayments.filter(p => !paymentFilter || p.status === paymentFilter);
+    const tbody = document.getElementById('paymentsTable');
+    tbody.innerHTML = filtered.map(p => `
+        <tr class="table-row border-b border-gray-700">
+            <td class="px-4 py-3">
+                <div class="font-medium">${p.user?.firstName || ''} ${p.user?.lastName || ''}</div>
+                <div class="text-xs text-gray-500">${p.user?.email || '-'}</div>
+            </td>
+            <td class="px-4 py-3 text-center"><span class="badge bg-gray-700">${(p.plan||'-').toUpperCase()}</span></td>
+            <td class="px-4 py-3 text-right font-medium">${fmtAmount(p.amount)}</td>
+            <td class="px-4 py-3 text-center text-xs">${p.method || '-'}</td>
+            <td class="px-4 py-3 text-center text-xs font-mono">${p.reference || '-'}</td>
+            <td class="px-4 py-3 text-center"><span class="badge badge-${p.status}">${statusLabel(p.status)}</span></td>
+            <td class="px-4 py-3 text-center text-xs">${fmtDate(p.createdAt)}</td>
+            <td class="px-4 py-3 text-center">
+                ${p.status === 'pending' ? `
+                    <div class="flex items-center justify-center gap-1">
+                        <button onclick="validatePayment('${p.id}')" class="px-2 py-1 text-xs rounded bg-green-700 hover:bg-green-600" title="Valider"><i class="fas fa-check"></i></button>
+                        <button onclick="rejectPayment('${p.id}')" class="px-2 py-1 text-xs rounded bg-red-700 hover:bg-red-600" title="Rejeter"><i class="fas fa-times"></i></button>
+                    </div>
+                ` : '-'}
+            </td>
+        </tr>
+    `).join('') || '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">Aucun paiement trouvé</td></tr>';
+}
+
+function renderUsers() {
+    const search = (document.getElementById('userSearch')?.value || '').toLowerCase();
+    const filtered = allUsers.filter(u => {
+        if (!search) return true;
+        return (u.email||'').toLowerCase().includes(search) || (u.firstName||'').toLowerCase().includes(search) || (u.lastName||'').toLowerCase().includes(search) || (u.businessName||'').toLowerCase().includes(search);
+    });
+    const tbody = document.getElementById('usersTable');
+    tbody.innerHTML = filtered.map(u => `
+        <tr class="table-row border-b border-gray-700">
+            <td class="px-4 py-3 font-medium">${u.firstName || ''} ${u.lastName || ''}</td>
+            <td class="px-4 py-3 text-gray-400">${u.email}</td>
+            <td class="px-4 py-3">${u.businessName || '-'}</td>
+            <td class="px-4 py-3 text-center"><span class="badge bg-gray-700">${u.teamRole || u.role || '-'}</span></td>
+            <td class="px-4 py-3 text-center">
+                <span class="badge ${u.isActive ? 'badge-active' : 'badge-expired'}">${u.isActive ? 'Actif' : 'Inactif'}</span>
+            </td>
+            <td class="px-4 py-3 text-center text-xs">${u.lastLogin ? fmtDate(u.lastLogin) : 'Jamais'}</td>
+            <td class="px-4 py-3 text-center">
+                <button onclick="toggleUser('${u.id}', ${u.isActive})" class="px-2 py-1 text-xs rounded ${u.isActive ? 'bg-red-700 hover:bg-red-600' : 'bg-green-700 hover:bg-green-600'}" title="${u.isActive ? 'Désactiver' : 'Activer'}">
+                    <i class="fas ${u.isActive ? 'fa-ban' : 'fa-check'}"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('') || '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Aucun utilisateur trouvé</td></tr>';
+}
+
+// ─── Tab Navigation ───
+function switchTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.getElementById(`tab-${tab}`).classList.remove('hidden');
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+    const titles = { dashboard: 'Tableau de bord', licenses: 'Gestion des Licences', payments: 'Gestion des Paiements', users: 'Gestion des Utilisateurs' };
+    document.getElementById('pageTitle').textContent = titles[tab] || tab;
+    // Close mobile sidebar
+    document.getElementById('sidebar').classList.remove('mobile-open');
+}
+
+function toggleSidebar() {
+    const sb = document.getElementById('sidebar');
+    if (window.innerWidth < 768) { sb.classList.toggle('mobile-open'); }
+    else {
+        sb.classList.toggle('collapsed');
+        document.getElementById('mainContent').classList.toggle('expanded');
+    }
+}
+
+// ─── Filters ───
+function filterLicenses(status) {
+    licenseFilter = status;
+    document.querySelectorAll('.license-filter').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    renderLicenses();
+}
+function filterPayments(status) {
+    paymentFilter = status;
+    document.querySelectorAll('.payment-filter').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    renderPayments();
+}
+
+// ─── License Actions ───
+function approveLicense(id) {
+    openModal('Approuver la licence', `
+        <label class="block text-sm text-gray-400 mb-1">Durée :</label>
+        <select id="mDays" class="w-full p-2.5 bg-gray-700 rounded-lg border border-gray-600">
+            <option value="30">30 jours (1 mois)</option>
+            <option value="90" selected>90 jours (3 mois)</option>
+            <option value="180">180 jours (6 mois)</option>
+            <option value="365">365 jours (1 an)</option>
+        </select>
+    `, async () => {
+        const days = document.getElementById('mDays').value;
+        await api(`/admin/licenses/${id}/approve`, { method: 'POST', body: JSON.stringify({ days: +days }) });
+        toast('Licence approuvée', 'success');
+        closeModal(); refreshData();
+    });
+}
+
+function extendLicense(id) {
+    openModal('Étendre la licence', `
+        <label class="block text-sm text-gray-400 mb-1">Ajouter :</label>
+        <select id="mDays" class="w-full p-2.5 bg-gray-700 rounded-lg border border-gray-600">
+            <option value="7">7 jours</option>
+            <option value="30" selected>30 jours</option>
+            <option value="90">90 jours</option>
+            <option value="365">1 an</option>
+        </select>
+    `, async () => {
+        const days = document.getElementById('mDays').value;
+        await api(`/admin/licenses/${id}/extend`, { method: 'POST', body: JSON.stringify({ days: +days }) });
+        toast('Licence étendue', 'success');
+        closeModal(); refreshData();
+    });
+}
+
+function changePlan(id) {
+    openModal('Changer le plan', `
+        <label class="block text-sm text-gray-400 mb-1">Nouveau plan :</label>
+        <select id="mPlan" class="w-full p-2.5 bg-gray-700 rounded-lg border border-gray-600">
+            <option value="trial">Trial</option>
+            <option value="basic">Basic</option>
+            <option value="pro">Pro</option>
+            <option value="premium">Premium</option>
+        </select>
+    `, async () => {
+        const plan = document.getElementById('mPlan').value;
+        await api(`/admin/licenses/${id}/plan`, { method: 'POST', body: JSON.stringify({ plan }) });
+        toast('Plan modifié', 'success');
+        closeModal(); refreshData();
+    });
+}
+
+// ─── Payment Actions ───
+async function validatePayment(id) {
+    if (!confirm('Valider ce paiement et activer la licence ?')) return;
+    try {
+        await api(`/payments/${id}/validate`, { method: 'POST' });
+        toast('Paiement validé, licence activée', 'success');
+        refreshData();
+    } catch (e) { toast('Erreur de validation', 'error'); }
+}
+
+async function rejectPayment(id) {
+    if (!confirm('Rejeter ce paiement ?')) return;
+    try {
+        await api(`/payments/${id}/reject`, { method: 'POST', body: JSON.stringify({ reason: 'Rejeté par admin' }) });
+        toast('Paiement rejeté', 'error');
+        refreshData();
+    } catch (e) { toast('Erreur', 'error'); }
+}
+
+// ─── User Actions ───
+async function toggleUser(id, isActive) {
+    if (!confirm(`${isActive ? 'Désactiver' : 'Activer'} cet utilisateur ?`)) return;
+    try {
+        await api(`/admin/users/${id}/toggle`, { method: 'PUT' });
+        toast(`Utilisateur ${isActive ? 'désactivé' : 'activé'}`, 'success');
+        refreshData();
+    } catch (e) { toast('Erreur', 'error'); }
+}
+
+// ─── Modal ───
+function openModal(title, body, onConfirm) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalBody').innerHTML = body;
+    document.getElementById('modalConfirmBtn').onclick = async () => {
+        try { await onConfirm(); } catch (e) { toast(e.message || 'Erreur', 'error'); }
+    };
+    document.getElementById('modal').classList.remove('hidden');
+}
+function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+// ─── Toast ───
+function toast(msg, type = 'success') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${type === 'success' ? 'bg-green-800 text-green-200' : 'bg-red-800 text-red-200'}`;
+    t.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>${msg}`;
+    c.appendChild(t);
+    setTimeout(() => { t.remove(); }, 3500);
+}
+
+// ─── Helpers ───
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'; }
+function fmtAmount(a) { return parseFloat(a || 0).toLocaleString('fr-FR'); }
+function statusLabel(s) {
+    const map = { active: 'Actif', pending: 'Attente', expired: 'Expiré', validated: 'Validé', rejected: 'Rejeté', trial: 'Essai' };
+    return map[s] || s || '-';
+}
+</script>
+</body>
+</html>

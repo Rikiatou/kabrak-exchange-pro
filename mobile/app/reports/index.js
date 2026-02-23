@@ -11,6 +11,7 @@ import useAuthStore from '../../src/store/authStore';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import useLanguageStore from '../../src/store/languageStore';
 import { formatCurrency } from '../../src/utils/helpers';
+import { exportExcel, exportPDF, buildMonthlyReportHTML } from '../../src/utils/exportReport';
 
 export default function ReportsScreen() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function ReportsScreen() {
   const [report, setReport] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [exporting, setExporting] = useState(null);
 
   useEffect(() => {
     if (user && user.role !== 'admin') { router.back(); }
@@ -40,6 +42,36 @@ export default function ReportsScreen() {
 
   useEffect(() => { loadReport(); }, [selectedMonth, selectedYear]);
 
+  const handleExportExcel = async (type) => {
+    setExporting(type);
+    try {
+      const startDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`;
+      const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
+      const endDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${lastDay}`;
+      await exportExcel(type, { startDate, endDate });
+    } catch (e) {
+      Alert.alert(language === 'fr' ? 'Erreur' : 'Error', e.message);
+    }
+    setExporting(null);
+  };
+
+  const handleExportPDF = async () => {
+    if (!report) return;
+    setExporting('pdf');
+    try {
+      const html = buildMonthlyReportHTML({
+        report,
+        month: monthLabels[selectedMonth - 1],
+        year: selectedYear,
+        businessName: user?.businessName || 'KABRAK Exchange Pro',
+      });
+      await exportPDF(html, `rapport_${selectedYear}_${selectedMonth}`);
+    } catch (e) {
+      Alert.alert(language === 'fr' ? 'Erreur' : 'Error', e.message);
+    }
+    setExporting(null);
+  };
+
   const { language } = useLanguageStore();
   const monthLabels = language === 'fr'
     ? ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
@@ -52,7 +84,9 @@ export default function ReportsScreen() {
           <Ionicons name="arrow-back" size={24} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.title}>{t.reports.title}</Text>
-        <View style={{ width: 32 }} />
+        <TouchableOpacity onPress={handleExportPDF} disabled={!!exporting || !report} style={styles.backBtn}>
+          {exporting === 'pdf' ? <ActivityIndicator size="small" color={COLORS.white} /> : <Ionicons name="document-outline" size={22} color={COLORS.white} />}
+        </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -86,6 +120,22 @@ export default function ReportsScreen() {
           <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />
         ) : report ? (
           <>
+            {/* Export Buttons */}
+            <View style={styles.exportRow}>
+              <TouchableOpacity style={styles.exportBtn} onPress={handleExportPDF} disabled={!!exporting}>
+                {exporting === 'pdf' ? <ActivityIndicator size="small" color={COLORS.white} /> : <Ionicons name="document-text-outline" size={18} color={COLORS.white} />}
+                <Text style={styles.exportBtnText}>PDF</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.exportBtn, { backgroundColor: '#0369a1' }]} onPress={() => handleExportExcel('transactions')} disabled={!!exporting}>
+                {exporting === 'transactions' ? <ActivityIndicator size="small" color={COLORS.white} /> : <Ionicons name="grid-outline" size={18} color={COLORS.white} />}
+                <Text style={styles.exportBtnText}>{language === 'fr' ? 'Excel Trans.' : 'Excel Trans.'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.exportBtn, { backgroundColor: '#7b1fa2' }]} onPress={() => handleExportExcel('clients')} disabled={!!exporting}>
+                {exporting === 'clients' ? <ActivityIndicator size="small" color={COLORS.white} /> : <Ionicons name="people-outline" size={18} color={COLORS.white} />}
+                <Text style={styles.exportBtnText}>{language === 'fr' ? 'Excel Clients' : 'Excel Clients'}</Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Summary */}
             <View style={styles.summaryCard}>
               <Text style={styles.sectionTitle}>{t.reports.monthly} — {monthLabels[selectedMonth - 1]} {selectedYear}</Text>
@@ -234,5 +284,13 @@ const styles = StyleSheet.create({
   clientAvatarText: { color: COLORS.white, fontWeight: '700' },
   clientInfo: { flex: 1 },
   clientName: { fontSize: FONTS.sizes.sm, fontWeight: '600', color: COLORS.textPrimary },
-  clientDebt: { fontSize: FONTS.sizes.xs, color: COLORS.danger, marginTop: 2 }
+  clientDebt: { fontSize: FONTS.sizes.xs, color: COLORS.danger, marginTop: 2 },
+  exportRow: {
+    flexDirection: 'row', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, gap: SPACING.sm
+  },
+  exportBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: COLORS.primary, paddingVertical: 10, borderRadius: RADIUS.md, gap: 6
+  },
+  exportBtnText: { color: COLORS.white, fontSize: FONTS.sizes.sm, fontWeight: '700' }
 });

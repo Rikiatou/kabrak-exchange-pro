@@ -19,7 +19,10 @@ const useAuthStore = create((set, get) => ({
       if (refreshToken) await SecureStore.setItemAsync('refresh_token', refreshToken);
       set({ user, token, isAuthenticated: true, isLoading: false });
       const pushToken = await registerForPushNotifications();
-      if (pushToken) set({ expoPushToken: pushToken });
+      if (pushToken) {
+        set({ expoPushToken: pushToken });
+        api.put('/auth/push-token', { expoPushToken: pushToken }).catch(() => {});
+      }
       return { success: true };
     } catch (error) {
       set({ isLoading: false });
@@ -40,7 +43,10 @@ const useAuthStore = create((set, get) => ({
       const response = await api.get('/auth/me');
       set({ user: response.data.data, token, isAuthenticated: true });
       const pushToken = await registerForPushNotifications();
-      if (pushToken) set({ expoPushToken: pushToken });
+      if (pushToken) {
+        set({ expoPushToken: pushToken });
+        api.put('/auth/push-token', { expoPushToken: pushToken }).catch(() => {});
+      }
     } catch {
       await SecureStore.deleteItemAsync('auth_token');
     }

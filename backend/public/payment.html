@@ -8,8 +8,9 @@
     <style>
         body { background: #071a12; }
         .green-accent { color: #e8a020; }
-        .btn-green { background: #0B6E4F; }
+        .btn-green { background: #0B6E4F; transition: background .2s; }
         .btn-green:hover { background: #0a5d41; }
+        .btn-green:disabled { opacity: .5; cursor: not-allowed; }
         .ussd-code { 
             background: #1a3d2e; 
             padding: 12px; 
@@ -18,6 +19,19 @@
             font-size: 18px;
             text-align: center;
             border: 2px solid #0B6E4F;
+            word-break: break-all;
+        }
+        input { font-size: 16px !important; }
+        .plan-card { transition: all .2s; }
+        .plan-card:active { transform: scale(0.97); }
+        .payment-method { transition: all .2s; }
+        .payment-method:active { transform: scale(0.97); }
+        .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 640px) {
+            .container { padding: 16px !important; }
+            h1 { font-size: 1.3rem !important; }
+            .plan-card { padding: 12px !important; }
         }
     </style>
 </head>
@@ -155,31 +169,38 @@
         </div>
 
         <!-- Payment Proof -->
-        <div id="paymentProof" class="bg-gray-800 p-6 rounded-lg hidden">
+        <div id="paymentProof" class="bg-gray-800 p-6 sm:p-6 p-4 rounded-lg hidden">
             <h2 class="text-lg font-semibold mb-4">&#x1F510; Prouvez votre paiement</h2>
             
             <div class="space-y-4">
+                <!-- Email -->
+                <div>
+                    <label class="block mb-2 text-sm">&#x1F4E7; Email (pour recevoir la confirmation) :</label>
+                    <input type="email" id="emailConfirm" placeholder="votre@email.com" 
+                           class="w-full p-3 bg-gray-700 rounded text-white" required>
+                    <p class="text-xs text-gray-400 mt-1">Vous recevrez votre clé de licence par email</p>
+                </div>
+
                 <!-- Transaction ID -->
                 <div>
-                    <label class="block mb-2">&#x1F510; Transaction ID (SMS Orange Money) :</label>
-                    <input type="text" id="transactionId" placeholder="PP260220.2301.D61601NNOU ou CO260220.1635.A05344..." 
-                           class="w-full p-2 bg-gray-700 rounded" required>
+                    <label class="block mb-2 text-sm">&#x1F510; Transaction ID (SMS Orange Money) :</label>
+                    <input type="text" id="transactionId" placeholder="PP260220.2301.D61601NNOU" 
+                           class="w-full p-3 bg-gray-700 rounded text-white" required>
                     <p class="text-xs text-gray-400 mt-1">
-                        &#x1F4F1; Copiez l'ID de transaction du SMS Orange Money reçu<br>
-                        &#x1F4DD; Format variable : court ou complet, les deux fonctionnent
+                        Copiez l'ID du SMS Orange Money reçu
                     </p>
                 </div>
                 
                 <!-- Phone -->
                 <div>
-                    <label class="block mb-2">&#x1F4F1; Numéro de téléphone utilisé :</label>
+                    <label class="block mb-2 text-sm">&#x1F4F1; Numéro de téléphone utilisé :</label>
                     <input type="tel" id="phoneNumber" placeholder="+237699123456" 
-                           class="w-full p-2 bg-gray-700 rounded" required>
+                           class="w-full p-3 bg-gray-700 rounded text-white" required>
                 </div>
                 
-                <button onclick="submitPaymentProof()" 
-                        class="w-full btn-green py-2 rounded hover:bg-green-600">
-                    &#x1F4F8; Envoyer pour validation
+                <button id="submitBtn" onclick="submitPaymentProof()" 
+                        class="w-full btn-green py-3 rounded font-semibold text-base">
+                    Envoyer pour validation
                 </button>
             </div>
         </div>
@@ -211,7 +232,7 @@
         <div id="message" class="mt-4 text-center hidden"></div>
 
         <!-- Back button -->
-        <div class="text-center mt-6">
+        <div class="text-center mt-6 pb-8">
             <a href="login.html" class="text-green-500 text-sm hover:underline">
                 ← Retour à la connexion
             </a>
@@ -295,9 +316,15 @@
         async function submitPaymentProof() {
             const transactionId = document.getElementById('transactionId').value.trim();
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const email = document.getElementById('emailConfirm').value.trim();
             
             if (!transactionId || !phoneNumber) {
                 showMessage('Veuillez remplir tous les champs', 'error');
+                return;
+            }
+            
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showMessage('Adresse email invalide', 'error');
                 return;
             }
             
@@ -306,6 +333,9 @@
                 return;
             }
             
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Envoi en cours...';
             const messageDiv = document.getElementById('message');
             messageDiv.classList.add('hidden');
             
@@ -322,6 +352,7 @@
                         amount: planAmounts[selectedPlan],
                         reference: transactionId,
                         phoneNumber,
+                        email: email || currentUser.email,
                         method: 'orange_money',
                         notes: `Transaction ID: ${transactionId}`
                     })
@@ -330,21 +361,24 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    showMessage('✅ Transaction ID envoyé ! Validation en cours...', 'success');
+                    showMessage('✅ Transaction ID envoyé ! Un email de confirmation vous sera envoyé. Validation en cours...', 'success');
                     
-                    // Vider le formulaire
                     document.getElementById('transactionId').value = '';
                     document.getElementById('phoneNumber').value = '';
+                    document.getElementById('emailConfirm').value = '';
                     
-                    // Rediriger après 3 secondes
                     setTimeout(() => {
                         window.location.href = 'login.html';
-                    }, 3000);
+                    }, 4000);
                 } else {
                     showMessage(data.message || 'Erreur lors de l\'envoi', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Envoyer pour validation';
                 }
             } catch (e) {
                 showMessage('Erreur réseau. Réessayez.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Envoyer pour validation';
             }
             
             messageDiv.classList.remove('hidden');

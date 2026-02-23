@@ -82,6 +82,7 @@ export default function MoreScreen() {
       {isAdmin && (
         <MenuSection title={t.users.title}>
           <MenuItem icon="people-outline" label={t.more.users} onPress={() => router.push('/users')} color={COLORS.primary} />
+          <MenuItem icon="people-circle-outline" label="Mon Équipe" subtitle="Gérer les membres du bureau" onPress={() => router.push('/settings/team')} color="#7c3aed" />
           <MenuItem icon="cash-outline" label={t.currencies.title} onPress={() => router.push('/(tabs)/currencies')} color={COLORS.success} />
           <MenuItem icon="lock-closed-outline" label="Clôture de caisse" subtitle="Bilan journalier" onPress={() => router.push('/cashclose')} color="#d97706" />
           <MenuItem icon="cube-outline" label="Stock de devises" subtitle="Inventaire physique" onPress={() => router.push('/stock')} color="#0891b2" />
@@ -89,6 +90,7 @@ export default function MoreScreen() {
       )}
 
       <MenuSection title={t.settings.title}>
+        <MenuItem icon="shield-checkmark-outline" label="Ma Licence" subtitle="Plan, expiration, renouvellement" onPress={() => router.push('/settings/license')} color="#6366f1" />
         {isAdmin && <MenuItem icon="business-outline" label="Mon entreprise" subtitle="Nom, téléphone, adresse" onPress={() => router.push('/settings/business')} color={COLORS.primary} />}
         <MenuItem icon="lock-closed-outline" label={t.settings.changePassword} onPress={() => router.push('/settings/change-password')} color={COLORS.primary} />
         <MenuItem icon="information-circle-outline" label={t.settings.about} onPress={() => router.push('/settings/about')} color={COLORS.textSecondary} />

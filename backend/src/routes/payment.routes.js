@@ -6,6 +6,8 @@ const { auditLog } = require('../middleware/audit.middleware');
 const { PaymentProof, User, License } = require('../models');
 const { adminAuth } = require('../middleware/admin.middleware');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
+const { sendTrialActivated, sendPaymentReceived, sendLicenseActivated, sendPaymentRejected } = require('../services/email.service');
+const { sendPushToUser, pushTemplates } = require('../services/push.service');
 
 // Existing routes
 router.get('/', authenticate, getAll);
@@ -89,6 +91,18 @@ router.post('/ussd-proof', async (req, res) => {
       
       console.log(`✅ Trial license created: ${license.licenseKey}, expires: ${trialExpiry}`);
       
+      // Push notification trial
+      const trialPush = pushTemplates.trialActivated(14);
+      sendPushToUser(userId, trialPush.title, trialPush.body, { type: 'trial_activated' }).catch(() => {});
+      
+      // Envoyer email de confirmation trial
+      sendTrialActivated({
+        email: user.email,
+        businessName: user.businessName || user.firstName || 'Client',
+        licenseKey: license.licenseKey,
+        expiresAt: license.expiresAt
+      }).catch(e => console.error('Email error:', e.message));
+      
       // Créer la preuve de paiement pour suivi
       const paymentProof = await PaymentProof.create({
         userId,
@@ -126,6 +140,22 @@ router.post('/ussd-proof', async (req, res) => {
     });
     
     console.log('✅ Payment proof created:', paymentProof.id, 'Transaction ID:', paymentProof.reference);
+    
+    // Envoyer email de confirmation Orange Money
+    const proofUser = await User.findByPk(userId);
+    if (proofUser) {
+      sendPaymentReceived({
+        email: proofUser.email,
+        businessName: proofUser.businessName || proofUser.firstName || 'Client',
+        plan,
+        amount,
+        reference
+      }).catch(e => console.error('Email error:', e.message));
+    }
+    
+    // Push notification paiement reçu
+    const recvPush = pushTemplates.paymentReceived(plan, amount);
+    sendPushToUser(userId, recvPush.title, recvPush.body, { type: 'payment_received' }).catch(() => {});
     
     res.json({
       success: true,
@@ -229,6 +259,20 @@ router.post('/:id/validate', adminAuth, async (req, res) => {
       });
     }
     
+    // Envoyer email licence activée
+    sendLicenseActivated({
+      email: paymentProof.user.email,
+      businessName: paymentProof.user.businessName || paymentProof.user.firstName || 'Client',
+      licenseKey: license.licenseKey,
+      plan: license.plan,
+      expiresAt: license.expiresAt
+    }).catch(e => console.error('Email error:', e.message));
+    
+    // Push notification licence activée
+    const daysLeft = Math.ceil((license.expiresAt - new Date()) / (1000 * 60 * 60 * 24));
+    const actPush = pushTemplates.licenseActivated(license.plan, daysLeft);
+    sendPushToUser(paymentProof.userId, actPush.title, actPush.body, { type: 'license_activated' }).catch(() => {});
+    
     res.json({
       success: true,
       message: 'Paiement validé et licence activée',
@@ -265,6 +309,20 @@ router.post('/:id/reject', adminAuth, async (req, res) => {
       validatedBy: adminId,
       notes: reason
     });
+    
+    // Envoyer email rejet
+    const rejectedProof = await PaymentProof.findByPk(id, { include: [{ model: User, as: 'user' }] });
+    if (rejectedProof?.user) {
+      sendPaymentRejected({
+        email: rejectedProof.user.email,
+        businessName: rejectedProof.user.businessName || rejectedProof.user.firstName || 'Client',
+        reason
+      }).catch(e => console.error('Email error:', e.message));
+      
+      // Push notification rejet
+      const rejPush = pushTemplates.paymentRejected(reason);
+      sendPushToUser(rejectedProof.userId, rejPush.title, rejPush.body, { type: 'payment_rejected' }).catch(() => {});
+    }
     
     res.json({ success: true, message: 'Paiement rejeté' });
   } catch (e) {

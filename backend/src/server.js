@@ -32,6 +32,7 @@ const exportRoutes = require('./routes/export.routes');
 const exchangeRatesRoutes = require('./routes/exchangeRates.routes');
 const cashCloseRoutes = require('./routes/cashClose.routes');
 const searchRoutes = require('./routes/search.routes');
+const teamRoutes = require('./routes/team.routes');
 const path = require('path');
 
 const app = express();
@@ -52,6 +53,10 @@ app.use(cors({
   credentials: true,
 }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+// Stripe webhook needs raw body for signature verification - MUST be before express.json()
+app.use('/api/payments/stripe/webhook', express.raw({ type: 'application/json' }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -99,6 +104,7 @@ app.use('/api/export', exportRoutes);
 app.use('/api/exchange-rates', exchangeRatesRoutes);
 app.use('/api/cash-close', cashCloseRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/team', teamRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/admin', express.static(path.join(__dirname, '../public')));
 app.use('/admin-pro', express.static(path.join(__dirname, '../public')));
