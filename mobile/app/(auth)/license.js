@@ -144,6 +144,15 @@ export default function LicenseScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Free Trial Button */}
+        <TouchableOpacity 
+          style={styles.trialButton}
+          onPress={() => router.push('/(auth)/payment')}
+        >
+          <Ionicons name="gift-outline" size={20} color={WHITE} style={{ marginRight: 8 }} />
+          <Text style={styles.trialButtonText}>🎁 ESSAI GRATUIT 14 JOURS</Text>
+        </TouchableOpacity>
+
         {/* Payment Button */}
         <TouchableOpacity 
           style={styles.paymentButton}
@@ -182,6 +191,26 @@ const styles = StyleSheet.create({
   contactRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 20 },
   contactLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 13 },
   contactLink: { color: GOLD, fontSize: 13, fontWeight: '700' },
+  trialButton: {
+    height: 54,
+    borderRadius: 10,
+    backgroundColor: '#10b981',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 10,
+    marginBottom: 12,
+    width: '100%',
+  },
+  trialButtonText: {
+    color: WHITE,
+    fontSize: 16,
+    fontWeight: '700',
+  },
   paymentButton: {
     height: 54,
     borderRadius: 10,
