@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   RefreshControl, Alert, Modal, TextInput, ScrollView,
-  ActivityIndicator, Clipboard, Image, Dimensions
+  ActivityIndicator, Clipboard, Image, Dimensions, Linking
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -233,13 +233,30 @@ export default function DepositsScreen() {
     Alert.alert('✅', lang === 'fr' ? `Lien copié !\n\n${link}` : `Link copied!\n\n${link}`);
   };
 
-  const copyWhatsApp = (order, paymentCode) => {
+  const sendWhatsApp = (order, paymentCode) => {
     const link = `${UPLOAD_BASE}/${paymentCode}`;
     const msg = lang === 'fr'
       ? `Bonjour ${order.clientName},\nMerci d'uploader votre reçu de versement ici :\n${link}\nRéférence : ${paymentCode}`
       : `Hello ${order.clientName},\nPlease upload your deposit receipt here:\n${link}\nReference: ${paymentCode}`;
-    Clipboard.setString(msg);
-    Alert.alert('✅', lang === 'fr' ? 'Message WhatsApp copié !' : 'WhatsApp message copied!');
+
+    const phone = (order.clientPhone || '').replace(/[^0-9+]/g, '');
+    if (phone) {
+      // Ouvrir WhatsApp directement avec le numéro du client
+      const waUrl = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`;
+      Linking.canOpenURL(waUrl).then(supported => {
+        if (supported) {
+          Linking.openURL(waUrl);
+        } else {
+          // Fallback : copier le message
+          Clipboard.setString(msg);
+          Alert.alert('WhatsApp non installé', lang === 'fr' ? 'Message copié dans le presse-papier.' : 'Message copied to clipboard.');
+        }
+      });
+    } else {
+      // Pas de numéro : copier le message
+      Clipboard.setString(msg);
+      Alert.alert('⚠️', lang === 'fr' ? 'Numéro client manquant. Message copié.' : 'No client phone. Message copied.');
+    }
   };
 
   const FILTERS = [
@@ -469,7 +486,7 @@ export default function DepositsScreen() {
                               <TouchableOpacity onPress={() => copyLink(p.code)} style={styles.payIconBtn}>
                                 <Ionicons name="copy-outline" size={16} color={COLORS.primary} />
                               </TouchableOpacity>
-                              <TouchableOpacity onPress={() => copyWhatsApp(selected, p.code)} style={[styles.payIconBtn, { backgroundColor: '#25D36622' }]}>
+                              <TouchableOpacity onPress={() => sendWhatsApp(selected, p.code)} style={[styles.payIconBtn, { backgroundColor: '#25D36622' }]}>
                                 <Ionicons name="logo-whatsapp" size={16} color="#25D366" />
                               </TouchableOpacity>
                             </View>
