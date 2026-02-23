@@ -14,7 +14,7 @@ router.post('/', authenticate, auditLog('CREATE', 'payment'), create);
 // USSD Payment routes
 router.post('/ussd-proof', async (req, res) => {
   try {
-    console.log('📝 USSD Proof submission:', { userId, plan, amount, reference, phoneNumber });
+    console.log('📝 Payment Proof submission:', { userId, plan, amount, reference, phoneNumber });
     
     const { userId, plan, amount, reference, phoneNumber } = req.body;
     
@@ -38,8 +38,17 @@ router.post('/ussd-proof', async (req, res) => {
     if (existingProof) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Vous avez déjà soumis cette référence' 
+        message: 'Ce Transaction ID a déjà été soumis pour validation' 
       });
+    }
+    
+    // Valider que le format ressemble un ID Orange Money (court ou complet)
+    const shortPattern = /^(PP|CO|OM|TX|PAY|REF|VIR)\d{6}\.\d{4}\.[A-Z0-9]+$/;
+    const longPattern = /^(PP|CO|OM|TX|PAY|REF|VIR)\d{6}\.\d{4}\.[A-Z0-9]+\s+(CO|PP|OM|TX|PAY|REF|VIR)\d{6}\.\d{4}\.[A-Z0-9]+$/;
+    
+    if (!shortPattern.test(reference) && !longPattern.test(reference)) {
+      console.log('⚠️ Reference does not match Orange Money pattern:', reference);
+      // On accepte quand même pour être flexible avec les différents formats
     }
     
     // Vérifier que le montant correspond au plan
@@ -67,11 +76,11 @@ router.post('/ussd-proof', async (req, res) => {
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h pour valider
     });
     
-    console.log('✅ Payment proof created:', paymentProof.id);
+    console.log('✅ Payment proof created:', paymentProof.id, 'Transaction ID:', paymentProof.reference);
     
     res.json({
       success: true,
-      message: 'Preuve de paiement enregistrée. Validation en cours...',
+      message: 'Transaction ID enregistré ! Validation en cours...',
       paymentProof: {
         id: paymentProof.id,
         reference: paymentProof.reference,

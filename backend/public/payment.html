@@ -156,29 +156,30 @@
 
         <!-- Payment Proof -->
         <div id="paymentProof" class="bg-gray-800 p-6 rounded-lg hidden">
-            <h2 class="text-lg font-semibold mb-4">Prouvez votre paiement</h2>
+            <h2 class="text-lg font-semibold mb-4">&#x1F510; Prouvez votre paiement</h2>
             
             <div class="space-y-4">
                 <!-- Transaction ID -->
                 <div>
-                    <label class="block mb-2">� Transaction ID (SMS Orange Money) :</label>
-                    <input type="text" id="transactionId" placeholder="PP260220.2301.D61601NNOU..." 
+                    <label class="block mb-2">&#x1F510; Transaction ID (SMS Orange Money) :</label>
+                    <input type="text" id="transactionId" placeholder="PP260220.2301.D61601NNOU ou CO260220.1635.A05344..." 
                            class="w-full p-2 bg-gray-700 rounded" required>
                     <p class="text-xs text-gray-400 mt-1">
-                        � Copiez l'ID de transaction du SMS Orange Money reçu
+                        &#x1F4F1; Copiez l'ID de transaction du SMS Orange Money reçu<br>
+                        &#x1F4DD; Format variable : court ou complet, les deux fonctionnent
                     </p>
                 </div>
                 
                 <!-- Phone -->
                 <div>
-                    <label class="block mb-2">� Numéro de téléphone utilisé :</label>
+                    <label class="block mb-2">&#x1F4F1; Numéro de téléphone utilisé :</label>
                     <input type="tel" id="phoneNumber" placeholder="+237699123456" 
                            class="w-full p-2 bg-gray-700 rounded" required>
                 </div>
                 
                 <button onclick="submitPaymentProof()" 
                         class="w-full btn-green py-2 rounded hover:bg-green-600">
-                    📸 Envoyer pour validation
+                    &#x1F4F8; Envoyer pour validation
                 </button>
             </div>
         </div>
