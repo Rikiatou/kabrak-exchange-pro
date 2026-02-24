@@ -218,4 +218,16 @@ router.get('/payments', adminAuth, async (req, res) => {
   }
 });
 
+// GET /admin/creds — debug endpoint to show current credentials (REMOVE IN PRODUCTION!)
+router.get('/creds', (req, res) => {
+  res.json({
+    username: process.env.ADMIN_USERNAME || 'kabrak',
+    password: process.env.ADMIN_PASSWORD || 'Kabrak2026!',
+    env: {
+      ADMIN_USERNAME: process.env.ADMIN_USERNAME,
+      ADMIN_PASSWORD: process.env.ADMIN_PASSWORD ? '***SET***' : 'NOT SET'
+    }
+  });
+});
+
 module.exports = router;

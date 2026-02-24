@@ -72,7 +72,10 @@
       <li><a href="#depots"><span class="n">5</span>Module Dépôts</a></li>
       <li><a href="#devises"><span class="n">6</span>Devises & Stock</a></li>
       <li><a href="#rapports"><span class="n">7</span>Rapports & Export</a></li>
-      <li><a href="#roles"><span class="n">8</span>Rôles & Équipe</a></li>
+      <li><a href="#team"><span class="n">8</span>Gérer l'équipe</a></li>
+      <li><a href="#roles"><span class="n">9</span>Rôles & Permissions</a></li>
+      <li><a href="#admin"><span class="n">10</span>Admin Dashboard</a></li>
+      <li><a href="#ios"><span class="n">11</span>Installation iOS (TestFlight)</a></li>
     </ul>
   </div>
 
@@ -179,11 +182,27 @@
     <div class="warn">⚠️ Accès réservé aux rôles Owner, Admin et Manager uniquement.</div>
   </div>
 
+  <!-- TEAM -->
+  <div class="card" id="team">
+    <div class="card-header">
+      <div class="card-icon" style="background:#fef3c7">👥</div>
+      <div><div class="card-title">8. Gérer l'équipe</div><div class="card-sub">Ajouter et gérer les employés</div></div>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div><h4>Accéder à la gestion équipe</h4><p>Menu <strong>"Plus"</strong> → <strong>"Équipe"</strong>. Vous voyez la liste de tous les membres.</p></div></div>
+      <div class="step"><div class="num">2</div><div><h4>Ajouter un membre</h4><p>Cliquez sur <strong>"Inviter un membre"</strong>. Remplissez :<br>• Email (sera son identifiant)<br>• Prénom/Nom<br>• Téléphone (optionnel)<br>• Rôle (Manager ou Caissier)<br>• Mot de passe temporaire</p></div></div>
+      <div class="step"><div class="num">3</div><div><h4>Communiquer les identifiants</h4><p>Une fois créé, communiquez à l'employé :<br>• Son email<br>• Son mot de passe<br>Il pourra se connecter directement avec ces identifiants.</p></div></div>
+      <div class="step"><div class="num">4</div><div><h4>Gérer les membres</h4><p>Depuis la liste, vous pouvez :<br>• Modifier les infos (nom, téléphone, rôle)<br>• Réinitialiser le mot de passe<br>• Désactiver un membre (ne supprime pas ses données)</p></div></div>
+    </div>
+    <div class="tip">🔐 Les employés n'ont pas besoin de clé de licence ! Ils utilisent la licence de leur propriétaire automatiquement.</div>
+    <div class="warn">⚠️ Seul le propriétaire peut créer des managers. Les managers peuvent créer des caissiers.</div>
+  </div>
+
   <!-- RÔLES -->
   <div class="card" id="roles">
     <div class="card-header">
       <div class="card-icon" style="background:#fee2e2">👤</div>
-      <div><div class="card-title">8. Rôles & Équipe</div><div class="card-sub">Niveaux d'accès selon le rôle</div></div>
+      <div><div class="card-title">9. Rôles & Permissions</div><div class="card-sub">Niveaux d'accès selon le rôle</div></div>
     </div>
     <div class="roles">
       <div class="role"><h4>🔴 Admin / Owner</h4><ul><li>Tout voir et tout faire</li><li>Gérer l'équipe</li><li>Rapports complets</li><li>Modifier taux & stock</li><li>Exporter données</li></ul></div>
@@ -191,6 +210,42 @@
       <div class="role"><h4>🟢 Caissier</h4><ul><li>Nouvelles transactions</li><li>Gérer clients</li><li>Module dépôts</li><li>Pas de rapports</li><li>Pas de gestion équipe</li></ul></div>
     </div>
     <div class="tip">👥 Ajouter un employé : Menu "Plus" → "Équipe" → bouton "+". Remplissez les infos et choisissez le rôle. L'employé reçoit ses identifiants par email.</div>
+  </div>
+
+  <!-- ADMIN DASHBOARD -->
+  <div class="card" id="admin">
+    <div class="card-header">
+      <div class="card-icon" style="background:#ede9fe">🛡️</div>
+      <div><div class="card-title">10. Admin Dashboard</div><div class="card-sub">Portail web d'administration</div></div>
+    </div>
+    <p style="font-size:12px;color:#64748b;margin-bottom:14px;line-height:1.7">Le Admin Dashboard est un portail web pour gérer toutes les licences, utilisateurs et voir les statistiques globales.</p>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div><h4>Accéder au dashboard</h4><p>Ouvrez votre navigateur et allez sur :<br><strong>https://kabrak-exchange-pro-production.up.railway.app/admin</strong></p></div></div>
+      <div class="step"><div class="num">2</div><div><h4>Se connecter</h4><p>Utilisez les identifiants admin fournis par KABRAK ENG.<br><strong>Identifiant : kabrak</strong><br><strong>Mot de passe : Kabrak2026!</strong></p></div></div>
+      <div class="step"><div class="num">3</div><div><h4>Tableau de bord</h4><p>Voir en temps réel :<br>• Nombre total d'utilisateurs<br>• Licences actives/expirées<br>• Transactions récentes<br>• Paiements en attente</p></div></div>
+      <div class="step"><div class="num">4</div><div><h4>Gérer les licences</h4><p>Onglet <strong>"Licences"</strong> pour :<br>• Approuver les demandes d'essai<br>• Créer de nouvelles licences<br>• Prolonger ou suspendre une licence<br>• Voir les détails de chaque bureau</p></div></div>
+      <div class="step"><div class="num">5</div><div><h4>Gérer les utilisateurs</h4><p>Onglet <strong>"Utilisateurs"</strong> pour :<br>• Voir tous les propriétaires<br>• Réinitialiser un mot de passe<br>• Activer/désactiver un compte</p></div></div>
+    </div>
+    <div class="warn">⚠️ Le Admin Dashboard est réservé à l'administrateur KABRAK ENG. Ne partagez pas ces identifiants.</div>
+  </div>
+
+  <!-- iOS TESTFLIGHT -->
+  <div class="card" id="ios">
+    <div class="card-header">
+      <div class="card-icon" style="background:#fee2e2">🍎</div>
+      <div><div class="card-title">11. Installation iOS (TestFlight)</div><div class="card-sub">Installer l'app sur iPhone</div></div>
+    </div>
+    <p style="font-size:12px;color:#64748b;margin-bottom:14px;line-height:1.7">TestFlight est la plateforme officielle d'Apple pour tester des apps avant leur sortie sur l'App Store.</p>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div><h4>Recevoir le lien TestFlight</h4><p>Votre administrateur vous enverra un lien TestFlight par email ou WhatsApp.</p></div></div>
+      <div class="step"><div class="num">2</div><div><h4>Ouvrir sur iPhone</h4><p>Cliquez sur le lien avec votre iPhone. Il vous redirigera vers TestFlight.</p></div></div>
+      <div class="step"><div class="num">3</div><div><h4>Installer TestFlight</h4><p>Si vous n'avez pas TestFlight, l'App Store s'ouvrira. Installez TestFlight (gratuit).</p></div></div>
+      <div class="step"><div class="num">4</div><div><h4>Accepter le test</h4><p>Dans TestFlight, vous verrez "KABRAK Exchange Pro". Appuyez sur <strong>"Accepter"</strong>.</p></div></div>
+      <div class="step"><div class="num">5</div><div><h4>Installer l'app</h4><p>Appuyez sur <strong>"Installer"</strong>. L'icône KABRAK apparaîtra sur votre écran d'accueil.</p></div></div>
+      <div class="step"><div class="num">6</div><div><h4>Mises à jour</h4><p>Les mises à jour arrivent automatiquement dans TestFlight. Ouvrez TestFlight et appuyez sur <strong>"Mettre à jour"</strong>.</p></div></div>
+    </div>
+    <div class="tip">📱 TestFlight est sécurisé et approuvé par Apple. L'app ne peut pas être installée sans votre autorisation.</div>
+    <div class="warn">⚠️ L'app expirera après 90 jours sans mise à jour. Votre administrateur vous enverra une nouvelle version avant.</div>
   </div>
 
   <!-- FAQ -->
@@ -219,6 +274,18 @@
       <div class="faq-item">
         <div class="faq-q">Le rapport affiche une erreur ?</div>
         <div class="faq-a">Sélectionnez un mois et appuyez sur "Générer". Si l'erreur persiste, vérifiez votre connexion internet et réessayez. Contactez le support si le problème continue.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Comment accéder au Admin Dashboard ?</div>
+        <div class="faq-a">Allez sur <strong>https://kabrak-exchange-pro-production.up.railway.app/admin</strong> et utilisez les identifiants fournis par KABRAK ENG.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Un employé ne peut pas se connecter ?</div>
+        <div class="faq-a">Vérifiez que l'employé utilise bien son email et le mot de passe que vous avez définis. Les employés n'ont pas besoin de clé de licence.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Comment installer l'app sur iPhone ?</div>
+        <div class="faq-a">Demandez le lien TestFlight à votre administrateur. Installez TestFlight depuis l'App Store, acceptez le test, puis installez l'app.</div>
       </div>
     </div>
   </div>
