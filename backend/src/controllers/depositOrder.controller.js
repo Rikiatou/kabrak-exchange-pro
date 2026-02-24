@@ -16,7 +16,7 @@ const recalcOrder = async (orderId) => {
   const order = await DepositOrder.findByPk(orderId, {
     include: [{ model: Deposit, as: 'payments' }]
   });
-  if (!order) return;
+  if (!order) return null;
 
   const confirmed = order.payments.filter(p => p.status === 'confirmed');
   const receivedAmount = confirmed.reduce((sum, p) => sum + parseFloat(p.amount), 0);
@@ -27,7 +27,12 @@ const recalcOrder = async (orderId) => {
   else if (receivedAmount > 0) status = 'partial';
 
   await order.update({ receivedAmount, remainingAmount, status });
-  return order;
+
+  // Return fresh order with all payments
+  const fresh = await DepositOrder.findByPk(orderId, {
+    include: [{ model: Deposit, as: 'payments', order: [['createdAt', 'ASC']] }]
+  });
+  return fresh;
 };
 
 // POST /api/deposit-orders — create order
@@ -86,8 +91,8 @@ const getOrder = async (req, res) => {
   try {
     const order = await DepositOrder.findByPk(req.params.id, {
       include: [
-        { model: User, as: 'operator', attributes: ['id', 'name'] },
-        { model: Deposit, as: 'payments', order: [['createdAt', 'ASC']] }
+        { model: User, as: 'operator', attributes: ['id', 'name'], required: false },
+        { model: Deposit, as: 'payments', separate: true, order: [['createdAt', 'ASC']] }
       ],
     });
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
