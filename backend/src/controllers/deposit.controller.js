@@ -153,7 +153,27 @@ const confirmDeposit = async (req, res) => {
     const deposit = await Deposit.findByPk(req.params.id);
     if (!deposit) return res.status(404).json({ success: false, message: 'Deposit not found' });
     await deposit.update({ status: 'confirmed', confirmedAt: new Date() });
-    if (deposit.orderId) await recalcOrder(deposit.orderId);
+    let order = null;
+    if (deposit.orderId) order = await recalcOrder(deposit.orderId);
+    // Notify operator: versement confirmé
+    if (deposit.expoPushToken) {
+      await sendPushNotification(
+        deposit.expoPushToken,
+        '✅ Versement confirmé',
+        `${deposit.clientName} — ${deposit.amount} ${deposit.currency} — Code: ${deposit.code}${order ? ` — Restant: ${order.remainingAmount} ${order.currency}` : ''}`,
+        { depositId: deposit.id, orderId: deposit.orderId }
+      );
+    }
+    // Notify user account push token
+    if (deposit.userId) {
+      try {
+        const owner = await User.findByPk(deposit.userId, { attributes: ['id', 'expoPushToken'] });
+        if (owner?.expoPushToken && owner.expoPushToken !== deposit.expoPushToken) {
+          await sendPushNotification(owner.expoPushToken, '✅ Versement confirmé',
+            `${deposit.clientName} — ${deposit.amount} ${deposit.currency}`, { depositId: deposit.id });
+        }
+      } catch (_) {}
+    }
     res.json({ success: true, data: deposit });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -167,6 +187,15 @@ const rejectDeposit = async (req, res) => {
     if (!deposit) return res.status(404).json({ success: false, message: 'Deposit not found' });
     await deposit.update({ status: 'rejected' });
     if (deposit.orderId) await recalcOrder(deposit.orderId);
+    // Notify operator: versement rejeté
+    if (deposit.expoPushToken) {
+      await sendPushNotification(
+        deposit.expoPushToken,
+        '❌ Versement rejeté',
+        `${deposit.clientName} — ${deposit.amount} ${deposit.currency} — Code: ${deposit.code}`,
+        { depositId: deposit.id, orderId: deposit.orderId }
+      );
+    }
     res.json({ success: true, data: deposit });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

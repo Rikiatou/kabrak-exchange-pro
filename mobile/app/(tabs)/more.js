@@ -35,6 +35,7 @@ export default function MoreScreen() {
   const { t } = useLanguageStore();
   const router = useRouter();
   const isAdmin = user?.role === 'admin';
+  const isManager = user?.teamRole === 'owner' || user?.teamRole === 'manager' || isAdmin;
 
   const handleLogout = () => {
     Alert.alert(t.more.logout, t.settings.logoutConfirm, [
@@ -66,7 +67,7 @@ export default function MoreScreen() {
             </Text>
           </View>
         </View>
-        <TouchableOpacity onPress={() => router.push('/settings/profile')}>
+        <TouchableOpacity onPress={() => router.push('/settings/business')}>
           <Ionicons name="pencil-outline" size={20} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
@@ -74,8 +75,8 @@ export default function MoreScreen() {
       <MenuSection title={t.more.title}>
         <MenuItem icon="wallet-outline" label={t.more.deposits} onPress={() => router.push('/deposits')} color="#0369a1" />
         <MenuItem icon="notifications-outline" label={t.more.alerts} onPress={() => router.push('/alerts')} color={COLORS.danger} />
-        {isAdmin && <MenuItem icon="book-outline" label={t.more.cashbook} onPress={() => router.push('/cashbook')} color={COLORS.warning} />}
-        {isAdmin && <MenuItem icon="bar-chart-outline" label={t.more.reports} onPress={() => router.push('/reports')} color="#7b1fa2" />}
+        {isManager && <MenuItem icon="book-outline" label={t.more.cashbook} onPress={() => router.push('/cashbook')} color={COLORS.warning} />}
+        {isManager && <MenuItem icon="bar-chart-outline" label={t.more.reports} onPress={() => router.push('/reports')} color="#7b1fa2" />}
         {isAdmin && <MenuItem icon="document-text-outline" label={t.more.audit} onPress={() => router.push('/audit')} color={COLORS.secondary} />}
       </MenuSection>
 
@@ -84,6 +85,7 @@ export default function MoreScreen() {
           <MenuItem icon="people-outline" label={t.more.users} onPress={() => router.push('/users')} color={COLORS.primary} />
           <MenuItem icon="people-circle-outline" label="Mon Équipe" subtitle="Gérer les membres du bureau" onPress={() => router.push('/settings/team')} color="#7c3aed" />
           <MenuItem icon="images-outline" label="Galerie des reçus" subtitle="Reçus uploadés par client" onPress={() => router.push('/receipts')} color="#0891b2" />
+          <MenuItem icon="swap-horizontal-outline" label="Taux de change" subtitle="Marché en temps réel" onPress={() => router.push('/(tabs)/currencies')} color="#d97706" />
           <MenuItem icon="cash-outline" label={t.currencies.title} onPress={() => router.push('/(tabs)/currencies')} color={COLORS.success} />
           <MenuItem icon="lock-closed-outline" label="Clôture de caisse" subtitle="Bilan journalier" onPress={() => router.push('/cashclose')} color="#d97706" />
           <MenuItem icon="cube-outline" label="Stock de devises" subtitle="Inventaire physique" onPress={() => router.push('/stock')} color="#0891b2" />

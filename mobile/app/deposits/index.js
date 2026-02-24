@@ -129,6 +129,8 @@ export default function DepositsScreen() {
     fetchSettings();
   }, []);
 
+  useEffect(() => { load(); }, [filterStatus]);
+
   // Handle clientId from params (when coming from client page)
   useEffect(() => {
     if (params.clientId && clients.length > 0) {

@@ -224,7 +224,7 @@ export default function DashboardScreen() {
         <View style={styles.metricsRow}>
           <MetricCard label={t.tabs.transactions} value={s.totalTransactions || 0} icon="swap-horizontal" accent="#0B6E4F" onPress={() => router.push('/(tabs)/transactions')} />
           {isAdmin && <MetricCard label={t.common.unpaid} value={s.unpaidCount || 0} icon="alert-circle" accent="#dc2626" sub={s.unpaidCount > 0 ? '⚠' : null} onPress={() => router.push('/(tabs)/transactions?status=unpaid')} />}
-          <MetricCard label={t.dashboard.todayTx} value={s.todayTransactions || 0} icon="today-outline" accent="#0369a1" onPress={() => router.push('/(tabs)/transactions')} />
+          <MetricCard label={t.dashboard.todayTx} value={s.todayTransactions || 0} icon="today-outline" accent="#0369a1" onPress={() => { const today = new Date().toISOString().split('T')[0]; router.push(`/(tabs)/transactions?dateFrom=${today}&dateTo=${today}`); }} />
           <MetricCard label={t.tabs.clients} value={s.totalClients || 0} icon="people-outline" accent="#7c3aed" onPress={() => router.push('/(tabs)/clients')} />
         </View>
 
