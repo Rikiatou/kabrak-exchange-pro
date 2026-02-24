@@ -97,7 +97,7 @@ export default function DepositsScreen() {
   const { orders, loading, fetchOrders, createOrder, addPayment, cancelOrder } = useDepositOrderStore();
   const { confirmDeposit, rejectDeposit } = useDepositStore();
   const { language: lang } = useLanguageStore();
-  const { clients, fetchClients } = useClientStore();
+  const { clients, fetchClients, createClient } = useClientStore();
   const { settings, fetchSettings } = useSettingStore();
   const { expoPushToken } = useAuthStore();
 
@@ -112,6 +112,9 @@ export default function DepositsScreen() {
   const [receiptUrl, setReceiptUrl] = useState(null);
   const [clientSearch, setClientSearch] = useState('');
   const [showClientPicker, setShowClientPicker] = useState(false);
+  const [showNewClient, setShowNewClient] = useState(false);
+  const [newClientForm, setNewClientForm] = useState({ name: '', phone: '' });
+  const [savingClient, setSavingClient] = useState(false);
 
   const [form, setForm] = useState({ clientName: '', clientPhone: '', clientId: null, amountForeign: '', foreignCurrency: 'EUR', rate: '', totalAmount: '', currency: 'FCFA', bank: '', notes: '' });
   const [payForm, setPayForm] = useState({ amount: '', notes: '' });
@@ -408,11 +411,77 @@ export default function DepositsScreen() {
                           <TouchableOpacity key={c.id} style={styles.clientDropdownItem} onPress={() => {
                             setForm(p => ({ ...p, clientId: c.id, clientName: c.name, clientPhone: c.phone || '' }));
                             setClientSearch('');
+                            setShowNewClient(false);
                           }}>
                             <Text style={styles.clientDropdownName}>{c.name}</Text>
                             {c.phone ? <Text style={styles.clientDropdownPhone}>{c.phone}</Text> : null}
                           </TouchableOpacity>
                         ))}
+                        {/* Bouton créer nouveau client */}
+                        <TouchableOpacity
+                          style={[styles.clientDropdownItem, { borderTopWidth: 1, borderTopColor: COLORS.border, flexDirection: 'row', alignItems: 'center', gap: 8 }]}
+                          onPress={() => {
+                            setNewClientForm({ name: clientSearch, phone: '' });
+                            setShowNewClient(true);
+                          }}
+                        >
+                          <Ionicons name="person-add-outline" size={16} color={COLORS.primary} />
+                          <Text style={[styles.clientDropdownName, { color: COLORS.primary }]}>
+                            {lang === 'fr' ? `Créer "${clientSearch}"` : `Create "${clientSearch}"`}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                    {/* Mini formulaire création client inline */}
+                    {showNewClient && (
+                      <View style={styles.newClientBox}>
+                        <Text style={styles.fieldLabel}>{lang === 'fr' ? 'Nouveau client' : 'New client'}</Text>
+                        <TextInput
+                          style={[styles.fieldInput, { marginBottom: 8 }]}
+                          placeholder={lang === 'fr' ? 'Nom complet *' : 'Full name *'}
+                          placeholderTextColor={COLORS.textMuted}
+                          value={newClientForm.name}
+                          onChangeText={v => setNewClientForm(p => ({ ...p, name: v }))}
+                        />
+                        <TextInput
+                          style={[styles.fieldInput, { marginBottom: 10 }]}
+                          placeholder={lang === 'fr' ? 'Téléphone (optionnel)' : 'Phone (optional)'}
+                          placeholderTextColor={COLORS.textMuted}
+                          value={newClientForm.phone}
+                          onChangeText={v => setNewClientForm(p => ({ ...p, phone: v }))}
+                          keyboardType="phone-pad"
+                        />
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                          <TouchableOpacity
+                            style={[styles.submitBtn, { flex: 1, backgroundColor: COLORS.textMuted, paddingVertical: 10 }]}
+                            onPress={() => { setShowNewClient(false); setNewClientForm({ name: '', phone: '' }); }}
+                          >
+                            <Text style={styles.submitText}>{lang === 'fr' ? 'Annuler' : 'Cancel'}</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.submitBtn, { flex: 2, paddingVertical: 10 }]}
+                            disabled={savingClient}
+                            onPress={async () => {
+                              if (!newClientForm.name.trim()) return;
+                              setSavingClient(true);
+                              const r = await createClient({ name: newClientForm.name.trim(), phone: newClientForm.phone.trim() || undefined });
+                              setSavingClient(false);
+                              if (r.success) {
+                                setForm(p => ({ ...p, clientId: r.data.id, clientName: r.data.name, clientPhone: r.data.phone || '' }));
+                                setClientSearch('');
+                                setShowNewClient(false);
+                                setNewClientForm({ name: '', phone: '' });
+                              } else {
+                                Alert.alert('Erreur', r.message);
+                              }
+                            }}
+                          >
+                            {savingClient
+                              ? <ActivityIndicator color={COLORS.white} size="small" />
+                              : <Text style={styles.submitText}>{lang === 'fr' ? 'Créer & Sélectionner' : 'Create & Select'}</Text>
+                            }
+                          </TouchableOpacity>
+                        </View>
                       </View>
                     )}
                   </>
@@ -759,4 +828,5 @@ const styles = StyleSheet.create({
   clientDropdownItem: { paddingHorizontal: SPACING.md, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: COLORS.divider },
   clientDropdownName: { fontSize: FONTS.sizes.sm, fontWeight: '600', color: COLORS.textPrimary },
   clientDropdownPhone: { fontSize: FONTS.sizes.xs, color: COLORS.textMuted, marginTop: 2 },
+  newClientBox: { backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.primary + '44', padding: SPACING.md, marginTop: 8 },
 });
