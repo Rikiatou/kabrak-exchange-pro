@@ -215,6 +215,29 @@ app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
 });
 
+const runMigrations = async () => {
+  const queries = [
+    // Ensure users.name column exists
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(255) NOT NULL DEFAULT 'Utilisateur'`,
+    // Ensure users.expoPushToken column exists
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS "expoPushToken" VARCHAR(255)`,
+    // Ensure settings table exists
+    `CREATE TABLE IF NOT EXISTS settings (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), key VARCHAR(255) NOT NULL UNIQUE, value TEXT, "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(), "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW())`,
+    // Remove problematic unique+default constraints on reference columns if they exist
+    `ALTER TABLE transactions ALTER COLUMN reference SET DEFAULT ''`,
+    `ALTER TABLE deposit_orders ALTER COLUMN reference SET DEFAULT ''`,
+    `ALTER TABLE deposits ALTER COLUMN code SET DEFAULT ''`,
+  ];
+  for (const q of queries) {
+    try {
+      await sequelize.query(q);
+    } catch (e) {
+      console.warn(`⚠️ Migration warning (non-fatal): ${e.message}`);
+    }
+  }
+  console.log('✅ Column migrations done.');
+};
+
 const migrateClientCodes = async () => {
   const { Client } = require('./models');
   const { Op } = require('sequelize');
@@ -246,6 +269,8 @@ sequelize.authenticate()
     return sequelize.sync({ alter: true });
   })
   .then(async () => {
+    console.log('🔄 Running column migrations...');
+    await runMigrations();
     console.log('🔄 Running client code migration...');
     await migrateClientCodes();
     console.log('✅ Database synced successfully.');
