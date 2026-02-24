@@ -87,6 +87,14 @@ export default function TransactionsScreen() {
     fetchTransactions(buildParams(activeFilter || undefined, adv));
   }, [activeFilter]);
 
+  // Auto-open advanced panel if date params were passed
+  useEffect(() => {
+    if (params.dateFrom || params.dateTo) {
+      setShowAdvanced(false);
+      fetchTransactions(buildParams(activeFilter || undefined, adv));
+    }
+  }, []);
+
   const onRefresh = useCallback(() => {
     fetchTransactions(buildParams(activeFilter || undefined, adv));
   }, [activeFilter, adv]);

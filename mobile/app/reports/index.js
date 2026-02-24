@@ -15,7 +15,8 @@ import { exportExcel, exportPDF, buildMonthlyReportHTML } from '../../src/utils/
 
 export default function ReportsScreen() {
   const router = useRouter();
-  const { t } = useLanguageStore();
+  const { t, language } = useLanguageStore();
+  const lang = language || 'fr';
   const { clients, fetchClients } = useClientStore();
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
@@ -25,7 +26,7 @@ export default function ReportsScreen() {
   const [exporting, setExporting] = useState(null);
 
   useEffect(() => {
-    if (user && user.role !== 'admin') { router.back(); }
+    if (user && user.role !== 'admin' && user.teamRole !== 'manager' && user.teamRole !== 'owner') { router.back(); }
   }, [user]);
   useEffect(() => { fetchClients(); }, []);
 
@@ -50,7 +51,7 @@ export default function ReportsScreen() {
       const endDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${lastDay}`;
       await exportExcel(type, { startDate, endDate });
     } catch (e) {
-      Alert.alert(language === 'fr' ? 'Erreur' : 'Error', e.message);
+      Alert.alert(lang === 'fr' ? 'Erreur' : 'Error', e.message);
     }
     setExporting(null);
   };
@@ -67,13 +68,12 @@ export default function ReportsScreen() {
       });
       await exportPDF(html, `rapport_${selectedYear}_${selectedMonth}`);
     } catch (e) {
-      Alert.alert(language === 'fr' ? 'Erreur' : 'Error', e.message);
+      Alert.alert(lang === 'fr' ? 'Erreur' : 'Error', e.message);
     }
     setExporting(null);
   };
 
-  const { language } = useLanguageStore();
-  const monthLabels = language === 'fr'
+  const monthLabels = lang === 'fr'
     ? ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
     : ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
