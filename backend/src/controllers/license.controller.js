@@ -41,7 +41,7 @@ const generateLicenseKey = () => {
 const getExpiryDate = (plan) => {
   const now = new Date();
   if (plan === 'trial') {
-    now.setDate(now.getDate() + 30);
+    now.setDate(now.getDate() + 14);
   } else if (plan === 'monthly') {
     now.setMonth(now.getMonth() + 1);
   } else if (plan === 'annual') {

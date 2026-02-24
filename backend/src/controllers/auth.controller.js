@@ -113,7 +113,7 @@ const register = async (req, res) => {
     
     // Créer une licence trial
     const licenseKey = generateLicenseKey();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours trial
+    const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 jours trial
     
     await License.create({
       userId: user.id,
