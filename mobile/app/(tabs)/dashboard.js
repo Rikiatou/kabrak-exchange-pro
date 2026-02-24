@@ -299,6 +299,40 @@ export default function DashboardScreen() {
           </View>
         )}
 
+        {/* Recent deposit orders */}
+        {data?.recentDepositOrders?.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHead}>
+              <Text style={styles.sectionTitle}>Dépôts récents</Text>
+              <TouchableOpacity onPress={() => router.push('/deposits')}>
+                <Text style={styles.seeAll}>{t.dashboard.seeAll} →</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.card}>
+              {data.recentDepositOrders.map((order, i) => (
+                <View key={order.id}>
+                  <TouchableOpacity style={styles.txRow} onPress={() => router.push(`/deposits?orderId=${order.id}`)} activeOpacity={0.7}>
+                    <View style={[styles.txStatusDot, { backgroundColor: order.status === 'completed' ? GREEN_MAIN : order.status === 'partial' ? '#d97706' : '#dc2626' }]} />
+                    <View style={styles.txMid}>
+                      <Text style={styles.txRef} numberOfLines={1}>{order.reference}</Text>
+                      <Text style={styles.txClient} numberOfLines={1}>{order.clientName}</Text>
+                    </View>
+                    <View style={styles.txRight}>
+                      <Text style={styles.txAmt}>{formatCurrency(order.totalAmount, order.currency)}</Text>
+                      <View style={[styles.txBadge, { backgroundColor: order.status === 'completed' ? '#e6f4ef' : order.status === 'partial' ? '#fef3c7' : '#fee2e2' }]}>
+                        <Text style={[styles.txBadgeText, { color: order.status === 'completed' ? GREEN_MAIN : order.status === 'partial' ? '#d97706' : '#dc2626' }]}>
+                          {order.status === 'completed' ? 'Complété' : order.status === 'partial' ? 'Partiel' : 'En attente'}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                  {i < data.recentDepositOrders.length - 1 && <View style={styles.divider} />}
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* Empty state */}
         {!isLoading && !data?.recentTransactions?.length && (
           <View style={styles.emptyState}>

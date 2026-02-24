@@ -4,7 +4,7 @@ import {
   RefreshControl, Alert, Modal, TextInput, ScrollView,
   ActivityIndicator, Clipboard, Image, Dimensions, Linking
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import useDepositOrderStore from '../../src/store/depositOrderStore';
@@ -93,6 +93,7 @@ function OrderCard({ order, lang, onPress }) {
 
 export default function DepositsScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const { orders, loading, fetchOrders, createOrder, addPayment, cancelOrder } = useDepositOrderStore();
   const { confirmDeposit, rejectDeposit } = useDepositStore();
   const { language: lang } = useLanguageStore();
@@ -127,6 +128,28 @@ export default function DepositsScreen() {
     fetchClients();
     fetchSettings();
   }, []);
+
+  // Handle clientId from params (when coming from client page)
+  useEffect(() => {
+    if (params.clientId && clients.length > 0) {
+      const client = clients.find(c => c.id === params.clientId);
+      if (client) {
+        setForm({
+          clientName: client.name,
+          clientPhone: client.phone || '',
+          clientId: client.id,
+          amountForeign: '',
+          foreignCurrency: 'EUR',
+          rate: '',
+          totalAmount: '',
+          currency: 'FCFA',
+          bank: '',
+          notes: ''
+        });
+        setShowNew(true); // Auto-open the new order modal
+      }
+    }
+  }, [params.clientId, clients]);
 
   const handleCreateOrder = async () => {
     if (!form.clientName || !form.totalAmount || !form.currency) {

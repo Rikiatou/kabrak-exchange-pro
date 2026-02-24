@@ -191,6 +191,13 @@ export default function ClientDetailScreen() {
           <Text style={styles.actionBtnText}>{t.transactions.new}</Text>
         </TouchableOpacity>
         <TouchableOpacity
+          style={[styles.actionBtn, { backgroundColor: COLORS.info }]}
+          onPress={() => router.push(`/deposits?clientId=${id}`)}
+        >
+          <Ionicons name="wallet-outline" size={18} color={COLORS.white} />
+          <Text style={styles.actionBtnText}>{t.deposits?.title || 'Dépôt'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           style={[styles.actionBtn, { backgroundColor: COLORS.secondary }]}
           onPress={() => router.push(`/reports/client/${id}`)}
         >

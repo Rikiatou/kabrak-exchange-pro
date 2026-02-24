@@ -1,5 +1,5 @@
 const { Op, fn, col, literal, sequelize: sq } = require('sequelize');
-const { Transaction, Client, Payment, Currency, sequelize } = require('../models');
+const { Transaction, Client, Payment, Currency, DepositOrder, sequelize } = require('../models');
 const moment = require('moment');
 
 const getDashboard = async (req, res) => {
@@ -24,6 +24,7 @@ const getDashboard = async (req, res) => {
       currencies,
       last7Transactions,
       topCurrencies,
+      recentDepositOrders,
     ] = await Promise.all([
       Transaction.sum('amountRemaining', { where: { status: { [Op.in]: ['unpaid', 'partial'] } } }),
       Transaction.count(),
@@ -69,6 +70,12 @@ const getDashboard = async (req, res) => {
         limit: 6,
         raw: true,
       }),
+      // Recent deposit orders
+      DepositOrder.findAll({
+        order: [['createdAt', 'DESC']],
+        limit: 5,
+        include: [{ model: Client, as: 'client', attributes: ['id', 'name'] }],
+      }),
     ]);
 
     // Build full 7-day array (fill missing days with 0)
@@ -99,6 +106,7 @@ const getDashboard = async (req, res) => {
         },
         debtorClients,
         recentTransactions,
+        recentDepositOrders,
         currencies,
         charts: {
           dailyVolume: dailyChart,
