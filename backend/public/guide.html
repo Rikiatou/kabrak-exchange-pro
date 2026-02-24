@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guide — KABRAK Exchange Pro</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#0f172a}
+    .hero{background:linear-gradient(135deg,#071a12 0%,#0B6E4F 100%);color:white;padding:48px 24px 64px;text-align:center}
+    .hero h1{font-size:28px;font-weight:800}.hero h1 span{color:#e8a020}
+    .hero p{font-size:15px;color:rgba(255,255,255,0.6);margin-top:8px}
+    .hero-badge{display:inline-block;background:rgba(232,160,32,0.2);border:1px solid rgba(232,160,32,0.4);color:#e8a020;font-size:12px;font-weight:700;padding:6px 16px;border-radius:20px;margin-top:14px}
+    .container{max-width:780px;margin:-24px auto 0;padding:0 16px 64px}
+    .toc{background:white;border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+    .toc h3{font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+    .toc ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .toc ul li a{display:flex;align-items:center;gap:8px;text-decoration:none;color:#0f172a;font-size:13px;font-weight:500;padding:7px 10px;border-radius:8px}
+    .toc ul li a:hover{background:#f1f5f9}
+    .toc ul li a .n{width:20px;height:20px;background:#0B6E4F;color:white;border-radius:5px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .card{background:white;border-radius:16px;padding:26px;margin-bottom:18px;box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+    .card-header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .card-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+    .card-title{font-size:17px;font-weight:700}
+    .card-sub{font-size:12px;color:#64748b;margin-top:2px}
+    .steps{display:flex;flex-direction:column;gap:12px}
+    .step{display:flex;gap:12px;align-items:flex-start}
+    .step .num{width:26px;height:26px;background:#e6f4ef;color:#0B6E4F;border-radius:7px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+    .step h4{font-size:13px;font-weight:600;margin-bottom:3px}
+    .step p{font-size:12px;color:#64748b;line-height:1.6}
+    .tip{background:#f0fdf4;border-left:3px solid #0B6E4F;border-radius:0 8px 8px 0;padding:11px 14px;margin-top:14px;font-size:12px;color:#166534;line-height:1.6}
+    .warn{background:#fef3c7;border-left:3px solid #d97706;border-radius:0 8px 8px 0;padding:11px 14px;margin-top:14px;font-size:12px;color:#92400e;line-height:1.6}
+    .badges{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+    .badge{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700}
+    .bg{background:#dcfce7;color:#15803d}.by{background:#fef3c7;color:#d97706}.br{background:#fee2e2;color:#dc2626}.bb{background:#e0f2fe;color:#0369a1}.bp{background:#ede9fe;color:#7c3aed}
+    .roles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+    .role{border:1px solid #e2e8f0;border-radius:10px;padding:14px}
+    .role h4{font-size:13px;font-weight:700;margin-bottom:8px}
+    .role ul{list-style:none;font-size:11px;color:#64748b}
+    .role ul li::before{content:"✓ ";color:#0B6E4F;font-weight:700}
+    .role ul li{padding:2px 0}
+    .faq{display:flex;flex-direction:column;gap:10px}
+    .faq-item{border:1px solid #e2e8f0;border-radius:10px;overflow:hidden}
+    .faq-q{padding:13px 15px;font-size:13px;font-weight:600;background:#f8fafc}
+    .faq-a{padding:12px 15px;font-size:12px;color:#64748b;line-height:1.7;border-top:1px solid #e2e8f0}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+    .icard{border:1px solid #e2e8f0;border-radius:12px;padding:16px;text-align:center}
+    .icard .ico{font-size:30px;margin-bottom:8px}
+    .icard h4{font-size:13px;font-weight:700;margin-bottom:6px}
+    .icard p{font-size:11px;color:#64748b;line-height:1.6}
+    footer{text-align:center;padding:28px 16px;color:#94a3b8;font-size:12px}
+    footer strong{color:#e8a020}
+    @media(max-width:600px){.toc ul,.roles,.grid2{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="hero">
+  <h1>KABRAK <span>Exchange Pro</span></h1>
+  <p>Guide complet d'utilisation — Bureau de change</p>
+  <div class="hero-badge">📱 App mobile + Portail web client</div>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h3>Sommaire</h3>
+    <ul>
+      <li><a href="#install"><span class="n">1</span>Installation</a></li>
+      <li><a href="#connexion"><span class="n">2</span>Connexion</a></li>
+      <li><a href="#transactions"><span class="n">3</span>Transactions</a></li>
+      <li><a href="#clients"><span class="n">4</span>Clients & Portail</a></li>
+      <li><a href="#depots"><span class="n">5</span>Module Dépôts</a></li>
+      <li><a href="#devises"><span class="n">6</span>Devises & Stock</a></li>
+      <li><a href="#rapports"><span class="n">7</span>Rapports & Export</a></li>
+      <li><a href="#roles"><span class="n">8</span>Rôles & Équipe</a></li>
+    </ul>
+  </div>
+
+  <!-- INSTALL -->
+  <div class="card" id="install">
+    <div class="card-header">
+      <div class="card-icon" style="background:#e0f2fe">📲</div>
+      <div><div class="card-title">1. Installation</div><div class="card-sub">Installer l'app sur votre téléphone</div></div>
+    </div>
+    <div class="grid2">
+      <div class="icard"><div class="ico">🤖</div><h4>Android</h4><p>Votre admin vous envoie un fichier <strong>.apk</strong>. Activez "Sources inconnues" dans Paramètres → Sécurité, puis installez le fichier.</p></div>
+      <div class="icard"><div class="ico">🍎</div><h4>iPhone</h4><p>Votre admin vous envoie un lien <strong>TestFlight</strong>. Cliquez dessus pour installer l'app sans passer par l'App Store.</p></div>
+    </div>
+    <div class="tip">💡 Pour chaque mise à jour, votre admin vous enverra un nouveau lien. Pas besoin de désinstaller, l'installation met à jour directement.</div>
+  </div>
+
+  <!-- CONNEXION -->
+  <div class="card" id="connexion">
+    <div class="card-header">
+      <div class="card-icon" style="background:#ede9fe">🔐</div>
+      <div><div class="card-title">2. Connexion</div><div class="card-sub">Se connecter et accéder au tableau de bord</div></div>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div><h4>Ouvrir l'app et se connecter</h4><p>Saisissez votre <strong>email</strong> et <strong>mot de passe</strong> fournis par votre administrateur.</p></div></div>
+      <div class="step"><div class="num">2</div><div><h4>Autoriser les notifications</h4><p>Acceptez les notifications pour recevoir les alertes en temps réel (paiements clients, etc.).</p></div></div>
+      <div class="step"><div class="num">3</div><div><h4>Tableau de bord</h4><p>Vous accédez directement à votre dashboard selon votre rôle (Owner, Manager ou Caissier).</p></div></div>
+    </div>
+    <div class="tip">🔑 Identifiants oubliés ? Contactez votre administrateur KABRAK Exchange Pro.</div>
+  </div>
+
+  <!-- TRANSACTIONS -->
+  <div class="card" id="transactions">
+    <div class="card-header">
+      <div class="card-icon" style="background:#e6f4ef">💱</div>
+      <div><div class="card-title">3. Transactions d'échange</div><div class="card-sub">Enregistrer un échange de devises</div></div>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div><h4>Nouvelle transaction</h4><p>Appuyez sur <strong>"+ Nouvelle transaction"</strong> depuis le tableau de bord ou l'onglet Transactions.</p></div></div>
+      <div class="step"><div class="num">2</div><div><h4>Choisir le client et les devises</h4><p>Sélectionnez le client dans la liste, choisissez devise source → destination, entrez le montant. Le taux s'applique automatiquement.</p></div></div>
+      <div class="step"><div class="num">3</div><div><h4>Valider et marquer payé</h4><p>Après remise des fonds au client, appuyez sur <strong>"Marquer payé"</strong>.</p></div></div>
+    </div>
+    <p style="font-size:12px;font-weight:600;color:#0f172a;margin-top:14px;margin-bottom:6px">Statuts :</p>
+    <div class="badges"><span class="badge br">Non payé</span><span class="badge by">Partiel</span><span class="badge bg">Payé</span></div>
+  </div>
+
+  <!-- CLIENTS -->
+  <div class="card" id="clients">
+    <div class="card-header">
+      <div class="card-icon" style="background:#fef3c7">👥</div>
+      <div><div class="card-title">4. Clients & Portail web</div><div class="card-sub">Gérer et partager le portail client</div></div>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div><h4>Créer un client</h4><p>Onglet Clients → <strong>"+ Nouveau client"</strong>. Remplissez nom et téléphone. Un code unique (ex: AB1234) est généré automatiquement.</p></div></div>
+      <div class="step"><div class="num">2</div><div><h4>Partager le portail</h4><p>Dans la fiche client, copiez son lien portail et envoyez-le par WhatsApp : <strong>exchange.kabrakeng.com/client/[CODE]</strong></p></div></div>
+      <div class="step"><div class="num">3</div><div><h4>Ce que voit le client</h4><p>Il voit toutes ses commandes de dépôt, les montants payés, restants, et peut envoyer ses reçus directement depuis son téléphone.</p></div></div>
+    </div>
+    <div class="tip">🌐 Le portail client est accessible depuis n'importe quel navigateur web, sans installer d'application.</div>
+  </div>
+
+  <!-- DÉPÔTS -->
+  <div class="card" id="depots">
+    <div class="card-header">
+      <div class="card-icon" style="background:#e0f2fe">🏦</div>
+      <div><div class="card-title">5. Module Dépôts</div><div class="card-sub">Paiements en plusieurs versements</div></div>
+    </div>
+    <p style="font-size:12px;color:#64748b;margin-bottom:14px;line-height:1.7">Utilisez ce module quand un client doit vous payer une grosse somme <strong>en plusieurs fois</strong>. Ex : 7 000 000 FCFA en 3 versements.</p>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div><h4>Créer une commande</h4><p>Dépôts → <strong>"+ Nouvelle commande"</strong> → sélectionnez le client (ou créez-en un nouveau directement), entrez le montant total.</p></div></div>
+      <div class="step"><div class="num">2</div><div><h4>Client envoie son reçu</h4><p>Le client accède à son portail, voit sa commande, clique "Ajouter un versement", entre le montant et prend une photo du reçu.</p></div></div>
+      <div class="step"><div class="num">3</div><div><h4>Vous confirmez</h4><p>Vous recevez une notification push. Ouvrez la commande → vérifiez le reçu → <strong>"Confirmer"</strong> ou <strong>"Rejeter"</strong>.</p></div></div>
+      <div class="step"><div class="num">4</div><div><h4>Statut mis à jour</h4><p>La commande passe en <strong>Partiel</strong> si pas complet, ou <strong>Complété</strong> si tout est reçu. Le client voit cela en temps réel.</p></div></div>
+    </div>
+    <p style="font-size:12px;font-weight:600;color:#0f172a;margin-top:14px;margin-bottom:6px">Statuts commandes :</p>
+    <div class="badges"><span class="badge bb">En attente</span><span class="badge by">Partiel</span><span class="badge bg">Complété</span><span class="badge br">Annulé</span></div>
+    <p style="font-size:12px;font-weight:600;color:#0f172a;margin-top:10px;margin-bottom:6px">Statuts versements :</p>
+    <div class="badges"><span class="badge bb">En attente</span><span class="badge bp">Reçu envoyé</span><span class="badge bg">Confirmé</span><span class="badge br">Rejeté</span></div>
+  </div>
+
+  <!-- DEVISES -->
+  <div class="card" id="devises">
+    <div class="card-header">
+      <div class="card-icon" style="background:#f0fdf4">💰</div>
+      <div><div class="card-title">6. Devises & Stock physique</div><div class="card-sub">Taux de change et stock de billets en caisse</div></div>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div><h4>Mettre à jour les taux</h4><p>Onglet Devises → cliquez sur une devise → bouton crayon → <strong>"Taux en direct"</strong> (automatique depuis le marché) ou saisissez manuellement.</p></div></div>
+      <div class="step"><div class="num">2</div><div><h4>Ajuster le stock physique</h4><p>Dans la fiche devise → bouton <strong>"Ajuster le stock"</strong>. Choisissez : <strong>Définir</strong> (nouveau total), <strong>+ Ajouter</strong> (réception), <strong>- Retirer</strong> (sortie).</p></div></div>
+      <div class="step"><div class="num">3</div><div><h4>Alertes stock bas</h4><p>Si votre stock passe sous le seuil minimum, vous recevez une alerte. Configurez ce seuil dans la fiche de chaque devise.</p></div></div>
+    </div>
+    <div class="tip">📦 Mettez à jour votre stock à chaque opération physique (réception de billets, paiement client) pour que vos alertes soient fiables.</div>
+  </div>
+
+  <!-- RAPPORTS -->
+  <div class="card" id="rapports">
+    <div class="card-header">
+      <div class="card-icon" style="background:#ede9fe">📊</div>
+      <div><div class="card-title">7. Rapports & Export</div><div class="card-sub">Analyser et exporter vos données</div></div>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><div><h4>Accéder aux rapports</h4><p>Menu <strong>"Plus"</strong> → <strong>"Rapports"</strong>. Sélectionnez le mois et l'année.</p></div></div>
+      <div class="step"><div class="num">2</div><div><h4>Lire le rapport</h4><p>Total transactions, volume échangé, profit du mois, stats par devise, et performance par opérateur.</p></div></div>
+      <div class="step"><div class="num">3</div><div><h4>Exporter</h4><p><strong>PDF</strong> → rapport imprimable complet. <strong>Excel Trans.</strong> → toutes les transactions. <strong>Excel Clients</strong> → liste et soldes clients.</p></div></div>
+    </div>
+    <div class="warn">⚠️ Accès réservé aux rôles Owner, Admin et Manager uniquement.</div>
+  </div>
+
+  <!-- RÔLES -->
+  <div class="card" id="roles">
+    <div class="card-header">
+      <div class="card-icon" style="background:#fee2e2">👤</div>
+      <div><div class="card-title">8. Rôles & Équipe</div><div class="card-sub">Niveaux d'accès selon le rôle</div></div>
+    </div>
+    <div class="roles">
+      <div class="role"><h4>🔴 Admin / Owner</h4><ul><li>Tout voir et tout faire</li><li>Gérer l'équipe</li><li>Rapports complets</li><li>Modifier taux & stock</li><li>Exporter données</li></ul></div>
+      <div class="role"><h4>🟡 Manager</h4><ul><li>Transactions & échanges</li><li>Commandes dépôts</li><li>Confirmer paiements</li><li>Voir rapports</li><li>Gérer devises</li></ul></div>
+      <div class="role"><h4>🟢 Caissier</h4><ul><li>Nouvelles transactions</li><li>Gérer clients</li><li>Module dépôts</li><li>Pas de rapports</li><li>Pas de gestion équipe</li></ul></div>
+    </div>
+    <div class="tip">👥 Ajouter un employé : Menu "Plus" → "Équipe" → bouton "+". Remplissez les infos et choisissez le rôle. L'employé reçoit ses identifiants par email.</div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#f1f5f9">❓</div>
+      <div><div class="card-title">Questions fréquentes</div></div>
+    </div>
+    <div class="faq">
+      <div class="faq-item">
+        <div class="faq-q">Le client ne voit pas sa commande dans le portail ?</div>
+        <div class="faq-a">Vérifiez que la commande a été créée en sélectionnant le client depuis la liste. Envoyez-lui son lien exact : <strong>exchange.kabrakeng.com/client/[son-code]</strong>. Son code est visible sur sa fiche client dans l'app.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Comment retrouver le code client ?</div>
+        <div class="faq-a">Onglet Clients → cliquez sur le client → son code est en haut de sa fiche (format XX1234). Utilisez le bouton "Partager le portail" pour envoyer directement le lien.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Je ne reçois pas les notifications push ?</div>
+        <div class="faq-a">Vérifiez que les notifications sont activées dans Paramètres téléphone → KABRAK Exchange Pro. Vous devez être connecté sur l'app. Si le problème persiste, déconnectez-vous et reconnectez-vous.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Comment changer le mot de passe d'un employé ?</div>
+        <div class="faq-a">En tant qu'Owner/Admin : Menu "Plus" → "Équipe" → cliquez sur l'employé → option "Réinitialiser mot de passe". L'employé reçoit un nouveau mot de passe par email.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Le rapport affiche une erreur ?</div>
+        <div class="faq-a">Sélectionnez un mois et appuyez sur "Générer". Si l'erreur persiste, vérifiez votre connexion internet et réessayez. Contactez le support si le problème continue.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>© 2025 <strong>KABRAK Exchange Pro</strong> — Tous droits réservés</p>
+  <p style="margin-top:6px">Support : <strong>kabrakeng@gmail.com</strong></p>
+</footer>
+
+</body>
+</html>

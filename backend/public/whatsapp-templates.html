@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Templates WhatsApp — KABRAK Exchange Pro</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f1f5f9;color:#0f172a}
+    .hero{background:linear-gradient(135deg,#071a12 0%,#0B6E4F 100%);color:white;padding:40px 24px 56px;text-align:center}
+    .hero h1{font-size:24px;font-weight:800}.hero h1 span{color:#e8a020}
+    .hero p{font-size:14px;color:rgba(255,255,255,0.6);margin-top:6px}
+    .container{max-width:720px;margin:-20px auto 0;padding:0 16px 60px}
+    .section-title{font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin:24px 0 10px;padding-left:4px}
+    .card{background:white;border-radius:14px;padding:22px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,0.06)}
+    .card-label{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+    .card-label .tag{background:#e6f4ef;color:#0B6E4F;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+    .card-label .title{font-size:15px;font-weight:700;color:#0f172a}
+    .msg-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px;font-size:13px;color:#0f172a;line-height:1.9;white-space:pre-wrap;font-family:inherit;position:relative}
+    .var{background:#e8a020;color:white;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700}
+    .copy-btn{display:inline-flex;align-items:center;gap:6px;background:#0B6E4F;color:white;font-size:12px;font-weight:700;padding:7px 14px;border-radius:8px;margin-top:12px;cursor:pointer;border:none;transition:background .15s}
+    .copy-btn:hover{background:#0a5d41}
+    .copy-btn.copied{background:#15803d}
+    .note{font-size:11px;color:#64748b;margin-top:8px;line-height:1.6}
+    .vars-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+    .var-item{background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:4px 10px;font-size:11px;color:#475569}
+    .var-item strong{color:#0B6E4F}
+    footer{text-align:center;padding:24px 16px;color:#94a3b8;font-size:12px}
+    footer strong{color:#e8a020}
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Templates <span>WhatsApp</span></h1>
+  <p>Messages d'onboarding prêts à envoyer à vos clients</p>
+</div>
+
+<div class="container">
+
+  <div class="section-title">🆕 Onboarding — Nouveau client</div>
+
+  <!-- TEMPLATE 1 : Bienvenue + installation -->
+  <div class="card">
+    <div class="card-label">
+      <span class="tag">1/4</span>
+      <span class="title">Bienvenue & Installation app</span>
+    </div>
+    <div class="msg-box" id="msg1">Bonjour <span class="var">[Prénom client]</span> 👋
+
+Bienvenue chez *KABRAK Exchange Pro* !
+
+Pour suivre vos transactions et commandes en temps réel, téléchargez notre application :
+
+📱 *Android* : cliquez sur ce lien pour installer l'app directement sur votre téléphone :
+👉 <span class="var">[Lien APK ou lien de téléchargement]</span>
+
+🍎 *iPhone* : cliquez sur ce lien TestFlight :
+👉 <span class="var">[Lien TestFlight]</span>
+
+Vos identifiants de connexion :
+• Email : <span class="var">[email@client.com]</span>
+• Mot de passe temporaire : <span class="var">[MotDePasse]</span>
+
+Changez votre mot de passe après la première connexion.
+
+En cas de problème, répondez à ce message 🙏</div>
+    <div class="vars-list">
+      <span class="var-item"><strong>[Prénom client]</strong> → ex: Jean</span>
+      <span class="var-item"><strong>[Lien APK]</strong> → lien de téléchargement</span>
+      <span class="var-item"><strong>[Lien TestFlight]</strong> → lien iOS</span>
+      <span class="var-item"><strong>[email]</strong> → email du compte</span>
+      <span class="var-item"><strong>[MotDePasse]</strong> → mot de passe temp.</span>
+    </div>
+    <button class="copy-btn" onclick="copyMsg('msg1', this)">📋 Copier ce message</button>
+  </div>
+
+  <!-- TEMPLATE 2 : Portail web client -->
+  <div class="card">
+    <div class="card-label">
+      <span class="tag">2/4</span>
+      <span class="title">Portail web — Suivi de vos commandes</span>
+    </div>
+    <div class="msg-box" id="msg2">Bonjour <span class="var">[Prénom]</span> 👋
+
+Voici votre lien personnel pour suivre toutes vos commandes et effectuer vos versements :
+
+🌐 *Votre portail client :*
+👉 exchange.kabrakeng.com/client/<span class="var">[CODE_CLIENT]</span>
+
+Depuis ce lien vous pouvez :
+✅ Voir vos commandes de dépôt
+✅ Consulter les montants payés et restants
+✅ Envoyer vos reçus de paiement avec photo
+✅ Suivre le statut de chaque versement
+
+*Gardez ce lien précieusement*, il vous appartient personnellement.
+
+Pour toute question, contactez-nous ici 📞</div>
+    <div class="vars-list">
+      <span class="var-item"><strong>[Prénom]</strong> → prénom du client</span>
+      <span class="var-item"><strong>[CODE_CLIENT]</strong> → code unique ex: AB1234</span>
+    </div>
+    <button class="copy-btn" onclick="copyMsg('msg2', this)">📋 Copier ce message</button>
+    <p class="note">💡 Le code client se trouve dans la fiche du client dans l'app → onglet Clients → cliquez sur le client.</p>
+  </div>
+
+  <div class="section-title">💰 Dépôts & Paiements</div>
+
+  <!-- TEMPLATE 3 : Nouvelle commande de dépôt -->
+  <div class="card">
+    <div class="card-label">
+      <span class="tag">3/4</span>
+      <span class="title">Nouvelle commande de dépôt créée</span>
+    </div>
+    <div class="msg-box" id="msg3">Bonjour <span class="var">[Prénom]</span> 👋
+
+Votre commande de dépôt a été créée avec succès ✅
+
+📋 *Détails de la commande :*
+• Référence : <span class="var">[REF-XXXX]</span>
+• Montant total à recevoir : *<span class="var">[Montant]</span> FCFA*
+• Banque / Mode de paiement : <span class="var">[Banque]</span>
+
+Pour effectuer votre versement :
+1️⃣ Faites votre virement bancaire
+2️⃣ Prenez une photo de votre reçu
+3️⃣ Accédez à votre portail :
+👉 exchange.kabrakeng.com/client/<span class="var">[CODE]</span>
+4️⃣ Cliquez sur *"Ajouter un versement"*, entrez le montant et envoyez la photo du reçu
+
+Nous confirmerons votre paiement dans les plus brefs délais 🙏</div>
+    <div class="vars-list">
+      <span class="var-item"><strong>[Prénom]</strong> → prénom</span>
+      <span class="var-item"><strong>[REF-XXXX]</strong> → référence commande</span>
+      <span class="var-item"><strong>[Montant]</strong> → montant total</span>
+      <span class="var-item"><strong>[Banque]</strong> → ex: Wave, Orange Money, Virement</span>
+      <span class="var-item"><strong>[CODE]</strong> → code client</span>
+    </div>
+    <button class="copy-btn" onclick="copyMsg('msg3', this)">📋 Copier ce message</button>
+  </div>
+
+  <!-- TEMPLATE 4 : Confirmation de versement -->
+  <div class="card">
+    <div class="card-label">
+      <span class="tag">4/4</span>
+      <span class="title">Confirmation de versement reçu</span>
+    </div>
+    <div class="msg-box" id="msg4">Bonjour <span class="var">[Prénom]</span> 👋
+
+Votre versement a bien été *confirmé* ✅
+
+💳 *Détails du versement :*
+• Montant confirmé : *<span class="var">[Montant versé]</span> FCFA*
+• Montant total payé : <span class="var">[Total payé]</span> FCFA
+• Reste à payer : <span class="var">[Reste]</span> FCFA
+
+<span class="var">[SI RESTE > 0 :]</span>
+Il vous reste *<span class="var">[Reste]</span> FCFA* à verser pour compléter votre commande.
+
+<span class="var">[SI COMPLÉTÉ :]</span>
+🎉 *Votre commande est maintenant complète !* Merci pour votre confiance.
+
+Consultez le détail sur votre portail :
+👉 exchange.kabrakeng.com/client/<span class="var">[CODE]</span></div>
+    <div class="vars-list">
+      <span class="var-item"><strong>[Montant versé]</strong> → ce versement</span>
+      <span class="var-item"><strong>[Total payé]</strong> → cumul total reçu</span>
+      <span class="var-item"><strong>[Reste]</strong> → solde restant</span>
+      <span class="var-item"><strong>[CODE]</strong> → code client</span>
+    </div>
+    <button class="copy-btn" onclick="copyMsg('msg4', this)">📋 Copier ce message</button>
+  </div>
+
+  <div class="section-title">📖 Liens utiles</div>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9">
+        <div>
+          <div style="font-size:13px;font-weight:600">Guide d'utilisation complet</div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px">Page web à partager avec vos clients et employés</div>
+        </div>
+        <a href="/guide.html" target="_blank" style="background:#0B6E4F;color:white;font-size:11px;font-weight:700;padding:6px 12px;border-radius:7px;text-decoration:none">Ouvrir</a>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9">
+        <div>
+          <div style="font-size:13px;font-weight:600">Portail client (exemple)</div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px">exchange.kabrakeng.com/client/[CODE]</div>
+        </div>
+        <span style="background:#e0f2fe;color:#0369a1;font-size:11px;font-weight:700;padding:6px 12px;border-radius:7px">Lien personnalisé</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0">
+        <div>
+          <div style="font-size:13px;font-weight:600">Dashboard admin licences</div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px">kabrak-exchange-pro-production.up.railway.app/admin-secure.html</div>
+        </div>
+        <a href="/admin-secure.html" target="_blank" style="background:#7c3aed;color:white;font-size:11px;font-weight:700;padding:6px 12px;border-radius:7px;text-decoration:none">Admin</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>© 2025 <strong>KABRAK Exchange Pro</strong> — Templates WhatsApp</p>
+  <p style="margin-top:5px">Support : <strong>kabrakeng@gmail.com</strong></p>
+</footer>
+
+<script>
+function copyMsg(id, btn) {
+  const el = document.getElementById(id);
+  // Extract plain text (remove HTML tags)
+  let text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✅ Copié !';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '📋 Copier ce message';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '✅ Copié !';
+    setTimeout(() => { btn.textContent = '📋 Copier ce message'; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
