@@ -4,233 +4,307 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KABRAK Admin Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        :root { --green: #0B6E4F; --gold: #e8a020; --dark: #071a12; --darker: #050f0b; }
-        body { background: var(--dark); font-family: 'Inter', system-ui, sans-serif; color: #e5e7eb; }
-        h1,h2,h3,h4,p,span,div,td,th,label,input,select,button,a { color: inherit; }
-        input, select, textarea { background: #374151; border: 1px solid #4b5563; color: #e5e7eb; border-radius: 0.5rem; padding: 0.5rem 0.75rem; width: 100%; }
-        input:focus, select:focus { outline: none; border-color: var(--green); }
-        table { color: #e5e7eb; }
-        .text-gray-200 { color: #e5e7eb; }
-        .text-gray-400 { color: #9ca3af; }
-        .text-gray-500 { color: #6b7280; }
-        .bg-gray-700 { background-color: #374151; }
-        .bg-gray-800 { background-color: #1f2937; }
-        .bg-gray-900 { background-color: #111827; }
-        .border-gray-600 { border-color: #4b5563; }
-        .border-gray-700 { border-color: #374151; }
-        .border-gray-800 { border-color: #1f2937; }
-        .text-white { color: #ffffff !important; }
-        .font-bold { font-weight: 700; }
-        .font-semibold { font-weight: 600; }
-        .font-medium { font-weight: 500; }
-        .sidebar { background: var(--darker); width: 240px; min-height: 100vh; transition: width .2s; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root { --green: #0B6E4F; --gold: #e8a020; --dark: #071a12; --darker: #050f0b; --gray-900: #111827; --gray-800: #1f2937; --gray-700: #374151; --gray-600: #4b5563; --gray-500: #6b7280; --gray-400: #9ca3af; --gray-200: #e5e7eb; }
+        html, body { height: 100%; }
+        body { background: var(--dark); font-family: Inter, system-ui, -apple-system, sans-serif; color: var(--gray-200); font-size: 14px; line-height: 1.5; }
+
+        /* ── Layout ── */
+        #loginScreen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .login-card { background: var(--gray-800); border: 1px solid var(--gray-700); border-radius: 16px; padding: 32px; width: 100%; max-width: 380px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        .login-logo { width: 64px; height: 64px; background: #064e3b; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+        .login-logo i { font-size: 24px; color: #34d399; }
+        .login-title { text-align: center; color: var(--gold); font-size: 20px; font-weight: 700; }
+        .login-sub { text-align: center; color: var(--gray-400); font-size: 13px; margin-top: 4px; margin-bottom: 24px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 13px; color: var(--gray-400); margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 12px; background: var(--gray-700); border: 1px solid var(--gray-600); border-radius: 8px; color: #fff; font-size: 14px; outline: none; transition: border-color .2s; }
+        .form-input:focus { border-color: var(--green); }
+        .btn-primary { width: 100%; padding: 12px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity .2s; }
+        .btn-primary:hover { opacity: .9; }
+        .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+        .login-error { color: #f87171; font-size: 13px; text-align: center; margin-top: 10px; display: none; }
+
+        /* ── Dashboard layout ── */
+        #dashboardScreen { display: flex; min-height: 100vh; }
+        .sidebar { width: 240px; min-height: 100vh; background: var(--darker); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 40; transition: width .2s; border-right: 1px solid #0d1f16; }
         .sidebar.collapsed { width: 64px; }
         .sidebar.collapsed .nav-label, .sidebar.collapsed .logo-text, .sidebar.collapsed .user-info { display: none; }
-        .sidebar.collapsed .nav-item { justify-content: center; padding: 12px; }
-        .main-content { margin-left: 240px; transition: margin-left .2s; }
+        .main-content { margin-left: 240px; flex: 1; min-height: 100vh; transition: margin-left .2s; }
         .main-content.expanded { margin-left: 64px; }
-        .stat-card { background: linear-gradient(135deg, #1a2e24 0%, #0d1f16 100%); border: 1px solid #1a3d2e; }
-        .stat-card:hover { border-color: var(--green); transform: translateY(-2px); transition: all .2s; }
-        .tab-btn { transition: all .15s; }
-        .tab-btn.active { background: var(--green); color: white; }
-        .table-row:hover { background: rgba(11,110,79,0.08); }
-        .badge { padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
-        .badge-active { background: rgba(6,95,70,0.3); color: #10b981; }
-        .badge-pending { background: rgba(245,158,11,0.2); color: #f59e0b; }
-        .badge-expired { background: rgba(239,68,68,0.2); color: #ef4444; }
-        .badge-validated { background: rgba(6,95,70,0.3); color: #10b981; }
-        .badge-rejected { background: rgba(239,68,68,0.2); color: #ef4444; }
-        .badge-suspended { background: rgba(139,92,246,0.2); color: #a78bfa; }
-        /* Stat cards text */
-        #statUsers, #statLicenses, #statPending, #statExpiring { color: #ffffff; font-size: 1.75rem; font-weight: 800; }
-        #statUsersActive, #statLicensesTotal, #statPaymentsTotal { color: #9ca3af; font-size: 0.75rem; }
-        /* Table */
-        #licensesTable td, #paymentsTable td, #usersTable td { color: #e5e7eb; padding: 0.75rem 1rem; border-top: 1px solid #374151; }
-        #licensesTable tr:hover td, #paymentsTable tr:hover td, #usersTable tr:hover td { background: rgba(11,110,79,0.06); }
-        /* Sidebar nav */
-        .nav-item { color: #9ca3af; }
-        .nav-item:hover { background: #1f2937; color: #e5e7eb; }
-        .nav-item.active { background: var(--green); color: #ffffff !important; }
-        .nav-item.active * { color: #ffffff !important; }
-        /* Top bar */
-        #mainContent .sticky { background: #111827; border-bottom: 1px solid #1f2937; }
-        #pageTitle { color: #ffffff; font-size: 1.125rem; font-weight: 700; }
-        .modal-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
-        .spinner { border: 3px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; width: 20px; height: 20px; animation: spin .6s linear infinite; display: inline-block; }
+
+        /* ── Sidebar ── */
+        .sidebar-header { padding: 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #0d1f16; }
+        .sidebar-logo-icon { width: 32px; height: 32px; background: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .sidebar-logo-icon i { color: #fff; font-size: 13px; }
+        .logo-text { color: var(--gold); font-weight: 700; font-size: 13px; white-space: nowrap; }
+        .sidebar-nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 4px; }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; color: var(--gray-400); font-size: 13px; text-decoration: none; transition: background .15s, color .15s; white-space: nowrap; border: none; background: none; width: 100%; text-align: left; }
+        .nav-item:hover { background: var(--gray-800); color: var(--gray-200); }
+        .nav-item.active { background: var(--green); color: #fff; }
+        .nav-item.active i, .nav-item.active span { color: #fff; }
+        .nav-item i { width: 18px; text-align: center; flex-shrink: 0; }
+        .sidebar-footer { padding: 16px; border-top: 1px solid #0d1f16; }
+        .user-row { display: flex; align-items: center; gap: 10px; }
+        .user-avatar { width: 32px; height: 32px; background: #064e3b; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .user-avatar i { color: #34d399; font-size: 12px; }
+        .user-info { display: flex; flex-direction: column; }
+        .user-name { font-size: 12px; font-weight: 600; color: var(--gray-200); }
+        .btn-logout { font-size: 11px; color: #f87171; background: none; border: none; cursor: pointer; padding: 0; text-align: left; }
+        .btn-logout:hover { color: #fca5a5; }
+        .pending-badge { margin-left: auto; background: #d97706; color: #fff; font-size: 11px; padding: 1px 7px; border-radius: 999px; display: none; }
+
+        /* ── Top bar ── */
+        .topbar { position: sticky; top: 0; z-index: 30; background: rgba(7,26,18,0.95); backdrop-filter: blur(8px); border-bottom: 1px solid #0d1f16; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; }
+        .topbar-left { display: flex; align-items: center; gap: 12px; }
+        #pageTitle { color: #fff; font-size: 17px; font-weight: 700; }
+        .topbar-right { display: flex; align-items: center; gap: 8px; }
+        .btn-icon { background: none; border: none; color: var(--gray-400); cursor: pointer; padding: 7px; border-radius: 8px; font-size: 14px; transition: background .15s, color .15s; }
+        .btn-icon:hover { background: var(--gray-800); color: #fff; }
+        #lastRefresh { font-size: 11px; color: var(--gray-500); }
+
+        /* ── Content ── */
+        .page-content { padding: 24px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* ── Stat cards ── */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: linear-gradient(135deg, #1a2e24, #0d1f16); border: 1px solid #1a3d2e; border-radius: 14px; padding: 18px; transition: border-color .2s, transform .2s; }
+        .stat-card:hover { border-color: var(--green); transform: translateY(-2px); }
+        .stat-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .stat-label { color: var(--gray-400); font-size: 12px; }
+        .stat-value { color: #fff; font-size: 28px; font-weight: 800; line-height: 1; }
+        .stat-sub { color: var(--gray-500); font-size: 12px; margin-top: 4px; }
+        .stat-value.orange { color: #fb923c; }
+        .stat-value.red { color: #f87171; }
+
+        /* ── Panels ── */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+        .panel { background: var(--gray-800); border: 1px solid var(--gray-700); border-radius: 14px; padding: 20px; }
+        .panel-title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 16px; }
+        .panel-title i { margin-right: 8px; }
+        .activity-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; margin-bottom: 6px; }
+        .activity-item:hover { background: rgba(255,255,255,0.04); }
+        .activity-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; background: #064e3b; color: #34d399; }
+        .activity-info { flex: 1; min-width: 0; }
+        .activity-name { font-size: 13px; font-weight: 500; color: var(--gray-200); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .activity-meta { font-size: 11px; color: var(--gray-500); }
+        .activity-date { font-size: 11px; color: var(--gray-500); flex-shrink: 0; }
+
+        /* ── Toolbar ── */
+        .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+        .filter-btn { padding: 6px 14px; border-radius: 8px; border: none; background: var(--gray-700); color: var(--gray-400); font-size: 13px; cursor: pointer; transition: background .15s, color .15s; }
+        .filter-btn:hover { background: var(--gray-600); color: #fff; }
+        .filter-btn.active { background: var(--green); color: #fff; }
+        .search-input { margin-left: auto; padding: 6px 12px; background: var(--gray-700); border: 1px solid var(--gray-600); border-radius: 8px; color: #fff; font-size: 13px; outline: none; width: 200px; }
+        .search-input:focus { border-color: var(--green); }
+        .btn-create { padding: 6px 14px; border-radius: 8px; border: none; background: var(--green); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .btn-create:hover { opacity: .9; }
+
+        /* ── Tables ── */
+        .table-wrap { background: var(--gray-800); border: 1px solid var(--gray-700); border-radius: 14px; overflow: hidden; }
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; color: var(--gray-200); }
+        thead tr { border-bottom: 1px solid var(--gray-700); }
+        th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+        th.center, td.center { text-align: center; }
+        td { padding: 12px 14px; border-top: 1px solid #1a2530; vertical-align: middle; }
+        tbody tr:hover td { background: rgba(11,110,79,0.06); }
+
+        /* ── Badges ── */
+        .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+        .badge-active, .badge-validated { background: rgba(16,185,129,.15); color: #34d399; }
+        .badge-pending { background: rgba(245,158,11,.15); color: #fbbf24; }
+        .badge-expired, .badge-rejected { background: rgba(239,68,68,.15); color: #f87171; }
+        .badge-suspended { background: rgba(139,92,246,.15); color: #a78bfa; }
+        .badge-gray { background: rgba(255,255,255,.08); color: var(--gray-400); }
+
+        /* ── Action buttons ── */
+        .action-btns { display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-sm { padding: 4px 9px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; color: #fff; }
+        .btn-green { background: #065f46; } .btn-green:hover { background: #047857; }
+        .btn-blue { background: #1e40af; } .btn-blue:hover { background: #1d4ed8; }
+        .btn-purple { background: #5b21b6; } .btn-purple:hover { background: #6d28d9; }
+        .btn-red { background: #991b1b; } .btn-red:hover { background: #b91c1c; }
+
+        /* ── Modal ── */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+        .modal-box { background: var(--gray-800); border: 1px solid var(--gray-700); border-radius: 16px; padding: 24px; width: 100%; max-width: 440px; box-shadow: 0 25px 50px rgba(0,0,0,.5); }
+        .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .modal-title { font-size: 16px; font-weight: 700; color: #fff; }
+        .modal-footer { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-cancel { flex: 1; padding: 10px; background: var(--gray-700); color: var(--gray-200); border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        .btn-confirm { flex: 1; padding: 10px; background: var(--green); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .modal-field { margin-bottom: 14px; }
+        .modal-label { display: block; font-size: 12px; color: var(--gray-400); margin-bottom: 5px; }
+        .modal-input { width: 100%; padding: 10px; background: var(--gray-700); border: 1px solid var(--gray-600); border-radius: 8px; color: #fff; font-size: 14px; outline: none; }
+        .modal-input:focus { border-color: var(--green); }
+
+        /* ── Toast ── */
+        #toastContainer { position: fixed; top: 16px; right: 16px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+        .toast { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,.3); animation: slideIn .3s ease-out; }
+        .toast-success { background: #064e3b; color: #6ee7b7; }
+        .toast-error { background: #7f1d1d; color: #fca5a5; }
+        @keyframes slideIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* ── Spinner ── */
+        .spinner { display: inline-block; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .toast { animation: slideIn .3s ease-out; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* ── Mobile ── */
         @media (max-width: 768px) {
-            .sidebar { position: fixed; z-index: 50; transform: translateX(-100%); }
+            .sidebar { transform: translateX(-100%); }
             .sidebar.mobile-open { transform: translateX(0); }
             .main-content { margin-left: 0 !important; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .page-content { padding: 12px; }
         }
     </style>
 </head>
-<body class="text-gray-200">
+<body>
 
 <!-- Login Screen -->
-<div id="loginScreen" class="min-h-screen flex items-center justify-center">
-    <div class="bg-gray-800 p-8 rounded-xl max-w-sm w-full mx-4 shadow-2xl border border-gray-700">
-        <div class="text-center mb-6">
-            <div class="w-16 h-16 bg-green-900 rounded-full flex items-center justify-center mx-auto mb-3">
-                <i class="fas fa-shield-halved text-2xl text-green-400"></i>
-            </div>
-            <h1 class="text-xl font-bold" style="color: var(--gold);">KABRAK Admin</h1>
-            <p class="text-gray-400 text-sm mt-1">Panneau d'administration</p>
-        </div>
+<div id="loginScreen">
+    <div class="login-card">
+        <div class="login-logo"><i class="fas fa-shield-halved"></i></div>
+        <div class="login-title">KABRAK Admin</div>
+        <div class="login-sub">Panneau d'administration</div>
         <form onsubmit="handleLogin(event)">
-            <div class="mb-4">
-                <label class="block text-sm text-gray-400 mb-1">Identifiant</label>
-                <input type="text" id="loginUser" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:border-green-500 focus:outline-none text-white" required>
+            <div class="form-group">
+                <label class="form-label">Identifiant</label>
+                <input type="text" id="loginUser" class="form-input" required>
             </div>
-            <div class="mb-5">
-                <label class="block text-sm text-gray-400 mb-1">Mot de passe</label>
-                <input type="password" id="loginPass" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:border-green-500 focus:outline-none text-white" required>
+            <div class="form-group">
+                <label class="form-label">Mot de passe</label>
+                <input type="password" id="loginPass" class="form-input" required>
             </div>
-            <button type="submit" id="loginBtn" class="w-full py-3 rounded-lg font-semibold text-white" style="background:var(--green)">
-                Se connecter
-            </button>
-            <div id="loginError" class="text-red-400 text-sm text-center mt-3 hidden"></div>
+            <button type="submit" id="loginBtn" class="btn-primary">Se connecter</button>
+            <div id="loginError" class="login-error"></div>
         </form>
     </div>
 </div>
 
 <!-- Dashboard -->
-<div id="dashboardScreen" class="hidden">
+<div id="dashboardScreen" style="display:none">
     <!-- Sidebar -->
-    <aside id="sidebar" class="sidebar fixed top-0 left-0 flex flex-col">
-        <div class="p-4 flex items-center gap-3 border-b border-gray-800">
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--green)">
-                <i class="fas fa-exchange-alt text-white text-sm"></i>
-            </div>
-            <span class="logo-text font-bold text-sm" style="color:var(--gold)">KABRAK Admin</span>
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo-icon"><i class="fas fa-exchange-alt"></i></div>
+            <span class="logo-text">KABRAK Admin</span>
         </div>
-        <nav class="flex-1 py-4 space-y-1 px-2">
-            <a onclick="switchTab('dashboard')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-gray-800 text-sm tab-btn active" data-tab="dashboard">
-                <i class="fas fa-chart-pie w-5 text-center"></i><span class="nav-label">Tableau de bord</span>
-            </a>
-            <a onclick="switchTab('licenses')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-gray-800 text-sm tab-btn" data-tab="licenses">
-                <i class="fas fa-key w-5 text-center"></i><span class="nav-label">Licences</span>
-            </a>
-            <a onclick="switchTab('payments')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-gray-800 text-sm tab-btn" data-tab="payments">
-                <i class="fas fa-credit-card w-5 text-center"></i><span class="nav-label">Paiements</span>
-                <span id="pendingBadge" class="ml-auto bg-yellow-600 text-white text-xs px-2 py-0.5 rounded-full hidden">0</span>
-            </a>
-            <a onclick="switchTab('users')" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-gray-800 text-sm tab-btn" data-tab="users">
-                <i class="fas fa-users w-5 text-center"></i><span class="nav-label">Utilisateurs</span>
-            </a>
+        <nav class="sidebar-nav">
+            <button onclick="switchTab('dashboard')" class="nav-item active" data-tab="dashboard">
+                <i class="fas fa-chart-pie"></i><span class="nav-label">Tableau de bord</span>
+            </button>
+            <button onclick="switchTab('licenses')" class="nav-item" data-tab="licenses">
+                <i class="fas fa-key"></i><span class="nav-label">Licences</span>
+            </button>
+            <button onclick="switchTab('payments')" class="nav-item" data-tab="payments">
+                <i class="fas fa-credit-card"></i><span class="nav-label">Paiements</span>
+                <span id="pendingBadge" class="pending-badge">0</span>
+            </button>
+            <button onclick="switchTab('users')" class="nav-item" data-tab="users">
+                <i class="fas fa-users"></i><span class="nav-label">Utilisateurs</span>
+            </button>
         </nav>
-        <div class="p-4 border-t border-gray-800">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-green-900 flex items-center justify-center">
-                    <i class="fas fa-user-shield text-green-400 text-xs"></i>
-                </div>
+        <div class="sidebar-footer">
+            <div class="user-row">
+                <div class="user-avatar"><i class="fas fa-user-shield"></i></div>
                 <div class="user-info">
-                    <div class="text-xs font-semibold">Admin</div>
-                    <button onclick="handleLogout()" class="text-xs text-red-400 hover:text-red-300">Déconnexion</button>
+                    <span class="user-name">Admin</span>
+                    <button onclick="handleLogout()" class="btn-logout">Déconnexion</button>
                 </div>
             </div>
         </div>
     </aside>
 
     <!-- Main -->
-    <main id="mainContent" class="main-content min-h-screen">
-        <!-- Top bar -->
-        <div class="sticky top-0 z-10 bg-gray-900 bg-opacity-90 backdrop-blur border-b border-gray-800 px-6 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-gray-800 rounded-lg">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <h2 id="pageTitle" class="text-lg font-bold">Tableau de bord</h2>
+    <main id="mainContent" class="main-content">
+        <div class="topbar">
+            <div class="topbar-left">
+                <button onclick="toggleSidebar()" class="btn-icon" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h2 id="pageTitle">Tableau de bord</h2>
             </div>
-            <div class="flex items-center gap-3">
-                <button onclick="refreshData()" class="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white" title="Rafraîchir">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-                <span class="text-xs text-gray-500" id="lastRefresh"></span>
+            <div class="topbar-right">
+                <button onclick="refreshData()" class="btn-icon" title="Rafraîchir"><i class="fas fa-sync-alt"></i></button>
+                <span id="lastRefresh"></span>
             </div>
         </div>
 
-        <!-- Tab Contents -->
-        <div class="p-6">
+        <div class="page-content">
             <!-- Dashboard Tab -->
-            <div id="tab-dashboard" class="tab-content">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div class="stat-card rounded-xl p-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-gray-400 text-sm">Utilisateurs</span>
-                            <i class="fas fa-users text-green-500"></i>
+            <div id="tab-dashboard" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-label">Utilisateurs</span>
+                            <i class="fas fa-users" style="color:#34d399"></i>
                         </div>
-                        <div class="text-2xl font-bold" id="statUsers">-</div>
-                        <div class="text-xs text-gray-500" id="statUsersActive">- actifs</div>
+                        <div class="stat-value" id="statUsers">-</div>
+                        <div class="stat-sub" id="statUsersActive">- actifs</div>
                     </div>
-                    <div class="stat-card rounded-xl p-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-gray-400 text-sm">Licences actives</span>
-                            <i class="fas fa-key text-yellow-500"></i>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-label">Licences actives</span>
+                            <i class="fas fa-key" style="color:#fbbf24"></i>
                         </div>
-                        <div class="text-2xl font-bold" id="statLicenses">-</div>
-                        <div class="text-xs text-gray-500" id="statLicensesTotal">/ - total</div>
+                        <div class="stat-value" id="statLicenses">-</div>
+                        <div class="stat-sub" id="statLicensesTotal">/ - total</div>
                     </div>
-                    <div class="stat-card rounded-xl p-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-gray-400 text-sm">Paiements en attente</span>
-                            <i class="fas fa-clock text-orange-500"></i>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-label">Paiements en attente</span>
+                            <i class="fas fa-clock" style="color:#fb923c"></i>
                         </div>
-                        <div class="text-2xl font-bold text-orange-400" id="statPending">-</div>
-                        <div class="text-xs text-gray-500" id="statPaymentsTotal">/ - total</div>
+                        <div class="stat-value orange" id="statPending">-</div>
+                        <div class="stat-sub" id="statPaymentsTotal">/ - total</div>
                     </div>
-                    <div class="stat-card rounded-xl p-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-gray-400 text-sm">Expirent bientôt</span>
-                            <i class="fas fa-exclamation-triangle text-red-500"></i>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-label">Expirent bientôt</span>
+                            <i class="fas fa-exclamation-triangle" style="color:#f87171"></i>
                         </div>
-                        <div class="text-2xl font-bold text-red-400" id="statExpiring">-</div>
-                        <div class="text-xs text-gray-500">dans 7 jours</div>
+                        <div class="stat-value red" id="statExpiring">-</div>
+                        <div class="stat-sub">dans 7 jours</div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-gray-800 rounded-xl p-5 border border-gray-700">
-                        <h3 class="font-semibold mb-4"><i class="fas fa-user-plus mr-2 text-green-400"></i>Derniers inscrits</h3>
-                        <div id="recentUsersList" class="space-y-3">
-                            <div class="text-gray-500 text-sm text-center py-4">Chargement...</div>
-                        </div>
+                <div class="two-col">
+                    <div class="panel">
+                        <div class="panel-title"><i class="fas fa-user-plus" style="color:#34d399"></i>Derniers inscrits</div>
+                        <div id="recentUsersList"><div style="color:var(--gray-500);text-align:center;padding:16px;font-size:13px">Chargement...</div></div>
                     </div>
-                    <div class="bg-gray-800 rounded-xl p-5 border border-gray-700">
-                        <h3 class="font-semibold mb-4"><i class="fas fa-receipt mr-2 text-yellow-400"></i>Derniers paiements</h3>
-                        <div id="recentPaymentsList" class="space-y-3">
-                            <div class="text-gray-500 text-sm text-center py-4">Chargement...</div>
-                        </div>
+                    <div class="panel">
+                        <div class="panel-title"><i class="fas fa-receipt" style="color:#fbbf24"></i>Derniers paiements</div>
+                        <div id="recentPaymentsList"><div style="color:var(--gray-500);text-align:center;padding:16px;font-size:13px">Chargement...</div></div>
                     </div>
                 </div>
             </div>
 
             <!-- Licenses Tab -->
-            <div id="tab-licenses" class="tab-content hidden">
-                <div class="flex flex-wrap items-center gap-3 mb-4">
-                    <button onclick="filterLicenses('')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 license-filter active">Toutes</button>
-                    <button onclick="filterLicenses('active')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 license-filter">Actives</button>
-                    <button onclick="filterLicenses('pending')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 license-filter">En attente</button>
-                    <button onclick="filterLicenses('expired')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 license-filter">Expirées</button>
-                    <input type="text" id="licenseSearch" placeholder="Rechercher..." oninput="renderLicenses()" class="ml-auto px-3 py-1.5 bg-gray-700 rounded-lg text-sm border border-gray-600 focus:border-green-500 focus:outline-none w-48">
-                    <button onclick="openCreateLicense()" class="px-3 py-1.5 rounded-lg text-sm font-semibold text-white" style="background:var(--green)">+ Nouvelle licence</button>
+            <div id="tab-licenses" class="tab-content">
+                <div class="toolbar">
+                    <button onclick="filterLicenses('')" class="filter-btn active license-filter">Toutes</button>
+                    <button onclick="filterLicenses('active')" class="filter-btn license-filter">Actives</button>
+                    <button onclick="filterLicenses('pending')" class="filter-btn license-filter">En attente</button>
+                    <button onclick="filterLicenses('expired')" class="filter-btn license-filter">Expirées</button>
+                    <input type="text" id="licenseSearch" placeholder="Rechercher..." oninput="renderLicenses()" class="search-input">
+                    <button onclick="openCreateLicense()" class="btn-create">+ Nouvelle licence</button>
                 </div>
-                <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
+                <div class="table-wrap">
+                    <div class="table-scroll">
+                        <table>
                             <thead>
-                                <tr class="border-b border-gray-700 text-gray-400 text-xs uppercase">
-                                    <th class="px-4 py-3 text-left">Entreprise</th>
-                                    <th class="px-4 py-3 text-left">Email</th>
-                                    <th class="px-4 py-3 text-center">Plan</th>
-                                    <th class="px-4 py-3 text-center">Statut</th>
-                                    <th class="px-4 py-3 text-center">Expiration</th>
-                                    <th class="px-4 py-3 text-center">Actions</th>
+                                <tr>
+                                    <th>Entreprise</th><th>Email</th><th class="center">Plan</th>
+                                    <th class="center">Statut</th><th class="center">Expiration</th><th class="center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="licensesTable"></tbody>
@@ -518,33 +592,30 @@ function renderUsers() {
     });
     const tbody = document.getElementById('usersTable');
     tbody.innerHTML = filtered.map(u => `
-        <tr class="table-row border-b border-gray-700">
-            <td class="px-4 py-3 font-medium">${u.firstName || ''} ${u.lastName || ''}</td>
-            <td class="px-4 py-3 text-gray-400">${u.email}</td>
-            <td class="px-4 py-3">${u.businessName || '-'}</td>
-            <td class="px-4 py-3 text-center"><span class="badge bg-gray-700">${u.teamRole || u.role || '-'}</span></td>
-            <td class="px-4 py-3 text-center">
-                <span class="badge ${u.isActive ? 'badge-active' : 'badge-expired'}">${u.isActive ? 'Actif' : 'Inactif'}</span>
-            </td>
-            <td class="px-4 py-3 text-center text-xs">${u.lastLogin ? fmtDate(u.lastLogin) : 'Jamais'}</td>
-            <td class="px-4 py-3 text-center">
-                <button onclick="toggleUser('${u.id}', ${u.isActive})" class="px-2 py-1 text-xs rounded ${u.isActive ? 'bg-red-700 hover:bg-red-600' : 'bg-green-700 hover:bg-green-600'}" title="${u.isActive ? 'Désactiver' : 'Activer'}">
+        <tr>
+            <td style="font-weight:600">${u.firstName || ''} ${u.lastName || ''}</td>
+            <td style="color:var(--gray-400)">${u.email}</td>
+            <td>${u.businessName || '-'}</td>
+            <td class="center"><span class="badge badge-gray">${u.teamRole || u.role || '-'}</span></td>
+            <td class="center"><span class="badge ${u.isActive ? 'badge-active' : 'badge-expired'}">${u.isActive ? 'Actif' : 'Inactif'}</span></td>
+            <td class="center" style="font-size:12px">${u.lastLogin ? fmtDate(u.lastLogin) : 'Jamais'}</td>
+            <td class="center">
+                <button onclick="toggleUser('${u.id}', ${u.isActive})" class="btn-sm ${u.isActive ? 'btn-red' : 'btn-green'}">
                     <i class="fas ${u.isActive ? 'fa-ban' : 'fa-check'}"></i>
                 </button>
             </td>
         </tr>
-    `).join('') || '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Aucun utilisateur trouvé</td></tr>';
+    `).join('') || '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--gray-500)">Aucun utilisateur trouvé</td></tr>';
 }
 
 // ─── Tab Navigation ───
 function switchTab(tab) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-    document.getElementById(`tab-${tab}`).classList.remove('hidden');
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-    const titles = { dashboard: 'Tableau de bord', licenses: 'Gestion des Licences', payments: 'Gestion des Paiements', users: 'Gestion des Utilisateurs' };
+    const titles = { dashboard: 'Tableau de bord', licenses: 'Licences', payments: 'Paiements', users: 'Utilisateurs' };
     document.getElementById('pageTitle').textContent = titles[tab] || tab;
-    // Close mobile sidebar
     document.getElementById('sidebar').classList.remove('mobile-open');
 }
 
@@ -561,26 +632,26 @@ function toggleSidebar() {
 function filterLicenses(status) {
     licenseFilter = status;
     document.querySelectorAll('.license-filter').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
+    if (event?.target) event.target.classList.add('active');
     renderLicenses();
 }
 function filterPayments(status) {
     paymentFilter = status;
     document.querySelectorAll('.payment-filter').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
+    if (event?.target) event.target.classList.add('active');
     renderPayments();
 }
 
 // ─── License Actions ───
 function approveLicense(id) {
     openModal('Approuver la licence', `
-        <label class="block text-sm text-gray-400 mb-1">Durée :</label>
-        <select id="mDays" class="w-full p-2.5 bg-gray-700 rounded-lg border border-gray-600">
+        <div class="modal-field"><label class="modal-label">Durée :</label>
+        <select id="mDays" class="modal-input">
             <option value="30">30 jours (1 mois)</option>
             <option value="90" selected>90 jours (3 mois)</option>
             <option value="180">180 jours (6 mois)</option>
             <option value="365">365 jours (1 an)</option>
-        </select>
+        </select></div>
     `, async () => {
         const days = document.getElementById('mDays').value;
         await api(`/admin/licenses/${id}/approve`, { method: 'POST', body: JSON.stringify({ days: +days }) });
@@ -591,13 +662,13 @@ function approveLicense(id) {
 
 function extendLicense(id) {
     openModal('Étendre la licence', `
-        <label class="block text-sm text-gray-400 mb-1">Ajouter :</label>
-        <select id="mDays" class="w-full p-2.5 bg-gray-700 rounded-lg border border-gray-600">
+        <div class="modal-field"><label class="modal-label">Ajouter :</label>
+        <select id="mDays" class="modal-input">
             <option value="7">7 jours</option>
             <option value="30" selected>30 jours</option>
             <option value="90">90 jours</option>
             <option value="365">1 an</option>
-        </select>
+        </select></div>
     `, async () => {
         const days = document.getElementById('mDays').value;
         await api(`/admin/licenses/${id}/extend`, { method: 'POST', body: JSON.stringify({ days: +days }) });
@@ -608,13 +679,13 @@ function extendLicense(id) {
 
 function changePlan(id) {
     openModal('Changer le plan', `
-        <label class="block text-sm text-gray-400 mb-1">Nouveau plan :</label>
-        <select id="mPlan" class="w-full p-2.5 bg-gray-700 rounded-lg border border-gray-600">
+        <div class="modal-field"><label class="modal-label">Nouveau plan :</label>
+        <select id="mPlan" class="modal-input">
             <option value="trial">Trial</option>
             <option value="basic">Basic</option>
             <option value="pro">Pro</option>
             <option value="premium">Premium</option>
-        </select>
+        </select></div>
     `, async () => {
         const plan = document.getElementById('mPlan').value;
         await api(`/admin/licenses/${id}/plan`, { method: 'POST', body: JSON.stringify({ plan }) });
@@ -659,15 +730,15 @@ function openModal(title, body, onConfirm) {
     document.getElementById('modalConfirmBtn').onclick = async () => {
         try { await onConfirm(); } catch (e) { toast(e.message || 'Erreur', 'error'); }
     };
-    document.getElementById('modal').classList.remove('hidden');
+    document.getElementById('modal').style.display = 'flex';
 }
-function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
 // ─── Toast ───
 function toast(msg, type = 'success') {
     const c = document.getElementById('toastContainer');
     const t = document.createElement('div');
-    t.className = `toast flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${type === 'success' ? 'bg-green-800 text-green-200' : 'bg-red-800 text-red-200'}`;
+    t.className = `toast ${type === 'success' ? 'toast-success' : 'toast-error'}`;
     t.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>${msg}`;
     c.appendChild(t);
     setTimeout(() => { t.remove(); }, 3500);
