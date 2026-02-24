@@ -115,13 +115,13 @@ export default function ClientDetailScreen() {
             <View>
               <Text style={styles.portalLabel}>{'Portail client'}</Text>
               <Text style={styles.portalCode}>{client.clientCode}</Text>
-              <Text style={styles.portalUrl}>{'kabrak.com/client/' + client.clientCode}</Text>
+              <Text style={styles.portalUrl}>{'exchange.kabrakeng.com/client/' + client.clientCode}</Text>
             </View>
             <View style={styles.portalActions}>
               <TouchableOpacity
                 style={styles.portalShareBtn}
                 onPress={() => Share.share({
-                  message: `Bonjour ${client.name},\n\nVoici votre lien pour suivre vos commandes et envoyer vos reçus :\n\nhttps://kabrak.com/client/${client.clientCode}\n\nVous pouvez l'installer comme une app sur votre téléphone.\n\nKABRAK Exchange Pro`,
+                  message: `Bonjour ${client.name},\n\nVoici votre lien pour suivre vos commandes et envoyer vos reçus :\n\nhttps://exchange.kabrakeng.com/client/${client.clientCode}\n\nVous pouvez l'installer comme une app sur votre téléphone.\n\nKABRAK Exchange Pro`,
                   title: 'Lien portail client',
                 })}
               >
@@ -130,7 +130,7 @@ export default function ClientDetailScreen() {
               <TouchableOpacity
                 style={[styles.portalShareBtn, { backgroundColor: 'rgba(255,255,255,0.15)', marginTop: 8 }]}
                 onPress={() => {
-                  Clipboard.setString(`https://kabrak.com/client/${client.clientCode}`);
+                  Clipboard.setString(`https://exchange.kabrakeng.com/client/${client.clientCode}`);
                   Alert.alert('', 'Lien copié !');
                 }}
               >

@@ -15,7 +15,7 @@ import useSettingStore from '../../src/store/settingStore';
 import { shareDepositReceipt } from '../../src/utils/generateReceipt';
 import useAuthStore from '../../src/store/authStore';
 
-const UPLOAD_BASE = 'https://kabrak-exchange-pro-production.up.railway.app/deposit';
+const UPLOAD_BASE = 'https://exchange.kabrakeng.com/upload';
 const BACKEND_URL = 'https://kabrak-exchange-pro-production.up.railway.app';
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
@@ -134,7 +134,13 @@ export default function DepositsScreen() {
       return;
     }
     setSaving(true);
-    const result = await createOrder({ ...form, totalAmount: parseFloat(form.totalAmount.replace(/\s/g, '')), expoPushToken: expoPushToken || null });
+    const result = await createOrder({
+      ...form,
+      totalAmount: parseFloat(form.totalAmount.replace(/\s/g, '')),
+      amountForeign: form.amountForeign ? parseFloat(String(form.amountForeign).replace(/\s/g, '')) : null,
+      rate: form.rate ? parseFloat(String(form.rate).replace(/\s/g, '')) : null,
+      expoPushToken: expoPushToken || null,
+    });
     setSaving(false);
     if (result.success) {
       setShowNew(false);

@@ -89,6 +89,7 @@ export default function NewTransactionScreen() {
     const result = await createTransaction({
       ...form,
       amountFrom: parseFloat(form.amountFrom),
+      amountTo: amountTo,
       exchangeRate: parseFloat(form.exchangeRate)
     });
     setLoading(false);

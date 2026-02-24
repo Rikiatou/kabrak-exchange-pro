@@ -3,12 +3,12 @@ const { sequelize } = require('../database/connection');
 
 const DepositOrder = sequelize.define('DepositOrder', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  reference: { type: DataTypes.STRING(12), allowNull: false, unique: true },
+  reference: { type: DataTypes.STRING(12), allowNull: false, unique: true, defaultValue: '' },
   clientName: { type: DataTypes.STRING, allowNull: false },
   clientPhone: { type: DataTypes.STRING, allowNull: true },
   totalAmount: { type: DataTypes.DECIMAL(20, 2), allowNull: false },
   receivedAmount: { type: DataTypes.DECIMAL(20, 2), defaultValue: 0 },
-  remainingAmount: { type: DataTypes.DECIMAL(20, 2), allowNull: false },
+  remainingAmount: { type: DataTypes.DECIMAL(20, 2), allowNull: false, defaultValue: 0 },
   currency: { type: DataTypes.STRING(10), allowNull: false, defaultValue: 'FCFA' },
   bank: { type: DataTypes.STRING, allowNull: true },
   notes: { type: DataTypes.TEXT, allowNull: true },
