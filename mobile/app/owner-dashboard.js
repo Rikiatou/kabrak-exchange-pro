@@ -224,27 +224,37 @@ export default function OwnerDashboardScreen() {
 
         {/* Key Metrics */}
         <View style={s.metricsRow}>
-          <StatCard icon="cash-outline" label="Profit moyen/tx" value={formatCurrency(profit.avgProfitPerTransaction || 0)} color={GREEN_MAIN} />
-          <StatCard icon="alert-circle-outline" label="Impayés" value={summary.unpaidCount || 0} sub={summary.unpaidCount > 0 ? '⚠' : null} color="#dc2626" onPress={() => router.push('/(tabs)/transactions')} />
-          <StatCard icon="today-outline" label="Tx aujourd'hui" value={summary.todayTransactions || 0} color="#0369a1" />
+          <StatCard icon="cash-outline" label="Profit moyen/tx" value={formatCurrency(profit.avgProfitPerTransaction || 0)} color={GREEN_MAIN} onPress={() => router.push('/reports')} />
+          <StatCard icon="alert-circle-outline" label="Impayés (MPA)" value={summary.unpaidCount || 0} sub={summary.unpaidCount > 0 ? '⚠' : null} color="#dc2626" onPress={() => router.push('/(tabs)/transactions?status=unpaid')} />
+          <StatCard icon="today-outline" label="Tx aujourd'hui" value={summary.todayTransactions || 0} color="#0369a1" onPress={() => { const today = new Date().toISOString().split('T')[0]; router.push(`/(tabs)/transactions?dateFrom=${today}&dateTo=${today}`); }} />
         </View>
         <View style={s.metricsRow}>
-          <StatCard icon="wallet-outline" label="Encaissé (mois)" value={formatCurrency(summary.monthPayments || 0)} color="#7c3aed" />
+          <StatCard icon="wallet-outline" label="Encaissé (mois)" value={formatCurrency(summary.monthPayments || 0)} color="#7c3aed" onPress={() => router.push('/cashbook')} />
           <StatCard icon="people-outline" label="Équipe" value={team.length} color="#0891b2" onPress={() => router.push('/settings/team')} />
-          <StatCard icon="shield-checkmark-outline" label="Dette totale" value={formatCurrency(summary.totalOutstanding || 0)} color="#d97706" />
+          <StatCard icon="shield-checkmark-outline" label="Dette totale" value={formatCurrency(summary.totalOutstanding || 0)} color="#d97706" onPress={() => router.push('/(tabs)/clients')} />
         </View>
 
         {/* Profit Chart */}
-        {profitData?.dailyData?.length > 0 && (
-          <View style={s.section}>
+        <View style={s.section}>
+          <View style={s.sectionHead}>
             <Text style={s.sectionTitle}>📊 Évolution du profit</Text>
-            <View style={s.card}>
-              <View style={{ padding: 14 }}>
+            <TouchableOpacity onPress={() => router.push('/reports')}>
+              <Text style={s.seeAll}>Rapport complet →</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={s.card}>
+            <View style={{ padding: 14 }}>
+              {profitData?.dailyData?.length > 0 ? (
                 <ProfitChart data={profitData.dailyData} />
-              </View>
+              ) : (
+                <View style={{ alignItems: 'center', paddingVertical: 24 }}>
+                  <Ionicons name="bar-chart-outline" size={32} color="#cbd5e1" />
+                  <Text style={{ fontSize: 12, color: '#94a3b8', marginTop: 8 }}>Aucune donnée pour cette période</Text>
+                </View>
+              )}
             </View>
           </View>
-        )}
+        </View>
 
         {/* Profit by Currency Pair */}
         {profitData?.byCurrencyPair?.length > 0 && (
@@ -307,12 +317,12 @@ export default function OwnerDashboardScreen() {
             <View style={s.card}>
               {team.slice(0, 5).map((m, i) => (
                 <View key={m.id}>
-                  <View style={s.teamRow}>
+                  <TouchableOpacity style={s.teamRow} onPress={() => router.push('/settings/team')} activeOpacity={0.7}>
                     <View style={[s.teamAvatar, { backgroundColor: m.teamRole === 'owner' ? '#6366f1' : m.teamRole === 'manager' ? '#0369a1' : GREEN_MAIN }]}>
-                      <Text style={s.teamInitials}>{(m.firstName || '?')[0].toUpperCase()}</Text>
+                      <Text style={s.teamInitials}>{(m.firstName || m.name || '?')[0].toUpperCase()}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={s.teamName}>{m.firstName} {m.lastName || ''}</Text>
+                      <Text style={s.teamName}>{m.firstName || m.name} {m.lastName || ''}</Text>
                       <Text style={s.teamRole}>{m.teamRole === 'owner' ? 'Propriétaire' : m.teamRole === 'manager' ? 'Manager' : 'Caissier'}</Text>
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>
@@ -323,7 +333,7 @@ export default function OwnerDashboardScreen() {
                         </Text>
                       )}
                     </View>
-                  </View>
+                  </TouchableOpacity>
                   {i < Math.min(team.length, 5) - 1 && <View style={s.divider} />}
                 </View>
               ))}
@@ -332,24 +342,30 @@ export default function OwnerDashboardScreen() {
         )}
 
         {/* Recent Alerts */}
-        {alerts.length > 0 && (
-          <View style={s.section}>
-            <View style={s.sectionHead}>
-              <Text style={s.sectionTitle}>🔔 Alertes récentes</Text>
-              <TouchableOpacity onPress={() => router.push('/alerts')}>
-                <Text style={s.seeAll}>Tout voir →</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={s.card}>
-              {alerts.slice(0, 5).map((a, i) => (
+        <View style={s.section}>
+          <View style={s.sectionHead}>
+            <Text style={s.sectionTitle}>🔔 Alertes récentes</Text>
+            <TouchableOpacity onPress={() => router.push('/alerts')}>
+              <Text style={s.seeAll}>Tout voir →</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={s.card}>
+            {alerts.length > 0 ? (
+              alerts.slice(0, 5).map((a, i) => (
                 <View key={a.id}>
-                  <AlertRow alert={a} />
+                  <TouchableOpacity onPress={() => router.push('/alerts')} activeOpacity={0.7}>
+                    <AlertRow alert={a} />
+                  </TouchableOpacity>
                   {i < Math.min(alerts.length, 5) - 1 && <View style={s.divider} />}
                 </View>
-              ))}
-            </View>
+              ))
+            ) : (
+              <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                <Text style={{ fontSize: 12, color: '#94a3b8' }}>Aucune alerte récente</Text>
+              </View>
+            )}
           </View>
-        )}
+        </View>
 
         {/* Quick Actions */}
         <View style={s.section}>

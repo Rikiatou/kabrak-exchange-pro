@@ -51,7 +51,14 @@ export default function TransactionsScreen() {
   const params = useLocalSearchParams();
   const [activeFilter, setActiveFilter] = useState(params.status || '');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [adv, setAdv] = useState({ dateFrom: '', dateTo: '', currencyFrom: '', currencyTo: '', amountMin: '', amountMax: '' });
+  const [adv, setAdv] = useState({
+    dateFrom: params.dateFrom || '',
+    dateTo: params.dateTo || '',
+    currencyFrom: '',
+    currencyTo: '',
+    amountMin: '',
+    amountMax: '',
+  });
   const { transactions, isLoading, fetchTransactions } = useTransactionStore();
   const { t } = useLanguageStore();
   const router = useRouter();
