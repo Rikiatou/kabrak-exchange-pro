@@ -96,7 +96,7 @@ const getClientStatement = async (req, res) => {
 
     const transactions = await Transaction.findAll({
       where: txWhere,
-      include: [{ model: Payment, as: 'payments' }],
+      include: [{ model: Payment, as: 'payments', required: false }],
       order: [['createdAt', 'DESC']]
     });
 
@@ -154,7 +154,6 @@ const getProfitReport = async (req, res) => {
 
     const transactions = await Transaction.findAll({
       where: { createdAt: { [Op.between]: [startDate, endDate] } },
-      include: [{ model: Client, as: 'client', attributes: ['id', 'name'] }],
       order: [['createdAt', 'ASC']]
     });
 

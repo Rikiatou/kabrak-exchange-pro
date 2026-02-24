@@ -207,6 +207,24 @@ export default function OwnerDashboardScreen() {
           </View>
         </View>
 
+        {/* Actions rapides */}
+        <View style={s.quickRow}>
+          {[
+            { icon: 'swap-horizontal', label: 'Nouvelle Tx', color: GREEN_MAIN, route: '/transactions/new' },
+            { icon: 'person-add-outline', label: 'Nouveau client', color: '#0369a1', route: '/clients/new' },
+            { icon: 'wallet-outline', label: 'Dépôts', color: '#0369a1', route: '/deposits' },
+            { icon: 'images-outline', label: 'Galerie reçus', color: '#0891b2', route: '/receipts' },
+            { icon: 'bar-chart-outline', label: 'Rapports', color: '#7c3aed', route: '/reports' },
+          ].map((q) => (
+            <TouchableOpacity key={q.label} style={s.quickBtn} onPress={() => router.push(q.route)} activeOpacity={0.7}>
+              <View style={[s.quickIcon, { backgroundColor: `${q.color}15` }]}>
+                <Ionicons name={q.icon} size={22} color={q.color} />
+              </View>
+              <Text style={s.quickLabel}>{q.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         {/* Period Selector */}
         <View style={s.periodRow}>
           {['daily', 'weekly', 'monthly'].map(p => (
@@ -367,27 +385,6 @@ export default function OwnerDashboardScreen() {
           </View>
         </View>
 
-        {/* Quick Actions */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>⚡ Actions rapides</Text>
-          <View style={s.quickGrid}>
-            {[
-              { icon: 'swap-horizontal', label: 'Nouvelle transaction', color: GREEN_MAIN, route: '/transactions/new' },
-              { icon: 'person-add-outline', label: 'Nouveau client', color: '#0369a1', route: '/clients/new' },
-              { icon: 'bar-chart-outline', label: 'Rapports', color: '#7c3aed', route: '/reports' },
-              { icon: 'lock-closed-outline', label: 'Clôture caisse', color: '#d97706', route: '/cashclose' },
-              { icon: 'wallet-outline', label: 'Versements', color: '#0891b2', route: '/deposits' },
-              { icon: 'book-outline', label: 'Livre de caisse', color: '#059669', route: '/cashbook' },
-            ].map(q => (
-              <TouchableOpacity key={q.label} style={s.quickBtn} onPress={() => router.push(q.route)} activeOpacity={0.7}>
-                <View style={[s.quickIcon, { backgroundColor: `${q.color}12` }]}>
-                  <Ionicons name={q.icon} size={22} color={q.color} />
-                </View>
-                <Text style={s.quickLabel}>{q.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -473,8 +470,9 @@ const s = StyleSheet.create({
   alertMsg: { fontSize: 11, color: '#94a3b8', marginTop: 2, lineHeight: 16 },
   alertTime: { fontSize: 10, color: '#94a3b8', fontWeight: '500' },
 
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, paddingTop: 16, gap: 8, justifyContent: 'flex-start' },
   quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  quickBtn: { width: (width - 48) / 3, alignItems: 'center', backgroundColor: WHITE, borderRadius: 12, paddingVertical: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
-  quickIcon: { width: 44, height: 44, borderRadius: 11, justifyContent: 'center', alignItems: 'center', marginBottom: 6 },
-  quickLabel: { fontSize: 10, color: '#64748b', fontWeight: '600', textAlign: 'center' },
+  quickBtn: { width: (width - 56) / 4, alignItems: 'center', backgroundColor: WHITE, borderRadius: 12, paddingVertical: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 },
+  quickIcon: { width: 40, height: 40, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginBottom: 6 },
+  quickLabel: { fontSize: 9, color: '#64748b', fontWeight: '600', textAlign: 'center' },
 });
