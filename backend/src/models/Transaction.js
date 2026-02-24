@@ -3,7 +3,7 @@ const { sequelize } = require('../database/connection');
 
 const Transaction = sequelize.define('Transaction', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  reference: { type: DataTypes.STRING, allowNull: false, unique: true },
+  reference: { type: DataTypes.STRING, allowNull: false, unique: true, defaultValue: '' },
   clientId: { type: DataTypes.UUID, allowNull: false },
   userId: { type: DataTypes.UUID, allowNull: true },
   currencyFrom: { type: DataTypes.STRING(10), allowNull: false },
@@ -12,7 +12,7 @@ const Transaction = sequelize.define('Transaction', {
   exchangeRate: { type: DataTypes.DECIMAL(20, 6), allowNull: false },
   amountTo: { type: DataTypes.DECIMAL(20, 4), allowNull: false },
   amountPaid: { type: DataTypes.DECIMAL(20, 4), defaultValue: 0 },
-  amountRemaining: { type: DataTypes.DECIMAL(20, 4), allowNull: false },
+  amountRemaining: { type: DataTypes.DECIMAL(20, 4), allowNull: false, defaultValue: 0 },
   status: { type: DataTypes.ENUM('unpaid', 'partial', 'paid'), defaultValue: 'unpaid' },
   type: { type: DataTypes.ENUM('buy', 'sell', 'transfer'), defaultValue: 'sell' },
   notes: { type: DataTypes.TEXT, allowNull: true },
