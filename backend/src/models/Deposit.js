@@ -3,7 +3,7 @@ const { sequelize } = require('../database/connection');
 
 const Deposit = sequelize.define('Deposit', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  code: { type: DataTypes.STRING(10), allowNull: false, unique: true, defaultValue: '' },
+  code: { type: DataTypes.STRING(10), allowNull: false, defaultValue: '' },
   clientName: { type: DataTypes.STRING, allowNull: false },
   clientPhone: { type: DataTypes.STRING, allowNull: true },
   amount: { type: DataTypes.DECIMAL(20, 2), allowNull: false },
@@ -22,6 +22,7 @@ const Deposit = sequelize.define('Deposit', {
   expoPushToken: { type: DataTypes.STRING, allowNull: true },
 }, {
   tableName: 'deposits',
+  indexes: [{ unique: true, fields: ['code'], where: { code: { [require('sequelize').Op.ne]: '' } } }],
   hooks: {
     beforeCreate: (deposit) => {
       if (!deposit.code) {

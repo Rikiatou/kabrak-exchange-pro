@@ -169,4 +169,4 @@ async function sendPasswordReset({ email, name, resetCode }) {
   });
 }
 
-module.exports = { sendTrialActivated, sendPaymentReceived, sendLicenseActivated, sendPaymentRejected, sendPasswordReset };
+module.exports = { sendEmail, sendTrialActivated, sendPaymentReceived, sendLicenseActivated, sendPaymentRejected, sendPasswordReset };

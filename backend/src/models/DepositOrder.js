@@ -3,7 +3,7 @@ const { sequelize } = require('../database/connection');
 
 const DepositOrder = sequelize.define('DepositOrder', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  reference: { type: DataTypes.STRING(12), allowNull: false, unique: true, defaultValue: '' },
+  reference: { type: DataTypes.STRING(12), allowNull: false, defaultValue: '' },
   clientName: { type: DataTypes.STRING, allowNull: false },
   clientPhone: { type: DataTypes.STRING, allowNull: true },
   totalAmount: { type: DataTypes.DECIMAL(20, 2), allowNull: false },
@@ -21,6 +21,7 @@ const DepositOrder = sequelize.define('DepositOrder', {
   expoPushToken: { type: DataTypes.STRING, allowNull: true },
 }, {
   tableName: 'deposit_orders',
+  indexes: [{ unique: true, fields: ['reference'], where: { reference: { [require('sequelize').Op.ne]: '' } } }],
   hooks: {
     beforeCreate: async (order) => {
       if (!order.reference) {

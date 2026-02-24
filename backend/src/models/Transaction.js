@@ -3,7 +3,7 @@ const { sequelize } = require('../database/connection');
 
 const Transaction = sequelize.define('Transaction', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  reference: { type: DataTypes.STRING, allowNull: false, unique: true, defaultValue: '' },
+  reference: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
   clientId: { type: DataTypes.UUID, allowNull: false },
   userId: { type: DataTypes.UUID, allowNull: true },
   currencyFrom: { type: DataTypes.STRING(10), allowNull: false },
@@ -25,6 +25,7 @@ const Transaction = sequelize.define('Transaction', {
   profitCurrency: { type: DataTypes.STRING(10), allowNull: true }
 }, {
   tableName: 'transactions',
+  indexes: [{ unique: true, fields: ['reference'], where: { reference: { [require('sequelize').Op.ne]: '' } } }],
   hooks: {
     beforeCreate: async (transaction) => {
       if (!transaction.reference) {
