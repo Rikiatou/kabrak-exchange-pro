@@ -15,10 +15,28 @@ export default function Index() {
   useEffect(() => {
     const init = async () => {
       await loadLanguage();
+
+      // Try to load user first (if token exists)
+      await loadUser();
+      const authState = useAuthStore.getState();
+
+      // Team members (cashier/manager) don't have their own license
+      // They share the owner's license — bypass license check
+      const isTeamMember = authState.isAuthenticated && authState.user?.teamOwnerId;
+      if (isTeamMember) {
+        router.replace('/(tabs)/dashboard');
+        return;
+      }
+
+      // For owners/standalone users: check license as normal
       await loadStoredLicense();
       const licenseState = useLicenseStore.getState();
       if (!licenseState.isValid) {
-        router.replace('/(auth)/license');
+        if (authState.isAuthenticated) {
+          router.replace('/(auth)/license');
+        } else {
+          router.replace('/(auth)/welcome');
+        }
         return;
       }
       await checkOnline();
@@ -27,9 +45,7 @@ export default function Index() {
         router.replace('/(auth)/license');
         return;
       }
-      await loadUser();
-      const { isAuthenticated } = useAuthStore.getState();
-      if (isAuthenticated) {
+      if (authState.isAuthenticated) {
         router.replace('/(tabs)/dashboard');
       } else {
         router.replace('/(auth)/welcome');

@@ -8,6 +8,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import useAuthStore from '../../src/store/authStore';
+import useLicenseStore from '../../src/store/licenseStore';
 
 const { width, height } = Dimensions.get('window');
 const GREEN_DARK = '#071a12';
@@ -24,6 +25,7 @@ export default function LoginScreen() {
   const [passwordFocused, setPasswordFocused] = useState(false);
   const { t, language } = useLanguageStore();
   const { login, isLoading } = useAuthStore();
+  const { isValid: licenseValid } = useLicenseStore();
   const router = useRouter();
   const shakeAnim = useRef(new Animated.Value(0)).current;
 
@@ -45,7 +47,16 @@ export default function LoginScreen() {
     }
     const result = await login(email.trim().toLowerCase(), password);
     if (result.success) {
-      router.replace('/(tabs)/dashboard');
+      const user = useAuthStore.getState().user;
+      // Team members share owner's license — go directly to dashboard
+      if (user?.teamOwnerId) {
+        router.replace('/(tabs)/dashboard');
+      } else if (!licenseValid) {
+        // Owner without valid license → activate license first
+        router.replace('/(auth)/license');
+      } else {
+        router.replace('/(tabs)/dashboard');
+      }
     } else {
       shake();
       Alert.alert(t.login.accessDenied, result.message || t.login.incorrectCredentials);
