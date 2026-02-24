@@ -148,8 +148,9 @@ const getProfitReport = async (req, res) => {
       startDate = moment().startOf('isoWeek').toDate();
       endDate = moment().endOf('isoWeek').toDate();
     } else {
-      startDate = moment(`${y}-${m}-01`).startOf('month').toDate();
-      endDate = moment(`${y}-${m}-01`).endOf('month').toDate();
+      const mPadded = String(m).padStart(2, '0');
+      startDate = moment(`${y}-${mPadded}-01`, 'YYYY-MM-DD').startOf('month').toDate();
+      endDate = moment(`${y}-${mPadded}-01`, 'YYYY-MM-DD').endOf('month').toDate();
     }
 
     const transactions = await Transaction.findAll({
