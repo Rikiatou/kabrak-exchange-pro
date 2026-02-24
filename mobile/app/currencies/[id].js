@@ -174,7 +174,7 @@ export default function CurrencyDetailScreen() {
 
         {/* Stock */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>{t.currencies.stock}</Text>
+          <Text style={styles.sectionTitle}>📦 Stock physique en caisse</Text>
           {editing ? (
             <>
               {[

@@ -106,7 +106,7 @@ const getClientStatement = async (req, res) => {
     const depositOrders = await DepositOrder.findAll({
       where: depWhere,
       include: [
-        { model: Deposit, as: 'payments', attributes: ['id', 'code', 'amount', 'status', 'receiptImageUrl', 'createdAt'] }
+        { model: Deposit, as: 'payments', attributes: ['id', 'code', 'amount', 'status', 'receiptImageUrl', 'createdAt'], separate: true, order: [['createdAt', 'ASC']] }
       ],
       order: [['createdAt', 'DESC']]
     });
