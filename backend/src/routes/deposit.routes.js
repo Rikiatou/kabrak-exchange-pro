@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const { authenticate } = require('../middleware/auth.middleware');
+const { getUploadMiddleware } = require('../utils/cloudinary');
 const {
   createDeposit,
   getDeposits,
@@ -17,26 +15,7 @@ const {
   getAllReceipts,
 } = require('../controllers/deposit.controller');
 
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, '../../uploads/receipts');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `receipt_${req.params.code}_${Date.now()}${ext}`);
-  },
-});
-const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-  fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|pdf|webp/;
-    const ok = allowed.test(path.extname(file.originalname).toLowerCase()) && allowed.test(file.mimetype);
-    ok ? cb(null, true) : cb(new Error('Only images and PDF allowed'));
-  },
-});
+const upload = getUploadMiddleware('receipts');
 
 // PUBLIC routes (no auth — for client upload page)
 router.get('/public/:code', getDepositByCode);

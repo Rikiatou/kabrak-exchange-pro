@@ -108,7 +108,8 @@ const uploadReceipt = async (req, res) => {
     }
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
 
-    const imageUrl = `/uploads/receipts/${req.file.filename}`;
+    const { getFileUrl } = require('../utils/cloudinary');
+    const imageUrl = getFileUrl(req);
     await deposit.update({
       receiptImageUrl: imageUrl,
       receiptUploadedAt: new Date(),
