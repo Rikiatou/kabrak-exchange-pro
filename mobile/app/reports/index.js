@@ -162,6 +162,14 @@ export default function ReportsScreen() {
                   </Text>
                   <Text style={styles.summaryLabel}>{t.dashboard.pendingDebt}</Text>
                 </View>
+                {report.summary.totalProfit > 0 && (
+                  <View style={[styles.summaryItem, { borderWidth: 1.5, borderColor: '#0B6E4F' }]}>
+                    <Text style={[styles.summaryValue, { color: '#0B6E4F' }]}>
+                      {formatCurrency(report.summary.totalProfit)}
+                    </Text>
+                    <Text style={styles.summaryLabel}>💰 Profit net</Text>
+                  </View>
+                )}
               </View>
             </View>
 
@@ -181,6 +189,28 @@ export default function ReportsScreen() {
                     <View style={styles.currencyPaid}>
                       <Text style={[styles.currencyTotal, { color: COLORS.success }]}>{formatCurrency(data.paid, code)}</Text>
                       <Text style={styles.currencyCount}>{t.common.paid}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* By Operator */}
+            {report.byOperator?.length > 0 && (
+              <View style={styles.card}>
+                <Text style={styles.sectionTitle}>👤 Performance par employé</Text>
+                {report.byOperator.map((op, i) => (
+                  <View key={i} style={styles.currencyRow}>
+                    <View style={[styles.currencyCode, { backgroundColor: '#6366f1' }]}>
+                      <Text style={styles.currencyCodeText}>{(op.name || '?')[0].toUpperCase()}</Text>
+                    </View>
+                    <View style={styles.currencyData}>
+                      <Text style={styles.currencyTotal}>{op.name}</Text>
+                      <Text style={styles.currencyCount}>{op.count} transaction{op.count > 1 ? 's' : ''}</Text>
+                    </View>
+                    <View style={styles.currencyPaid}>
+                      <Text style={[styles.currencyTotal, { color: '#0B6E4F' }]}>{formatCurrency(op.volume)}</Text>
+                      {op.profit > 0 && <Text style={styles.currencyCount}>+{formatCurrency(op.profit)}</Text>}
                     </View>
                   </View>
                 ))}
