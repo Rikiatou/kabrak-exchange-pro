@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAll, getById, create, update, getRateHistory, adjustStock, getStockSummary, getRateForPair, getRateAlerts, createRateAlert, deleteRateAlert } = require('../controllers/currency.controller');
+const { getAll, getById, create, update, getRateHistory, adjustStock, getStockSummary, getRateForPair, getRateAlerts, createRateAlert, deleteRateAlert, syncRates } = require('../controllers/currency.controller');
 const { authenticate, authorize } = require('../middleware/auth.middleware');
 const { auditLog } = require('../middleware/audit.middleware');
 const validate = require('../middleware/validate.middleware');
@@ -17,5 +17,6 @@ router.get('/history/:code', authenticate, getRateHistory);
 router.post('/', authenticate, authorize('admin'), validate(schemas.createCurrency), auditLog('CREATE', 'currency'), create);
 router.put('/:id', authenticate, authorize('admin'), validate(schemas.updateCurrency), auditLog('UPDATE', 'currency'), update);
 router.put('/:id/stock', authenticate, authorize('admin'), adjustStock);
+router.post('/sync-rates', authenticate, authorize('admin'), syncRates);
 
 module.exports = router;

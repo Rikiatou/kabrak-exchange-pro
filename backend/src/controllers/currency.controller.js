@@ -1,4 +1,5 @@
 const { Currency, RateHistory, RateAlert, Alert } = require('../models');
+const axios = require('axios');
 
 const getAll = async (req, res) => {
   try {
@@ -230,4 +231,61 @@ const deleteRateAlert = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, create, update, getRateHistory, adjustStock, getStockSummary, getRateForPair, getRateAlerts, createRateAlert, deleteRateAlert };
+// ─── Auto-sync market rates into Currency records ───────────────────────────
+const syncMarketRates = async (triggeredBy = 'auto') => {
+  try {
+    const currencies = await Currency.findAll({ where: { isActive: true } });
+    if (!currencies.length) return { updated: 0, skipped: 0 };
+
+    // Fetch all rates based on EUR as pivot
+    const res = await axios.get('https://open.er-api.com/v6/latest/EUR', { timeout: 10000 });
+    if (res.data?.result !== 'success' || !res.data.rates) throw new Error('API unavailable');
+
+    const rates = res.data.rates;
+    const today = new Date().toISOString().split('T')[0];
+    let updated = 0, skipped = 0;
+
+    for (const currency of currencies) {
+      if (currency.code === 'EUR') continue;
+      const marketRate = rates[currency.code];
+      if (!marketRate) { skipped++; continue; }
+
+      const newRate = parseFloat(marketRate.toFixed(6));
+      const oldRate = parseFloat(currency.currentRate);
+
+      // Only update if rate changed by more than 0.01%
+      if (Math.abs(newRate - oldRate) / (oldRate || 1) < 0.0001) { skipped++; continue; }
+
+      // Save history
+      await RateHistory.create({
+        currencyCode: currency.code,
+        rate: newRate,
+        buyRate: parseFloat(currency.buyRate || newRate),
+        sellRate: parseFloat(currency.sellRate || newRate),
+        recordedBy: null,
+        notes: `Auto-sync ${today} (${triggeredBy})`
+      }).catch(() => {});
+
+      await currency.update({ currentRate: newRate });
+      updated++;
+    }
+
+    console.log(`💱 Rate sync done: ${updated} updated, ${skipped} skipped (${triggeredBy})`);
+    return { updated, skipped, date: today, source: 'open.er-api.com' };
+  } catch (err) {
+    console.error('❌ Rate sync failed:', err.message);
+    throw err;
+  }
+};
+
+// POST /api/currencies/sync-rates — manual trigger (admin only)
+const syncRates = async (req, res) => {
+  try {
+    const result = await syncMarketRates('manual');
+    return res.json({ success: true, message: `Taux mis à jour : ${result.updated} devises.`, data: result });
+  } catch (err) {
+    return res.status(503).json({ success: false, message: 'Impossible de synchroniser les taux. Vérifiez votre connexion.' });
+  }
+};
+
+module.exports = { getAll, getById, create, update, getRateHistory, adjustStock, getStockSummary, getRateForPair, getRateAlerts, createRateAlert, deleteRateAlert, syncRates, syncMarketRates };

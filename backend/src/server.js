@@ -275,6 +275,18 @@ sequelize.authenticate()
     await migrateClientCodes();
     console.log('✅ Database synced successfully.');
     console.log('🚀 KABRAK Exchange Pro Backend is ready!');
+
+    // ── Daily rate sync cron (every 24h, first run after 2 min) ──
+    const { syncMarketRates } = require('./controllers/currency.controller');
+    const runDailySync = async () => {
+      console.log('⏰ Daily rate sync starting...');
+      try { await syncMarketRates('daily-cron'); } catch (e) { console.error('Daily sync error:', e.message); }
+    };
+    setTimeout(() => {
+      runDailySync();
+      setInterval(runDailySync, 24 * 60 * 60 * 1000);
+    }, 2 * 60 * 1000);
+    console.log('⏰ Daily rate sync scheduled (first run in 2 min)');
   })
   .catch(err => {
     console.error('❌ Unable to connect to database:', err);
