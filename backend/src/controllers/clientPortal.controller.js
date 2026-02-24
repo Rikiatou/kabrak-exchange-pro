@@ -21,13 +21,21 @@ const getClientPortal = async (req, res) => {
     });
     if (!client) return res.status(404).json({ success: false, message: 'Code client invalide / Invalid client code' });
 
+    const { Op } = require('sequelize');
     const orders = await DepositOrder.findAll({
-      where: { clientId: client.id, status: ['pending', 'partial', 'completed'] },
+      where: {
+        status: ['pending', 'partial', 'completed'],
+        [Op.or]: [
+          { clientId: client.id },
+          { clientName: { [Op.like]: client.name } }
+        ]
+      },
       order: [['createdAt', 'DESC']],
       include: [{
         model: Deposit,
         as: 'payments',
         attributes: ['id', 'amount', 'currency', 'status', 'receiptImageUrl', 'receiptUploadedAt', 'confirmedAt', 'createdAt'],
+        separate: true,
         order: [['createdAt', 'ASC']],
       }],
       attributes: ['id', 'reference', 'clientName', 'totalAmount', 'receivedAmount', 'remainingAmount', 'currency', 'bank', 'status', 'expoPushToken', 'createdAt'],
