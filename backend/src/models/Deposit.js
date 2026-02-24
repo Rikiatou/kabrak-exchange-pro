@@ -3,7 +3,7 @@ const { sequelize } = require('../database/connection');
 
 const Deposit = sequelize.define('Deposit', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  code: { type: DataTypes.STRING(10), allowNull: false, unique: true },
+  code: { type: DataTypes.STRING(10), allowNull: false, unique: true, defaultValue: '' },
   clientName: { type: DataTypes.STRING, allowNull: false },
   clientPhone: { type: DataTypes.STRING, allowNull: true },
   amount: { type: DataTypes.DECIMAL(20, 2), allowNull: false },
