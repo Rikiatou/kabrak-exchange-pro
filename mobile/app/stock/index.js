@@ -86,6 +86,7 @@ export default function StockScreen() {
         )}
 
         {stocks.map((c) => {
+          if (c.isBase) return null;
           const pct = c.lowStockAlert > 0 ? Math.min((c.stockAmount / (c.lowStockAlert * 3)) * 100, 100) : 100;
           return (
             <View key={c.id} style={[styles.card, c.isLow && styles.cardLow]}>
@@ -95,7 +96,7 @@ export default function StockScreen() {
                 </View>
                 <View style={styles.cardMid}>
                   <Text style={styles.currName}>{c.name}</Text>
-                  <Text style={styles.currRate}>Taux: {c.currentRate.toFixed(4)} · A:{c.buyRate.toFixed(4)} · V:{c.sellRate.toFixed(4)}</Text>
+                  <Text style={styles.currRate}>{c.isBase ? '★ Devise de référence' : `1 ${c.code} = ${c.currentRate.toFixed(2)} [base] · A:${c.buyRate.toFixed(2)} · V:${c.sellRate.toFixed(2)}`}</Text>
                 </View>
                 {c.isLow && (
                   <View style={styles.lowBadge}>

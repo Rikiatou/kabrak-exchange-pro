@@ -11,35 +11,44 @@ import useLanguageStore from '../../src/store/languageStore';
 import { formatCurrency } from '../../src/utils/helpers';
 import api from '../../src/services/api';
 
-function CurrencyCard({ currency, onPress, isAdmin, buyLabel, sellLabel }) {
-  const isLowStock = parseFloat(currency.stockAmount) <= parseFloat(currency.lowStockAlert);
+function CurrencyCard({ currency, onPress, isAdmin, buyLabel, sellLabel, baseCurrency }) {
+  const stock = parseFloat(currency.stockAmount || 0);
+  const alertThreshold = parseFloat(currency.lowStockAlert || 0);
+  const isLowStock = alertThreshold > 0 && stock <= alertThreshold;
+  const isBase = currency.isBase;
+  const base = baseCurrency || 'FCFA';
+  const rateLabel = isBase ? `Devise de référence` : `1 ${currency.code} = ${parseFloat(currency.currentRate).toFixed(2)} ${base}`;
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.cardLeft}>
-        <View style={styles.codeBox}>
+        <View style={[styles.codeBox, isBase && { backgroundColor: '#d97706' }]}>
           <Text style={styles.codeText}>{currency.code}</Text>
         </View>
         <View style={styles.info}>
           <Text style={styles.name}>{currency.name}</Text>
-          <Text style={styles.symbol}>{currency.symbol}</Text>
+          <Text style={styles.symbol}>{currency.symbol}{isBase ? ' ★' : ''}</Text>
         </View>
       </View>
       <View style={styles.cardRight}>
-        <Text style={styles.rate}>1 EUR = {parseFloat(currency.currentRate).toFixed(4)}</Text>
-        <View style={styles.rateRow}>
-          <Text style={styles.buyRate}>{buyLabel}: {parseFloat(currency.buyRate || currency.currentRate).toFixed(4)}</Text>
-          <Text style={styles.sellRate}>{sellLabel}: {parseFloat(currency.sellRate || currency.currentRate).toFixed(4)}</Text>
-        </View>
-        <View style={[styles.stockBadge, { backgroundColor: isLowStock ? COLORS.dangerLight : COLORS.successLight }]}>
-          <Ionicons
-            name={isLowStock ? 'warning-outline' : 'checkmark-circle-outline'}
-            size={12}
-            color={isLowStock ? COLORS.danger : COLORS.success}
-          />
-          <Text style={[styles.stockText, { color: isLowStock ? COLORS.danger : COLORS.success }]}>
-            Stock: {formatCurrency(currency.stockAmount, currency.code)}
-          </Text>
-        </View>
+        <Text style={styles.rate}>{rateLabel}</Text>
+        {!isBase && (
+          <View style={styles.rateRow}>
+            <Text style={styles.buyRate}>{buyLabel}: {parseFloat(currency.buyRate || currency.currentRate).toFixed(2)}</Text>
+            <Text style={styles.sellRate}>{sellLabel}: {parseFloat(currency.sellRate || currency.currentRate).toFixed(2)}</Text>
+          </View>
+        )}
+        {alertThreshold > 0 && (
+          <View style={[styles.stockBadge, { backgroundColor: isLowStock ? COLORS.dangerLight : COLORS.successLight }]}>
+            <Ionicons
+              name={isLowStock ? 'warning-outline' : 'checkmark-circle-outline'}
+              size={12}
+              color={isLowStock ? COLORS.danger : COLORS.success}
+            />
+            <Text style={[styles.stockText, { color: isLowStock ? COLORS.danger : COLORS.success }]}>
+              Stock: {formatCurrency(stock, currency.code)}
+            </Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -116,6 +125,7 @@ export default function CurrenciesScreen() {
             onPress={() => router.push(`/currencies/${item.id}`)}
             buyLabel={t.currencies.buyRate}
             sellLabel={t.currencies.sellRate}
+            baseCurrency={currencies.find(c => c.isBase)?.code}
           />
         )}
         contentContainerStyle={styles.list}
