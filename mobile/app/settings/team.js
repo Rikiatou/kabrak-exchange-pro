@@ -22,7 +22,8 @@ export default function TeamScreen() {
   const [inviteForm, setInviteForm] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '', teamRole: 'cashier' });
   const [submitting, setSubmitting] = useState(false);
 
-  const canManage = user?.teamRole === 'owner' || user?.teamRole === 'manager';
+  const canManage = user?.role === 'admin' || user?.teamRole === 'owner' || user?.teamRole === 'manager';
+  const isOwnerOrAdmin = user?.role === 'admin' || user?.teamRole === 'owner';
 
   const fetchTeam = useCallback(async () => {
     try {
@@ -80,18 +81,28 @@ export default function TeamScreen() {
     );
   };
 
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetTarget, setResetTarget] = useState(null);
+  const [resetPwd, setResetPwd] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+
   const handleResetPassword = (member) => {
-    Alert.prompt
-      ? Alert.prompt('Nouveau mot de passe', `Entrez le nouveau mot de passe pour ${member.firstName}`, async (pwd) => {
-          if (!pwd || pwd.length < 6) { Alert.alert('Erreur', 'Min 6 caractères'); return; }
-          try {
-            await api.put(`/team/${member.id}/reset-password`, { newPassword: pwd });
-            Alert.alert('Succès', 'Mot de passe réinitialisé.');
-          } catch (e) {
-            Alert.alert('Erreur', e.response?.data?.message || 'Erreur');
-          }
-        })
-      : Alert.alert('Info', 'Utilisez la fonction de réinitialisation depuis les paramètres du membre.');
+    setResetTarget(member);
+    setResetPwd('');
+    setShowResetModal(true);
+  };
+
+  const doResetPassword = async () => {
+    if (!resetPwd || resetPwd.length < 6) { Alert.alert('Erreur', 'Min 6 caractères'); return; }
+    setResetLoading(true);
+    try {
+      await api.put(`/team/${resetTarget.id}/reset-password`, { newPassword: resetPwd });
+      Alert.alert('Succès', 'Mot de passe réinitialisé.');
+      setShowResetModal(false);
+    } catch (e) {
+      Alert.alert('Erreur', e.response?.data?.message || 'Erreur');
+    }
+    setResetLoading(false);
   };
 
   return (
@@ -159,6 +170,38 @@ export default function TeamScreen() {
           <View style={{ height: SPACING.xl * 2 }} />
         </ScrollView>
       )}
+
+      {/* Reset Password Modal */}
+      <Modal visible={showResetModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxHeight: '50%' }]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Nouveau mot de passe</Text>
+              <TouchableOpacity onPress={() => setShowResetModal(false)}>
+                <Ionicons name="close" size={24} color={COLORS.textPrimary} />
+              </TouchableOpacity>
+            </View>
+            <Text style={{ fontSize: FONTS.sizes.sm, color: COLORS.textSecondary, marginBottom: SPACING.md }}>
+              Réinitialiser le mot de passe de {resetTarget?.firstName}
+            </Text>
+            <TextInput
+              style={styles.input}
+              value={resetPwd}
+              onChangeText={setResetPwd}
+              placeholder="Nouveau mot de passe (min 6 car.)"
+              secureTextEntry
+              autoFocus
+            />
+            <TouchableOpacity
+              style={[styles.submitBtn, { marginTop: SPACING.lg, opacity: resetLoading ? 0.6 : 1 }]}
+              onPress={doResetPassword}
+              disabled={resetLoading}
+            >
+              {resetLoading ? <ActivityIndicator color={COLORS.white} /> : <Text style={styles.submitBtnText}>Confirmer</Text>}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Invite Modal */}
       <Modal visible={showInvite} animationType="slide" transparent>
