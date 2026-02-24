@@ -33,8 +33,9 @@ router.get('/', async (req, res) => {
 // POST /api/team/invite — invite a new team member
 router.post('/invite', async (req, res) => {
   try {
-    // Only owner or manager can invite
-    if (req.user.teamRole === 'cashier') {
+    // Only owner, manager or admin can invite
+    const isAdmin = req.user.role === 'admin';
+    if (!isAdmin && req.user.teamRole === 'cashier') {
       return res.status(403).json({ success: false, message: 'Seuls les propriétaires et managers peuvent inviter des membres.' });
     }
 
