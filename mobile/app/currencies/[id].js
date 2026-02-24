@@ -10,7 +10,7 @@ import useAuthStore from '../../src/store/authStore';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import useLanguageStore from '../../src/store/languageStore';
 import { formatCurrency, formatDateTime } from '../../src/utils/helpers';
-import { ActivityIndicator as Spinner } from 'react-native';
+import { ActivityIndicator as Spinner, Modal } from 'react-native';
 
 export default function CurrencyDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -19,6 +19,13 @@ export default function CurrencyDetailScreen() {
   const { user } = useAuthStore();
   const { t } = useLanguageStore();
   const isAdmin = user?.role === 'admin';
+  const canEdit = user?.role === 'admin' || user?.teamRole === 'owner' || user?.teamRole === 'manager';
+
+  const [showStockModal, setShowStockModal] = useState(false);
+  const [stockAdj, setStockAdj] = useState('');
+  const [stockType, setStockType] = useState('set');
+  const [savingStock, setSavingStock] = useState(false);
+  const { adjustStock } = useCurrencyStore();
 
   const [currency, setCurrency] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -96,7 +103,7 @@ export default function CurrencyDetailScreen() {
             <Ionicons name="arrow-back" size={24} color={COLORS.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{currency.code} — {currency.name}</Text>
-          {isAdmin && (
+          {canEdit && (
             <TouchableOpacity onPress={() => setEditing(!editing)} style={styles.editBtn}>
               <Ionicons name={editing ? 'close-outline' : 'pencil-outline'} size={22} color={COLORS.white} />
             </TouchableOpacity>
@@ -195,19 +202,30 @@ export default function CurrencyDetailScreen() {
               ))}
             </>
           ) : (
-            <View style={styles.stockRow}>
-              <View style={[styles.stockCard, { backgroundColor: isLowStock ? COLORS.dangerLight : COLORS.successLight }]}>
-                <Text style={styles.stockLabel}>{t.currencies.stockAmount}</Text>
-                <Text style={[styles.stockAmount, { color: isLowStock ? COLORS.danger : COLORS.success }]}>
-                  {formatCurrency(currency.stockAmount, currency.code)}
-                </Text>
+            <View>
+              <View style={styles.stockRow}>
+                <View style={[styles.stockCard, { backgroundColor: isLowStock ? COLORS.dangerLight : COLORS.successLight }]}>
+                  <Text style={styles.stockLabel}>{t.currencies.stockAmount}</Text>
+                  <Text style={[styles.stockAmount, { color: isLowStock ? COLORS.danger : COLORS.success }]}>
+                    {formatCurrency(currency.stockAmount, currency.code)}
+                  </Text>
+                </View>
+                <View style={[styles.stockCard, { backgroundColor: COLORS.warningLight }]}>
+                  <Text style={styles.stockLabel}>{t.currencies.lowStockThreshold}</Text>
+                  <Text style={[styles.stockAmount, { color: COLORS.warning }]}>
+                    {formatCurrency(currency.lowStockAlert, currency.code)}
+                  </Text>
+                </View>
               </View>
-              <View style={[styles.stockCard, { backgroundColor: COLORS.warningLight }]}>
-                <Text style={styles.stockLabel}>{t.currencies.lowStockThreshold}</Text>
-                <Text style={[styles.stockAmount, { color: COLORS.warning }]}>
-                  {formatCurrency(currency.lowStockAlert, currency.code)}
-                </Text>
-              </View>
+              {canEdit && (
+                <TouchableOpacity
+                  style={styles.stockAdjBtn}
+                  onPress={() => { setStockAdj(''); setStockType('set'); setShowStockModal(true); }}
+                >
+                  <Ionicons name="cube-outline" size={16} color={COLORS.white} />
+                  <Text style={styles.stockAdjBtnText}>Ajuster le stock</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </View>
@@ -228,6 +246,64 @@ export default function CurrencyDetailScreen() {
             ))}
           </View>
         )}
+
+        {/* Stock Adjustment Modal */}
+        <Modal visible={showStockModal} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalBox}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <Text style={styles.modalTitle}>Ajuster stock — {currency?.code}</Text>
+                <TouchableOpacity onPress={() => setShowStockModal(false)}>
+                  <Ionicons name="close" size={22} color={COLORS.textSecondary} />
+                </TouchableOpacity>
+              </View>
+              <Text style={{ fontSize: 12, color: COLORS.textMuted, marginBottom: 12 }}>
+                Stock actuel : <Text style={{ fontWeight: '700', color: COLORS.textPrimary }}>{formatCurrency(currency?.stockAmount, currency?.code)}</Text>
+              </Text>
+              {/* Type selector */}
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
+                {[{ v: 'set', label: 'Définir' }, { v: 'add', label: '+ Ajouter' }, { v: 'subtract', label: '- Retirer' }].map(opt => (
+                  <TouchableOpacity
+                    key={opt.v}
+                    style={[styles.typeBtn, stockType === opt.v && styles.typeBtnActive]}
+                    onPress={() => setStockType(opt.v)}
+                  >
+                    <Text style={[styles.typeBtnText, stockType === opt.v && { color: COLORS.white }]}>{opt.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TextInput
+                style={styles.modalInput}
+                placeholder={stockType === 'set' ? 'Nouveau stock total...' : 'Montant...'}
+                placeholderTextColor={COLORS.textMuted}
+                value={stockAdj}
+                onChangeText={setStockAdj}
+                keyboardType="decimal-pad"
+                autoFocus
+              />
+              <TouchableOpacity
+                style={[styles.modalSaveBtn, { opacity: savingStock ? 0.6 : 1 }]}
+                disabled={savingStock || !stockAdj}
+                onPress={async () => {
+                  setSavingStock(true);
+                  const r = await adjustStock(currency.id, parseFloat(stockAdj), stockType);
+                  setSavingStock(false);
+                  if (r.success) {
+                    setShowStockModal(false);
+                    load();
+                  } else {
+                    Alert.alert('Erreur', r.message);
+                  }
+                }}
+              >
+                {savingStock
+                  ? <Spinner size="small" color={COLORS.white} />
+                  : <Text style={styles.modalSaveBtnText}>Enregistrer</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
         {/* Save Button */}
         {editing && (
@@ -319,4 +395,15 @@ const styles = StyleSheet.create({
   },
   liveBtnText: { color: COLORS.white, fontSize: FONTS.sizes.sm, fontWeight: '700' },
   liveDate: { fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, textAlign: 'center', marginBottom: SPACING.sm },
+  stockAdjBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.primary, borderRadius: RADIUS.md, paddingVertical: 10, marginTop: 12 },
+  stockAdjBtnText: { color: COLORS.white, fontWeight: '700', fontSize: FONTS.sizes.sm },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalBox: { backgroundColor: COLORS.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: SPACING.lg, paddingBottom: 40 },
+  modalTitle: { fontSize: FONTS.sizes.md, fontWeight: '700', color: COLORS.textPrimary },
+  modalInput: { borderWidth: 1.5, borderColor: COLORS.border, borderRadius: RADIUS.md, paddingHorizontal: SPACING.md, height: 52, fontSize: FONTS.sizes.lg, color: COLORS.textPrimary, backgroundColor: COLORS.background, marginBottom: 14 },
+  modalSaveBtn: { backgroundColor: COLORS.primary, borderRadius: RADIUS.md, height: 52, alignItems: 'center', justifyContent: 'center' },
+  modalSaveBtnText: { color: COLORS.white, fontWeight: '700', fontSize: FONTS.sizes.md },
+  typeBtn: { flex: 1, paddingVertical: 8, borderRadius: RADIUS.md, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.border },
+  typeBtnActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  typeBtnText: { fontSize: FONTS.sizes.sm, fontWeight: '600', color: COLORS.textSecondary },
 });
