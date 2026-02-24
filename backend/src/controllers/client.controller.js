@@ -110,4 +110,42 @@ const getClientTransactions = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, create, update, remove, getClientTransactions };
+const uploadIdPhoto = async (req, res) => {
+  try {
+    const client = await Client.findByPk(req.params.id);
+    if (!client) return res.status(404).json({ success: false, message: 'Client not found.' });
+    const updates = {};
+    if (req.files?.front?.[0]) updates.idPhotoFront = `/uploads/kyc/${req.files.front[0].filename}`;
+    if (req.files?.back?.[0]) updates.idPhotoBack = `/uploads/kyc/${req.files.back[0].filename}`;
+    if (Object.keys(updates).length === 0) return res.status(400).json({ success: false, message: 'No photo provided.' });
+    if (req.body.idExpiryDate) updates.idExpiryDate = req.body.idExpiryDate;
+    if (req.body.idNumber) updates.idNumber = req.body.idNumber;
+    if (req.body.idType) updates.idType = req.body.idType;
+    updates.kycStatus = 'pending';
+    await client.update(updates);
+    return res.json({ success: true, message: 'ID photo(s) uploaded.', data: client });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const verifyKyc = async (req, res) => {
+  try {
+    const client = await Client.findByPk(req.params.id);
+    if (!client) return res.status(404).json({ success: false, message: 'Client not found.' });
+    const { status, notes } = req.body; // status: 'verified' | 'rejected'
+    if (!['verified', 'rejected'].includes(status)) {
+      return res.status(400).json({ success: false, message: "status must be 'verified' or 'rejected'." });
+    }
+    await client.update({
+      kycStatus: status,
+      kycVerifiedAt: status === 'verified' ? new Date() : null,
+      kycNotes: notes || null
+    });
+    return res.json({ success: true, message: `KYC ${status}.`, data: client });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { getAll, getById, create, update, remove, getClientTransactions, uploadIdPhoto, verifyKyc };

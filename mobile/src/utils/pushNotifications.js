@@ -1,15 +1,28 @@
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+let Notifications = null;
+
+// expo-notifications is not supported in Expo Go from SDK 53+
+const isExpoGo = Constants.executionEnvironment === 'storeClient';
+
+if (!isExpoGo) {
+  try {
+    Notifications = require('expo-notifications');
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+      }),
+    });
+  } catch (_) {
+    // expo-notifications unavailable
+  }
+}
 
 export const registerForPushNotifications = async () => {
+  if (!Notifications) return null;
   try {
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('default', {

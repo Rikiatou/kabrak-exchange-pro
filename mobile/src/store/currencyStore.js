@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import api from '../services/api';
+import { fetchWithCache } from '../services/offlineCache';
 
 const useCurrencyStore = create((set) => ({
   currencies: [],
@@ -7,13 +8,18 @@ const useCurrencyStore = create((set) => ({
   isLoading: false,
   error: null,
 
+  isOffline: false,
+
   fetchCurrencies: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.get('/currencies');
-      set({ currencies: response.data.data, isLoading: false });
+      const { data, fromCache } = await fetchWithCache('currencies', async () => {
+        const response = await api.get('/currencies');
+        return response.data.data;
+      });
+      set({ currencies: data, isLoading: false, isOffline: fromCache });
     } catch (error) {
-      set({ error: error.response?.data?.message || 'Failed to load currencies.', isLoading: false });
+      set({ error: error.message || 'Failed to load currencies.', isLoading: false, isOffline: true });
     }
   },
 
@@ -95,6 +101,15 @@ const useCurrencyStore = create((set) => ({
       return { success: true, data: response.data.data };
     } catch (error) {
       return { success: false, message: error.response?.data?.message || 'Conversion impossible.' };
+    }
+  },
+
+  getRateForPair: async (from, to, type = 'sell') => {
+    try {
+      const response = await api.get(`/currencies/rate-for-pair?from=${from}&to=${to}&type=${type}`);
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || 'Impossible de récupérer le taux.' };
     }
   },
 }));

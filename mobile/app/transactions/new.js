@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import useTransactionStore from '../../src/store/transactionStore';
 import useClientStore from '../../src/store/clientStore';
 import useCurrencyStore from '../../src/store/currencyStore';
+import { useRef } from 'react';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import useLanguageStore from '../../src/store/languageStore';
 import { formatCurrency } from '../../src/utils/helpers';
@@ -17,7 +18,10 @@ export default function NewTransactionScreen() {
   const params = useLocalSearchParams();
   const { createTransaction } = useTransactionStore();
   const { clients, fetchClients } = useClientStore();
-  const { currencies, fetchCurrencies } = useCurrencyStore();
+  const { currencies, fetchCurrencies, getRateForPair } = useCurrencyStore();
+  const [rateLoading, setRateLoading] = useState(false);
+  const [suggestedRate, setSuggestedRate] = useState(null);
+  const rateFetchRef = useRef(0);
   const { t } = useLanguageStore();
 
   const [loading, setLoading] = useState(false);
@@ -47,6 +51,27 @@ export default function NewTransactionScreen() {
   }, [form.amountFrom, form.exchangeRate]);
 
   const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
+
+  // Feature 3: Auto-fill exchange rate when currencies or type change
+  useEffect(() => {
+    if (form.currencyFrom && form.currencyTo && form.currencyFrom !== form.currencyTo) {
+      const fetchId = ++rateFetchRef.current;
+      setRateLoading(true);
+      getRateForPair(form.currencyFrom, form.currencyTo, form.type).then((result) => {
+        if (fetchId !== rateFetchRef.current) return;
+        setRateLoading(false);
+        if (result.success && result.data.suggestedRate) {
+          const rate = String(result.data.suggestedRate);
+          setSuggestedRate(rate);
+          if (!form.exchangeRate) {
+            setForm((f) => ({ ...f, exchangeRate: rate }));
+          }
+        } else {
+          setSuggestedRate(null);
+        }
+      }).catch(() => { setRateLoading(false); setSuggestedRate(null); });
+    }
+  }, [form.currencyFrom, form.currencyTo, form.type]);
 
   const selectedClient = clients.find((c) => c.id === form.clientId);
   const filteredClients = clients.filter((c) =>
@@ -194,14 +219,29 @@ export default function NewTransactionScreen() {
 
             <View style={styles.field}>
               <Text style={styles.label}>{t.transactions.exchangeRate} <Text style={{ color: COLORS.danger }}>*</Text></Text>
-              <TextInput
-                style={styles.input}
-                value={form.exchangeRate}
-                onChangeText={(v) => set('exchangeRate', v)}
-                placeholder="Ex: 1.08"
-                placeholderTextColor={COLORS.textMuted}
-                keyboardType="decimal-pad"
-              />
+              <View style={{ position: 'relative' }}>
+                <TextInput
+                  style={styles.input}
+                  value={form.exchangeRate}
+                  onChangeText={(v) => set('exchangeRate', v)}
+                  placeholder={rateLoading ? 'Chargement...' : 'Ex: 1.08'}
+                  placeholderTextColor={COLORS.textMuted}
+                  keyboardType="decimal-pad"
+                />
+                {suggestedRate && form.exchangeRate !== suggestedRate && (
+                  <TouchableOpacity
+                    style={{
+                      position: 'absolute', right: 8, top: 8,
+                      backgroundColor: COLORS.infoLight, borderRadius: 8,
+                      paddingHorizontal: 10, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 4
+                    }}
+                    onPress={() => set('exchangeRate', suggestedRate)}
+                  >
+                    <Ionicons name="flash-outline" size={14} color={COLORS.primary} />
+                    <Text style={{ fontSize: 12, color: COLORS.primary, fontWeight: '700' }}>{suggestedRate}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
 
             {/* Preview */}

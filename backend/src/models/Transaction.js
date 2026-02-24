@@ -17,7 +17,12 @@ const Transaction = sequelize.define('Transaction', {
   type: { type: DataTypes.ENUM('buy', 'sell', 'transfer'), defaultValue: 'sell' },
   notes: { type: DataTypes.TEXT, allowNull: true },
   dueDate: { type: DataTypes.DATE, allowNull: true },
-  paidAt: { type: DataTypes.DATE, allowNull: true }
+  paidAt: { type: DataTypes.DATE, allowNull: true },
+  marketRate: { type: DataTypes.DECIMAL(20, 6), allowNull: true },
+  buyRate: { type: DataTypes.DECIMAL(20, 6), allowNull: true },
+  sellRate: { type: DataTypes.DECIMAL(20, 6), allowNull: true },
+  profit: { type: DataTypes.DECIMAL(20, 4), defaultValue: 0 },
+  profitCurrency: { type: DataTypes.STRING(10), allowNull: true }
 }, {
   tableName: 'transactions',
   hooks: {

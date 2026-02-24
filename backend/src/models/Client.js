@@ -21,7 +21,13 @@ const Client = sequelize.define('Client', {
   notes: { type: DataTypes.TEXT, allowNull: true },
   isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
   totalDebt: { type: DataTypes.DECIMAL(20, 4), defaultValue: 0 },
-  totalPaid: { type: DataTypes.DECIMAL(20, 4), defaultValue: 0 }
+  totalPaid: { type: DataTypes.DECIMAL(20, 4), defaultValue: 0 },
+  idPhotoFront: { type: DataTypes.STRING, allowNull: true },
+  idPhotoBack: { type: DataTypes.STRING, allowNull: true },
+  idExpiryDate: { type: DataTypes.DATEONLY, allowNull: true },
+  kycStatus: { type: DataTypes.ENUM('pending', 'verified', 'rejected', 'expired'), defaultValue: 'pending' },
+  kycVerifiedAt: { type: DataTypes.DATE, allowNull: true },
+  kycNotes: { type: DataTypes.TEXT, allowNull: true }
 }, {
   tableName: 'clients',
   hooks: {

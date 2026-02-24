@@ -16,9 +16,8 @@ router.post('/', authenticate, auditLog('CREATE', 'payment'), create);
 // USSD Payment routes
 router.post('/ussd-proof', async (req, res) => {
   try {
-    console.log('📝 Payment Proof submission:', { userId, plan, amount, reference, phoneNumber });
-    
     const { userId, plan, amount, reference, phoneNumber } = req.body;
+    console.log('📝 Payment Proof submission:', { userId, plan, amount, reference, phoneNumber });
     
     // Validation de base
     if (!userId || !plan || !amount || !reference || !phoneNumber) {
@@ -78,8 +77,8 @@ router.post('/ussd-proof', async (req, res) => {
       
       const license = await License.create({
         userId,
-        businessName: user.businessName || `${user.firstName} ${user.lastName}`,
-        ownerName: `${user.firstName} ${user.lastName}`,
+        businessName: user.name || 'Client',
+        ownerName: user.name || 'Client',
         ownerEmail: user.email,
         ownerPhone: user.phone,
         plan: 'trial',
@@ -98,7 +97,7 @@ router.post('/ussd-proof', async (req, res) => {
       // Envoyer email de confirmation trial
       sendTrialActivated({
         email: user.email,
-        businessName: user.businessName || user.firstName || 'Client',
+        businessName: user.name || 'Client',
         licenseKey: license.licenseKey,
         expiresAt: license.expiresAt
       }).catch(e => console.error('Email error:', e.message));
@@ -146,7 +145,7 @@ router.post('/ussd-proof', async (req, res) => {
     if (proofUser) {
       sendPaymentReceived({
         email: proofUser.email,
-        businessName: proofUser.businessName || proofUser.firstName || 'Client',
+        businessName: proofUser.name || 'Client',
         plan,
         amount,
         reference
@@ -182,7 +181,7 @@ router.get('/pending', adminAuth, async (req, res) => {
         {
           model: User,
           as: 'user',
-          attributes: ['id', 'email', 'firstName', 'lastName', 'businessName']
+          attributes: ['id', 'email', 'name', 'phone']
         }
       ],
       order: [['createdAt', 'DESC']]
@@ -247,8 +246,8 @@ router.post('/:id/validate', adminAuth, async (req, res) => {
       const licenseKey = generateLicenseKey();
       license = await License.create({
         userId: paymentProof.userId,
-        businessName: paymentProof.user.businessName || `${paymentProof.user.firstName} ${paymentProof.user.lastName}`,
-        ownerName: `${paymentProof.user.firstName} ${paymentProof.user.lastName}`,
+        businessName: paymentProof.user.name || 'Client',
+        ownerName: paymentProof.user.name || 'Client',
         ownerEmail: paymentProof.user.email,
         ownerPhone: paymentProof.phoneNumber,
         plan: paymentProof.plan,
@@ -262,7 +261,7 @@ router.post('/:id/validate', adminAuth, async (req, res) => {
     // Envoyer email licence activée
     sendLicenseActivated({
       email: paymentProof.user.email,
-      businessName: paymentProof.user.businessName || paymentProof.user.firstName || 'Client',
+      businessName: paymentProof.user.name || 'Client',
       licenseKey: license.licenseKey,
       plan: license.plan,
       expiresAt: license.expiresAt
@@ -315,7 +314,7 @@ router.post('/:id/reject', adminAuth, async (req, res) => {
     if (rejectedProof?.user) {
       sendPaymentRejected({
         email: rejectedProof.user.email,
-        businessName: rejectedProof.user.businessName || rejectedProof.user.firstName || 'Client',
+        businessName: rejectedProof.user.name || 'Client',
         reason
       }).catch(e => console.error('Email error:', e.message));
       
@@ -422,8 +421,8 @@ router.post('/stripe/webhook', async (req, res) => {
         const licenseKey = generateLicenseKey();
         license = await License.create({
           userId,
-          businessName: user.businessName || `${user.firstName} ${user.lastName}`,
-          ownerName: `${user.firstName} ${user.lastName}`,
+          businessName: user.name || 'Client',
+          ownerName: user.name || 'Client',
           ownerEmail: user.email,
           plan: plan,
           status: 'active',

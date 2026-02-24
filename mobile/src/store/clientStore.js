@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import api from '../services/api';
+import { fetchWithCache, queueOfflineAction, isOnline } from '../services/offlineCache';
 
 const useClientStore = create((set, get) => ({
   clients: [],
@@ -8,13 +9,18 @@ const useClientStore = create((set, get) => ({
   isLoading: false,
   error: null,
 
+  isOffline: false,
+
   fetchClients: async (params = {}) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.get('/clients', { params });
-      set({ clients: response.data.data, pagination: response.data.pagination, isLoading: false });
+      const { data, fromCache } = await fetchWithCache('clients', async () => {
+        const response = await api.get('/clients', { params });
+        return { clients: response.data.data, pagination: response.data.pagination };
+      });
+      set({ clients: data.clients, pagination: data.pagination || {}, isLoading: false, isOffline: fromCache });
     } catch (error) {
-      set({ error: error.response?.data?.message || 'Failed to load clients.', isLoading: false });
+      set({ error: error.message || 'Failed to load clients.', isLoading: false, isOffline: true });
     }
   },
 
@@ -31,6 +37,11 @@ const useClientStore = create((set, get) => ({
 
   createClient: async (data) => {
     try {
+      const online = await isOnline();
+      if (!online) {
+        await queueOfflineAction({ method: 'POST', url: '/clients', data });
+        return { success: true, data: { ...data, id: 'offline_' + Date.now(), _offline: true }, offline: true };
+      }
       const response = await api.post('/clients', data);
       const newClient = response.data.data;
       set((state) => ({ clients: [newClient, ...state.clients] }));

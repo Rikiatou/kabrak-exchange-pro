@@ -10,6 +10,7 @@ import useDashboardStore from '../../src/store/dashboardStore';
 import useLanguageStore from '../../src/store/languageStore';
 import useAuthStore from '../../src/store/authStore';
 import { formatCurrency, getInitials } from '../../src/utils/helpers';
+import OwnerDashboardScreen from '../owner-dashboard';
 
 const { width } = Dimensions.get('window');
 const GREEN_DARK = '#071a12';
@@ -129,6 +130,7 @@ export default function DashboardScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
   const isAdmin = user?.role === 'admin';
+  const isOwner = user?.teamRole === 'owner' || (isAdmin && !user?.teamRole);
 
   useEffect(() => { fetchDashboard(); }, []);
   const onRefresh = useCallback(() => { fetchDashboard(); }, []);
@@ -137,6 +139,9 @@ export default function DashboardScreen() {
   const s = data?.summary || {};
   const hour = new Date().getHours();
   const greeting = hour < 12 ? t.dashboard.goodMorning : hour < 18 ? t.dashboard.goodAfternoon : t.dashboard.goodEvening;
+
+  // Owner/admin sees the enriched owner dashboard
+  if (isOwner) return <OwnerDashboardScreen />;
 
   return (
     <View style={styles.container}>

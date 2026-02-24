@@ -93,22 +93,21 @@ const register = async (req, res) => {
     const { email, password, firstName, lastName, phone, businessName } = req.body;
     
     // Vérifier si l'utilisateur existe déjà
-    const existingUser = await User.findOne({ where: { email } });
+    const existingUser = await User.findOne({ where: { email: email.toLowerCase() } });
     if (existingUser) {
       return res.status(400).json({ success: false, message: 'Cet email est déjà utilisé' });
     }
     
-    // Hasher le mot de passe
-    const hashedPassword = await bcrypt.hash(password, 12);
+    // Build the display name from available fields
+    const name = businessName || [firstName, lastName].filter(Boolean).join(' ') || email.split('@')[0];
     
-    // Créer l'utilisateur
+    // Créer l'utilisateur — password will be hashed by beforeCreate hook
     const user = await User.create({
-      email,
-      password: hashedPassword,
-      firstName,
-      lastName,
-      phone,
-      businessName
+      name,
+      email: email.toLowerCase(),
+      password,
+      role: 'admin',
+      phone: phone || null,
     });
     
     // Créer une licence trial
@@ -117,10 +116,10 @@ const register = async (req, res) => {
     
     await License.create({
       userId: user.id,
-      businessName: businessName || `${firstName} ${lastName}`,
-      ownerName: `${firstName} ${lastName}`,
-      ownerEmail: email,
-      ownerPhone: phone,
+      businessName: name,
+      ownerName: name,
+      ownerEmail: email.toLowerCase(),
+      ownerPhone: phone || null,
       plan: 'trial',
       status: 'active',
       licenseKey,
@@ -130,24 +129,24 @@ const register = async (req, res) => {
     
     // Générer le token
     const token = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
+    const rt = generateRefreshToken(user);
     
     res.status(201).json({
       success: true,
       message: 'Compte créé avec succès',
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        businessName: user.businessName
-      },
-      token,
-      refreshToken,
-      license: {
-        licenseKey,
-        plan: 'trial',
-        expiresAt
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        },
+        token,
+        refreshToken: rt,
+        license: {
+          licenseKey,
+          plan: 'trial',
+          expiresAt
+        }
       }
     });
   } catch (e) {

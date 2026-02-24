@@ -11,6 +11,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import useLanguageStore from '../../src/store/languageStore';
 import { formatCurrency, formatDateTime, getStatusConfig } from '../../src/utils/helpers';
 import { printReceipt, shareReceiptAsPDF } from '../../src/services/receiptService';
+import { sendWhatsAppConfirmation, sendSMSConfirmation, sendWhatsAppReminder, sendSMSReminder } from '../../src/services/notificationService';
 import useSettingStore from '../../src/store/settingStore';
 
 function PaymentModal({ visible, transaction, onClose, onSuccess, t }) {
@@ -132,6 +133,8 @@ export default function TransactionDetailScreen() {
   const [showPayModal, setShowPayModal] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [printLoading, setPrintLoading] = useState(false);
+  const [waLoading, setWaLoading] = useState(false);
+  const [smsLoading, setSmsLoading] = useState(false);
 
   useEffect(() => { fetchTransactionById(id); fetchSettings(); }, [id]);
 
@@ -149,6 +152,24 @@ export default function TransactionDetailScreen() {
     const result = await printReceipt(currentTransaction, settings.businessName || 'KABRAK Exchange Pro', language);
     setPrintLoading(false);
     if (!result.success) Alert.alert(t.common.error, result.message);
+  };
+
+  const handleWhatsApp = async () => {
+    setWaLoading(true);
+    const isUnpaid = currentTransaction.status !== 'paid';
+    const fn = isUnpaid ? sendWhatsAppReminder : sendWhatsAppConfirmation;
+    const result = await fn(currentTransaction.id, language);
+    setWaLoading(false);
+    if (!result.success && result.message) Alert.alert(t.common.error, result.message);
+  };
+
+  const handleSMS = async () => {
+    setSmsLoading(true);
+    const isUnpaid = currentTransaction.status !== 'paid';
+    const fn = isUnpaid ? sendSMSReminder : sendSMSConfirmation;
+    const result = await fn(currentTransaction.id, language);
+    setSmsLoading(false);
+    if (!result.success && result.message) Alert.alert(t.common.error, result.message);
   };
 
   if (isLoading && !currentTransaction) {
@@ -288,6 +309,29 @@ export default function TransactionDetailScreen() {
                 <>
                   <Ionicons name="print-outline" size={20} color={COLORS.success} />
                   <Text style={[styles.receiptBtnText, { color: COLORS.success }]}>{t.common.print}</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Send Notification */}
+        <View style={styles.receiptCard}>
+          <Text style={styles.sectionTitle}>{tx.status !== 'paid' ? (t.notifications?.paymentReminder || 'Rappel de paiement') : (t.notifications?.transactionConfirm || 'Confirmation')}</Text>
+          <View style={styles.receiptBtns}>
+            <TouchableOpacity style={[styles.receiptBtn, { backgroundColor: '#dcfce7' }]} onPress={handleWhatsApp} disabled={waLoading}>
+              {waLoading ? <ActivityIndicator size="small" color="#25D366" /> : (
+                <>
+                  <Ionicons name="logo-whatsapp" size={20} color="#25D366" />
+                  <Text style={[styles.receiptBtnText, { color: '#25D366' }]}>WhatsApp</Text>
+                </>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.receiptBtn, { backgroundColor: '#e0f2fe' }]} onPress={handleSMS} disabled={smsLoading}>
+              {smsLoading ? <ActivityIndicator size="small" color="#0369a1" /> : (
+                <>
+                  <Ionicons name="chatbubble-outline" size={20} color="#0369a1" />
+                  <Text style={[styles.receiptBtnText, { color: '#0369a1' }]}>SMS</Text>
                 </>
               )}
             </TouchableOpacity>

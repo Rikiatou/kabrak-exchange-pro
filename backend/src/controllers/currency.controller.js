@@ -1,4 +1,4 @@
-const { Currency, RateHistory } = require('../models');
+const { Currency, RateHistory, RateAlert, Alert } = require('../models');
 
 const getAll = async (req, res) => {
   try {
@@ -59,6 +59,33 @@ const update = async (req, res) => {
     }
 
     await currency.update({ name, symbol, currentRate, buyRate, sellRate, stockAmount, lowStockAlert });
+
+    // --- Feature 8: Check rate alert thresholds ---
+    try {
+      const rateAlerts = await RateAlert.findAll({ where: { currencyCode: currency.code, isActive: true } });
+      for (const ra of rateAlerts) {
+        const rateVal = ra.rateType === 'buyRate' ? parseFloat(buyRate || currency.buyRate)
+          : ra.rateType === 'sellRate' ? parseFloat(sellRate || currency.sellRate)
+          : parseFloat(currentRate || currency.currentRate);
+        const threshold = parseFloat(ra.threshold);
+        const triggered = (ra.condition === 'above' && rateVal >= threshold) || (ra.condition === 'below' && rateVal <= threshold);
+        if (triggered) {
+          const direction = ra.condition === 'above' ? '↑ au-dessus' : '↓ en-dessous';
+          await Alert.create({
+            type: 'rate_change',
+            title: `Alerte taux: ${currency.code} ${direction} de ${threshold}`,
+            message: `Le taux ${ra.rateType} de ${currency.code} est à ${rateVal} (seuil: ${threshold}). ${ra.notes || ''}`,
+            entityId: currency.id,
+            entityType: 'currency',
+            severity: 'warning'
+          });
+          await ra.update({ lastTriggeredAt: new Date() });
+        }
+      }
+    } catch (alertErr) {
+      console.error('Rate alert check error:', alertErr.message);
+    }
+
     return res.json({ success: true, message: 'Currency updated.', data: currency });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -122,4 +149,85 @@ const getStockSummary = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, create, update, getRateHistory, adjustStock, getStockSummary };
+// GET /api/currencies/rate-for-pair?from=EUR&to=XOF&type=sell
+const getRateForPair = async (req, res) => {
+  try {
+    const { from, to, type = 'sell' } = req.query;
+    if (!from || !to) return res.status(400).json({ success: false, message: 'from and to are required.' });
+    const currFrom = await Currency.findOne({ where: { code: from.toUpperCase(), isActive: true } });
+    const currTo = await Currency.findOne({ where: { code: to.toUpperCase(), isActive: true } });
+    if (!currFrom || !currTo) return res.json({ success: true, data: { suggestedRate: null, message: 'Currency not configured.' } });
+
+    const fromBuy = parseFloat(currFrom.buyRate || currFrom.currentRate);
+    const fromSell = parseFloat(currFrom.sellRate || currFrom.currentRate);
+    const toBuy = parseFloat(currTo.buyRate || currTo.currentRate);
+    const toSell = parseFloat(currTo.sellRate || currTo.currentRate);
+
+    let suggestedRate, marketRate;
+    if (type === 'sell') {
+      marketRate = toSell / fromBuy;
+      suggestedRate = marketRate;
+    } else if (type === 'buy') {
+      marketRate = toBuy / fromSell;
+      suggestedRate = marketRate;
+    } else {
+      marketRate = parseFloat(currTo.currentRate) / parseFloat(currFrom.currentRate);
+      suggestedRate = marketRate;
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        suggestedRate: Math.round(suggestedRate * 10000) / 10000,
+        marketRate: Math.round(marketRate * 10000) / 10000,
+        fromCurrency: { code: currFrom.code, buyRate: fromBuy, sellRate: fromSell },
+        toCurrency: { code: currTo.code, buyRate: toBuy, sellRate: toSell }
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// --- Feature 8: Rate Alert CRUD ---
+const getRateAlerts = async (req, res) => {
+  try {
+    const alerts = await RateAlert.findAll({ where: { isActive: true }, order: [['createdAt', 'DESC']] });
+    return res.json({ success: true, data: alerts });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const createRateAlert = async (req, res) => {
+  try {
+    const { currencyCode, condition, threshold, rateType, notes } = req.body;
+    if (!currencyCode || !condition || !threshold) {
+      return res.status(400).json({ success: false, message: 'currencyCode, condition and threshold are required.' });
+    }
+    const alert = await RateAlert.create({
+      currencyCode: currencyCode.toUpperCase(),
+      condition,
+      threshold: parseFloat(threshold),
+      rateType: rateType || 'currentRate',
+      userId: req.user.id,
+      notes
+    });
+    return res.status(201).json({ success: true, message: 'Rate alert created.', data: alert });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const deleteRateAlert = async (req, res) => {
+  try {
+    const alert = await RateAlert.findByPk(req.params.id);
+    if (!alert) return res.status(404).json({ success: false, message: 'Rate alert not found.' });
+    await alert.update({ isActive: false });
+    return res.json({ success: true, message: 'Rate alert deleted.' });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { getAll, getById, create, update, getRateHistory, adjustStock, getStockSummary, getRateForPair, getRateAlerts, createRateAlert, deleteRateAlert };

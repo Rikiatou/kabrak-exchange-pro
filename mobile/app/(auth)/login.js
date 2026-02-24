@@ -22,7 +22,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
-  const { t } = useLanguageStore();
+  const { t, language } = useLanguageStore();
   const { login, isLoading } = useAuthStore();
   const router = useRouter();
   const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -75,6 +75,11 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
           bounces={false}
         >
+          {/* Back button */}
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(auth)/welcome')}>
+            <Ionicons name="arrow-back" size={22} color={WHITE} />
+          </TouchableOpacity>
+
           {/* Logo */}
           <View style={styles.logoRow}>
             <View style={styles.logoIconWrap}>
@@ -169,6 +174,14 @@ export default function LoginScreen() {
             <View style={styles.trustLine} />
             <Text style={styles.trustText}>{t.login.trust}</Text>
             <View style={styles.trustLine} />
+          </View>
+
+          {/* Register link */}
+          <View style={styles.registerRow}>
+            <Text style={styles.registerLabel}>{language === 'fr' ? 'Pas encore de compte ? ' : 'No account yet? '}</Text>
+            <TouchableOpacity onPress={() => router.push('/(auth)/register-trial')}>
+              <Text style={styles.registerLink}>{language === 'fr' ? 'Essai gratuit' : 'Free trial'}</Text>
+            </TouchableOpacity>
           </View>
 
           <Text style={styles.footer}>{t.login.footer}</Text>
@@ -285,6 +298,10 @@ const styles = StyleSheet.create({
   trustLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
   trustText: { fontSize: 11, color: 'rgba(255,255,255,0.35)', letterSpacing: 0.3 },
 
+  backBtn: { alignSelf: 'flex-start', marginBottom: 16, padding: 4 },
+  registerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  registerLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 13 },
+  registerLink: { color: GOLD, fontSize: 13, fontWeight: '700' },
   footer: {
     textAlign: 'center', color: 'rgba(255,255,255,0.2)', fontSize: 11,
   },

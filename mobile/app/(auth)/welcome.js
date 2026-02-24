@@ -111,6 +111,15 @@ export default function WelcomeScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            style={styles.btnTrial}
+            onPress={() => router.push('/(auth)/register-trial')}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="gift-outline" size={18} color={GOLD} style={{ marginRight: 8 }} />
+            <Text style={styles.btnTrialText}>{language === 'fr' ? 'Essai gratuit — 14 jours' : 'Free trial — 14 days'}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={styles.btnSecondary}
             onPress={() => setAboutVisible(true)}
             activeOpacity={0.8}
@@ -268,6 +277,15 @@ const styles = StyleSheet.create({
   },
   btnPrimaryText: {
     color: WHITE, fontSize: 16, fontWeight: '700', letterSpacing: 0.3,
+  },
+  btnTrial: {
+    height: 54, borderRadius: 10,
+    borderWidth: 1.5, borderColor: GOLD,
+    backgroundColor: 'rgba(232,160,32,0.12)',
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
+  },
+  btnTrialText: {
+    color: GOLD, fontSize: 15, fontWeight: '700',
   },
   btnSecondary: {
     height: 54, borderRadius: 10,
