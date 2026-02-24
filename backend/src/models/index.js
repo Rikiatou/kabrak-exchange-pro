@@ -16,6 +16,7 @@ const DepositOrder = require('./DepositOrder')(sequelize);
 const CashClose = require('./CashClose')(sequelize);
 const PaymentProof = require('./paymentProof.model')(sequelize);
 const RateAlert = require('./RateAlert')(sequelize);
+const TrialRequest = require('./TrialRequest')(sequelize);
 
 // User associations
 User.hasMany(Transaction, { foreignKey: 'userId', as: 'transactions' });
@@ -73,4 +74,5 @@ module.exports = {
   CashClose,
   PaymentProof,
   RateAlert,
+  TrialRequest,
 };

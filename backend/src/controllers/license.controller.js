@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const { Resend } = require('resend');
-const { License } = require('../models');
+const { License, TrialRequest } = require('../models');
 const { Op } = require('sequelize');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -48,6 +48,76 @@ const getExpiryDate = (plan) => {
     now.setFullYear(now.getFullYear() + 1);
   }
   return now;
+};
+
+// Check if email is from disposable/temporary email service
+const isDisposableEmail = (email) => {
+  const disposableDomains = [
+    '10minutemail.com', 'tempmail.org', 'guerrillamail.com', 'mailinator.com',
+    'yopmail.com', 'temp-mail.org', 'throwaway.email', 'maildrop.cc',
+    'tempmail.org', 'fakeinbox.com', 'tempmailaddress.com', 'nowmymail.com',
+    'mailnesia.com', 'spamgourmet.com', 'mintemail.com', 'trashmail.com'
+  ];
+  const domain = email.toLowerCase().split('@')[1];
+  return disposableDomains.some(d => domain.includes(d));
+};
+
+// Extract base email from common patterns (e.g., user+1@gmail.com -> user@gmail.com)
+const getBaseEmail = (email) => {
+  const [localPart, domain] = email.toLowerCase().split('@');
+  const baseLocal = localPart.split('+')[0];
+  return `${baseLocal}@${domain}`;
+};
+
+// Check for trial abuse
+const checkTrialAbuse = async (email, deviceId, ipAddress) => {
+  const baseEmail = getBaseEmail(email);
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  
+  // Check 1: Same base email had a trial in last 30 days
+  const existingTrial = await TrialRequest.findOne({
+    where: {
+      email: { [Op.like]: `%${baseEmail.split('@')[0]}%@${baseEmail.split('@')[1]}` },
+      status: { [Op.in]: ['pending', 'approved'] },
+      createdAt: { [Op.gte]: thirtyDaysAgo }
+    }
+  });
+  
+  if (existingTrial) {
+    return { allowed: false, reason: 'EMAIL_ALREADY_USED', message: 'Cet email a déjà été utilisé pour un essai récent.' };
+  }
+  
+  // Check 2: Same device ID had a trial in last 30 days
+  if (deviceId) {
+    const deviceTrial = await TrialRequest.findOne({
+      where: {
+        deviceId,
+        status: { [Op.in]: ['pending', 'approved'] },
+        createdAt: { [Op.gte]: thirtyDaysAgo }
+      }
+    });
+    
+    if (deviceTrial) {
+      return { allowed: false, reason: 'DEVICE_LIMIT', message: 'Un essai a déjà été créé depuis cet appareil.' };
+    }
+  }
+  
+  // Check 3: Same IP had more than 3 trials in last 30 days
+  if (ipAddress) {
+    const ipTrials = await TrialRequest.count({
+      where: {
+        ipAddress,
+        createdAt: { [Op.gte]: thirtyDaysAgo }
+      }
+    });
+    
+    if (ipTrials >= 3) {
+      return { allowed: false, reason: 'IP_LIMIT', message: 'Trop de demandes depuis cette adresse.' };
+    }
+  }
+  
+  return { allowed: true };
 };
 
 // GET /api/licenses — list all (super admin)
@@ -170,13 +240,54 @@ const verifyLicense = async (req, res) => {
 // POST /api/licenses/request — public: request a demo/license from landing page
 const requestLicense = async (req, res) => {
   try {
-    const { businessName, ownerName, ownerEmail, ownerPhone, country, message } = req.body;
+    const { businessName, ownerName, ownerEmail, ownerPhone, country, message, deviceId } = req.body;
     if (!businessName || !ownerName || !ownerEmail) {
       return res.status(400).json({ success: false, message: 'businessName, ownerName and ownerEmail are required.' });
     }
-        const licenseKey = generateLicenseKey();
+
+    // Get client IP
+    const ipAddress = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0] || null;
+
+    // Check for disposable email
+    if (isDisposableEmail(ownerEmail)) {
+      await TrialRequest.create({
+        email: ownerEmail,
+        deviceId,
+        ipAddress,
+        userAgent: req.headers['user-agent'],
+        status: 'rejected',
+        rejectionReason: 'DISPOSABLE_EMAIL'
+      });
+      return res.status(400).json({ success: false, message: 'Veuillez utiliser une adresse email professionnelle.' });
+    }
+
+    // Check for trial abuse
+    const abuseCheck = await checkTrialAbuse(ownerEmail, deviceId, ipAddress);
+    if (!abuseCheck.allowed) {
+      await TrialRequest.create({
+        email: ownerEmail,
+        deviceId,
+        ipAddress,
+        userAgent: req.headers['user-agent'],
+        status: 'rejected',
+        rejectionReason: abuseCheck.reason
+      });
+      return res.status(429).json({ success: false, message: abuseCheck.message, reason: abuseCheck.reason });
+    }
+
+    // Create trial request record
+    const trialRequest = await TrialRequest.create({
+      email: ownerEmail,
+      deviceId,
+      ipAddress,
+      userAgent: req.headers['user-agent'],
+      status: 'pending'
+    });
+
+    // Create license
+    const licenseKey = generateLicenseKey();
     const expiresAt = getExpiryDate('trial');
-    await License.create({
+    const license = await License.create({
       businessName, ownerName, ownerEmail, ownerPhone: ownerPhone || null,
       country: country || null,
       plan: 'trial',
@@ -186,7 +297,11 @@ const requestLicense = async (req, res) => {
       maxUsers: 3,
       notes: message || null
     });
-    res.status(201).json({ success: true, message: 'Your request has been received. We will contact you within 24 hours. / Votre demande a été reçue. Nous vous contacterons dans les 24 heures.' });
+
+    // Update trial request with license ID
+    await trialRequest.update({ licenseId: license.id, status: 'approved', approvedAt: new Date() });
+
+    res.status(201).json({ success: true, data: { licenseKey }, message: 'Votre essai gratuit de 14 jours est activé !' });
     sendNotificationEmail({ businessName, ownerName, ownerEmail, ownerPhone, country, message });
   } catch (e) {
     console.error('License request error:', e);

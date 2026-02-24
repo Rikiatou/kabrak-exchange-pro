@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import api from '../../src/services/api';
 import useLicenseStore from '../../src/store/licenseStore';
 import * as SecureStore from 'expo-secure-store';
+import { getDeviceId } from '../../src/utils/deviceId';
 
 const { width } = Dimensions.get('window');
 const GREEN_DARK = '#071a12';
@@ -38,6 +39,9 @@ export default function RegisterTrialScreen() {
 
     setLoading(true);
     try {
+      // Get device ID for trial abuse protection
+      const deviceId = await getDeviceId();
+      
       // 1. Créer le compte
       const registerRes = await api.post('/auth/register', {
         businessName: businessName.trim(),
@@ -46,6 +50,7 @@ export default function RegisterTrialScreen() {
         phone: phone.trim() || undefined,
         firstName: businessName.trim(),
         lastName: '',
+        deviceId, // Include device ID
       });
 
       const { token, user } = registerRes.data.data || registerRes.data;
@@ -60,6 +65,7 @@ export default function RegisterTrialScreen() {
         amount: 0,
         reference: 'TRIAL-' + Date.now(),
         phoneNumber: phone.trim() || '+237000000000',
+        deviceId, // Include device ID
       });
 
       if (trialRes.data.success && trialRes.data.license) {
