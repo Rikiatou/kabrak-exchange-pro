@@ -263,14 +263,14 @@ app.listen(PORT, () => {
 
 console.log('🗄️ Starting database connection...');
 sequelize.authenticate()
-  .then(() => {
+  .then(async () => {
     console.log('✅ Database connected successfully.');
+    console.log('🔄 Running column migrations BEFORE sync...');
+    await runMigrations();
     console.log('🔄 Syncing database models...');
     return sequelize.sync({ alter: true });
   })
   .then(async () => {
-    console.log('🔄 Running column migrations...');
-    await runMigrations();
     console.log('🔄 Running client code migration...');
     await migrateClientCodes();
     console.log('✅ Database synced successfully.');
