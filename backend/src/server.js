@@ -151,6 +151,11 @@ app.get('/', (req, res) => {
   res.redirect('/payment.html');
 });
 
+// Short admin URL
+app.get('/admin', (req, res) => {
+  res.redirect('/admin-dashboard.html');
+});
+
 // Simple healthcheck without database dependency
 app.get('/api/health-simple', (req, res) => {
   console.log('🏥 Simple healthcheck requested at:', new Date().toISOString());
