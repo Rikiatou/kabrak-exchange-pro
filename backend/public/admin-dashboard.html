@@ -378,25 +378,24 @@ async function api(endpoint, opts = {}) {
 // ─── Data Loading ───
 async function refreshData() {
     document.getElementById('lastRefresh').textContent = 'Chargement...';
-    try {
-        await Promise.all([loadDashboard(), loadLicenses(), loadPayments(), loadUsers()]);
-        document.getElementById('lastRefresh').textContent = `Mis à jour: ${new Date().toLocaleTimeString('fr-FR')}`;
-    } catch (e) {
-        document.getElementById('lastRefresh').textContent = 'Erreur de chargement';
-        console.error(e);
-    }
+    const results = await Promise.allSettled([loadDashboard(), loadLicenses(), loadPayments(), loadUsers()]);
+    const errors = results.filter(r => r.status === 'rejected');
+    if (errors.length) { console.error('Erreurs chargement:', errors.map(e => e.reason)); }
+    document.getElementById('lastRefresh').textContent = `Mis à jour: ${new Date().toLocaleTimeString('fr-FR')}`;
 }
 
 async function loadDashboard() {
     const res = await api('/admin/dashboard');
-    const { data } = await res.json();
-    document.getElementById('statUsers').textContent = data.users.total;
-    document.getElementById('statUsersActive').textContent = `${data.users.active} actifs`;
-    document.getElementById('statLicenses').textContent = data.licenses.active;
-    document.getElementById('statLicensesTotal').textContent = `/ ${data.licenses.total} total`;
-    document.getElementById('statPending').textContent = data.payments.pending;
-    document.getElementById('statPaymentsTotal').textContent = `/ ${data.payments.total} total`;
-    document.getElementById('statExpiring').textContent = data.licenses.expiringSoon;
+    const json = await res.json();
+    if (!res.ok || !json.success) { console.error('Dashboard error:', json); throw new Error(json.error || 'Dashboard failed'); }
+    const data = json.data;
+    document.getElementById('statUsers').textContent = data.users?.total ?? 0;
+    document.getElementById('statUsersActive').textContent = `${data.users?.active ?? 0} actifs`;
+    document.getElementById('statLicenses').textContent = data.licenses?.active ?? 0;
+    document.getElementById('statLicensesTotal').textContent = `/ ${data.licenses?.total ?? 0} total`;
+    document.getElementById('statPending').textContent = data.payments?.pending ?? 0;
+    document.getElementById('statPaymentsTotal').textContent = `/ ${data.payments?.total ?? 0} total`;
+    document.getElementById('statExpiring').textContent = data.licenses?.expiringSoon ?? 0;
 
     // Pending badge
     const badge = document.getElementById('pendingBadge');
