@@ -43,7 +43,9 @@ export const registerForPushNotifications = async () => {
 
     if (finalStatus !== 'granted') return null;
 
-    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const tokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: Constants.expoConfig?.extra?.eas?.projectId,
+    });
     return tokenData.data;
   } catch (_) {
     return null;

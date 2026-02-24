@@ -52,8 +52,14 @@ export default function ReceiptsGalleryScreen() {
 
   const totalReceipts = filtered.reduce((sum, g) => sum + g.total, 0);
 
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${BACKEND_URL}${url}`;
+  };
+
   const openImage = (receipt) => {
-    setImageUrl(`${BACKEND_URL}${receipt.receiptImageUrl}`);
+    setImageUrl(getImageUrl(receipt.receiptImageUrl));
     setImageInfo(receipt);
     setShowImage(true);
   };
@@ -141,7 +147,7 @@ export default function ReceiptsGalleryScreen() {
                           activeOpacity={0.8}
                         >
                           <Image
-                            source={{ uri: `${BACKEND_URL}${r.receiptImageUrl}` }}
+                            source={{ uri: getImageUrl(r.receiptImageUrl) }}
                             style={styles.receiptThumb}
                             resizeMode="cover"
                           />

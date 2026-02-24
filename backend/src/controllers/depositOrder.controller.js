@@ -129,6 +129,28 @@ const addPayment = async (req, res) => {
       expoPushToken: order.expoPushToken,
     });
 
+    // Notify operator that a new payment was added to their order
+    if (order.expoPushToken) {
+      await sendPush(
+        order.expoPushToken,
+        '💰 Nouveau versement',
+        `${order.clientName} — ${parseFloat(amount).toLocaleString('fr-FR')} ${order.currency} — Commande ${order.reference}`,
+        { orderId: order.id, depositCode: deposit.code }
+      );
+    }
+    // Also notify user account push token
+    try {
+      const owner = await User.findByPk(req.user.id, { attributes: ['id', 'expoPushToken'] });
+      if (owner?.expoPushToken && owner.expoPushToken !== order.expoPushToken) {
+        await sendPush(
+          owner.expoPushToken,
+          '💰 Versement ajouté',
+          `${order.clientName} — ${parseFloat(amount).toLocaleString('fr-FR')} ${order.currency}`,
+          { orderId: order.id }
+        );
+      }
+    } catch (_) {}
+
     res.status(201).json({ success: true, data: deposit });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
