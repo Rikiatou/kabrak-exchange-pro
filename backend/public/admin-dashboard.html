@@ -314,79 +314,62 @@
             </div>
 
             <!-- Payments Tab -->
-            <div id="tab-payments" class="tab-content hidden">
-                <div class="flex flex-wrap items-center gap-3 mb-4">
-                    <button onclick="filterPayments('')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 payment-filter active">Tous</button>
-                    <button onclick="filterPayments('pending')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 payment-filter">En attente</button>
-                    <button onclick="filterPayments('validated')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 payment-filter">Validés</button>
-                    <button onclick="filterPayments('rejected')" class="px-3 py-1.5 rounded-lg text-sm bg-gray-700 hover:bg-gray-600 payment-filter">Rejetés</button>
+            <div id="tab-payments" class="tab-content">
+                <div class="toolbar">
+                    <button onclick="filterPayments('')" class="filter-btn active payment-filter">Tous</button>
+                    <button onclick="filterPayments('pending')" class="filter-btn payment-filter">En attente</button>
+                    <button onclick="filterPayments('validated')" class="filter-btn payment-filter">Validés</button>
+                    <button onclick="filterPayments('rejected')" class="filter-btn payment-filter">Rejetés</button>
                 </div>
-                <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b border-gray-700 text-gray-400 text-xs uppercase">
-                                    <th class="px-4 py-3 text-left">Utilisateur</th>
-                                    <th class="px-4 py-3 text-center">Plan</th>
-                                    <th class="px-4 py-3 text-right">Montant</th>
-                                    <th class="px-4 py-3 text-center">Méthode</th>
-                                    <th class="px-4 py-3 text-center">Référence</th>
-                                    <th class="px-4 py-3 text-center">Statut</th>
-                                    <th class="px-4 py-3 text-center">Date</th>
-                                    <th class="px-4 py-3 text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="paymentsTable"></tbody>
-                        </table>
-                    </div>
-                </div>
+                <div class="table-wrap"><div class="table-scroll">
+                    <table>
+                        <thead><tr>
+                            <th>Utilisateur</th><th class="center">Plan</th><th class="center">Montant</th>
+                            <th class="center">Méthode</th><th class="center">Référence</th>
+                            <th class="center">Statut</th><th class="center">Date</th><th class="center">Actions</th>
+                        </tr></thead>
+                        <tbody id="paymentsTable"></tbody>
+                    </table>
+                </div></div>
             </div>
 
             <!-- Users Tab -->
-            <div id="tab-users" class="tab-content hidden">
-                <div class="flex items-center gap-3 mb-4">
-                    <input type="text" id="userSearch" placeholder="Rechercher par email ou nom..." oninput="renderUsers()" class="px-3 py-1.5 bg-gray-700 rounded-lg text-sm border border-gray-600 focus:border-green-500 focus:outline-none w-64">
+            <div id="tab-users" class="tab-content">
+                <div class="toolbar">
+                    <input type="text" id="userSearch" placeholder="Rechercher par email ou nom..." oninput="renderUsers()" class="search-input" style="margin-left:0;width:280px">
                 </div>
-                <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b border-gray-700 text-gray-400 text-xs uppercase">
-                                    <th class="px-4 py-3 text-left">Nom</th>
-                                    <th class="px-4 py-3 text-left">Email</th>
-                                    <th class="px-4 py-3 text-left">Entreprise</th>
-                                    <th class="px-4 py-3 text-center">Rôle</th>
-                                    <th class="px-4 py-3 text-center">Statut</th>
-                                    <th class="px-4 py-3 text-center">Dernière connexion</th>
-                                    <th class="px-4 py-3 text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usersTable"></tbody>
-                        </table>
-                    </div>
-                </div>
+                <div class="table-wrap"><div class="table-scroll">
+                    <table>
+                        <thead><tr>
+                            <th>Nom</th><th>Email</th><th>Entreprise</th>
+                            <th class="center">Rôle</th><th class="center">Statut</th>
+                            <th class="center">Dernière connexion</th><th class="center">Actions</th>
+                        </tr></thead>
+                        <tbody id="usersTable"></tbody>
+                    </table>
+                </div></div>
             </div>
         </div>
     </main>
 </div>
 
 <!-- Action Modal -->
-<div id="modal" class="fixed inset-0 modal-overlay hidden flex items-center justify-center z-50 p-4">
-    <div class="bg-gray-800 rounded-xl max-w-md w-full p-6 border border-gray-700 shadow-2xl">
-        <div class="flex justify-between items-center mb-4">
-            <h3 id="modalTitle" class="text-lg font-bold"></h3>
-            <button onclick="closeModal()" class="text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+<div id="modal" style="display:none" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span id="modalTitle" class="modal-title"></span>
+            <button onclick="closeModal()" class="btn-icon"><i class="fas fa-times"></i></button>
         </div>
         <div id="modalBody"></div>
-        <div class="flex gap-3 mt-5">
-            <button onclick="closeModal()" class="flex-1 py-2.5 bg-gray-700 rounded-lg hover:bg-gray-600 text-sm font-semibold">Annuler</button>
-            <button id="modalConfirmBtn" class="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white" style="background:var(--green)">Confirmer</button>
+        <div class="modal-footer">
+            <button onclick="closeModal()" class="btn-cancel">Annuler</button>
+            <button id="modalConfirmBtn" class="btn-confirm">Confirmer</button>
         </div>
     </div>
 </div>
 
 <!-- Toast -->
-<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+<div id="toastContainer"></div>
 
 <script>
 const API = 'https://kabrak-exchange-pro-production.up.railway.app/api';
@@ -473,36 +456,37 @@ async function loadDashboard() {
 
     // Pending badge
     const badge = document.getElementById('pendingBadge');
-    if (data.payments.pending > 0) { badge.textContent = data.payments.pending; badge.classList.remove('hidden'); }
-    else { badge.classList.add('hidden'); }
+    const pendingCount = data.payments?.pending ?? 0;
+    badge.textContent = pendingCount;
+    badge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
 
     // Recent users
     const ul = document.getElementById('recentUsersList');
     ul.innerHTML = (data.recentUsers || []).map(u => `
-        <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700">
-            <div class="w-8 h-8 rounded-full bg-green-900 flex items-center justify-center text-green-400 text-xs font-bold">${(u.firstName||'?')[0]}</div>
-            <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium truncate">${u.firstName || ''} ${u.lastName || ''}</div>
-                <div class="text-xs text-gray-500 truncate">${u.email}</div>
+        <div class="activity-item">
+            <div class="activity-avatar">${(u.firstName||'?')[0].toUpperCase()}</div>
+            <div class="activity-info">
+                <div class="activity-name">${u.firstName || ''} ${u.lastName || ''}</div>
+                <div class="activity-meta">${u.email}</div>
             </div>
-            <div class="text-xs text-gray-500">${fmtDate(u.createdAt)}</div>
+            <div class="activity-date">${fmtDate(u.createdAt)}</div>
         </div>
-    `).join('') || '<div class="text-gray-500 text-sm text-center py-4">Aucun</div>';
+    `).join('') || '<div style="color:var(--gray-500);text-align:center;padding:16px;font-size:13px">Aucun inscrit récent</div>';
 
     // Recent payments
     const pl = document.getElementById('recentPaymentsList');
-    pl.innerHTML = (data.recentPayments || []).map(p => `
-        <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-700">
-            <div class="w-8 h-8 rounded-full ${p.status === 'pending' ? 'bg-yellow-900 text-yellow-400' : p.status === 'validated' ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'} flex items-center justify-center text-xs">
-                <i class="fas ${p.status === 'pending' ? 'fa-clock' : p.status === 'validated' ? 'fa-check' : 'fa-times'}"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium truncate">${p.user?.firstName || ''} ${p.user?.lastName || ''}</div>
-                <div class="text-xs text-gray-500">${p.plan || '-'} · ${fmtAmount(p.amount)} XOF</div>
+    pl.innerHTML = (data.recentPayments || []).map(p => {
+        const av = p.status==='pending' ? 'background:#78350f;color:#fbbf24' : p.status==='validated' ? 'background:#064e3b;color:#34d399' : 'background:#7f1d1d;color:#f87171';
+        const ic = p.status==='pending' ? 'fa-clock' : p.status==='validated' ? 'fa-check' : 'fa-times';
+        return `<div class="activity-item">
+            <div class="activity-avatar" style="${av}"><i class="fas ${ic}"></i></div>
+            <div class="activity-info">
+                <div class="activity-name">${p.user?.firstName||''} ${p.user?.lastName||''}</div>
+                <div class="activity-meta">${p.plan||'-'} · ${fmtAmount(p.amount)} XOF</div>
             </div>
             <span class="badge badge-${p.status}">${statusLabel(p.status)}</span>
-        </div>
-    `).join('') || '<div class="text-gray-500 text-sm text-center py-4">Aucun</div>';
+        </div>`;
+    }).join('') || '<div style="color:var(--gray-500);text-align:center;padding:16px;font-size:13px">Aucun paiement récent</div>';
 }
 
 async function loadLicenses() {
@@ -540,48 +524,48 @@ function renderLicenses() {
         const isExpired = l.status === 'active' && l.expiresAt && new Date(l.expiresAt) < now;
         const displayStatus = isExpired ? 'expired' : l.status;
         const daysLeft = l.expiresAt ? Math.ceil((new Date(l.expiresAt) - now) / 86400000) : 0;
-        return `<tr class="table-row border-b border-gray-700">
-            <td class="px-4 py-3 font-medium">${l.businessName || '-'}</td>
-            <td class="px-4 py-3 text-gray-400">${l.ownerEmail || '-'}</td>
-            <td class="px-4 py-3 text-center"><span class="badge bg-gray-700">${(l.plan||'trial').toUpperCase()}</span></td>
-            <td class="px-4 py-3 text-center"><span class="badge badge-${displayStatus}">${statusLabel(displayStatus)}</span></td>
-            <td class="px-4 py-3 text-center text-xs">${l.expiresAt ? fmtDate(l.expiresAt) : '-'}${daysLeft > 0 && daysLeft < 30 ? ` <span class="text-orange-400">(${daysLeft}j)</span>` : ''}</td>
-            <td class="px-4 py-3 text-center">
-                <div class="flex items-center justify-center gap-1">
-                    ${l.status === 'pending' ? `<button onclick="approveLicense('${l.id}')" class="px-2 py-1 text-xs rounded bg-green-700 hover:bg-green-600" title="Approuver"><i class="fas fa-check"></i></button>` : ''}
-                    <button onclick="extendLicense('${l.id}')" class="px-2 py-1 text-xs rounded bg-blue-700 hover:bg-blue-600" title="Étendre"><i class="fas fa-calendar-plus"></i></button>
-                    <button onclick="changePlan('${l.id}')" class="px-2 py-1 text-xs rounded bg-purple-700 hover:bg-purple-600" title="Plan"><i class="fas fa-arrow-up"></i></button>
+        return `<tr>
+            <td style="font-weight:600">${l.businessName || '-'}</td>
+            <td style="color:var(--gray-400)">${l.ownerEmail || '-'}</td>
+            <td class="center"><span class="badge badge-gray">${(l.plan||'trial').toUpperCase()}</span></td>
+            <td class="center"><span class="badge badge-${displayStatus}">${statusLabel(displayStatus)}</span></td>
+            <td class="center" style="font-size:12px">${l.expiresAt ? fmtDate(l.expiresAt) : '-'}${daysLeft > 0 && daysLeft < 30 ? ` <span style="color:#fb923c">(${daysLeft}j)</span>` : ''}</td>
+            <td class="center">
+                <div class="action-btns">
+                    ${l.status === 'pending' ? `<button onclick="approveLicense('${l.id}')" class="btn-sm btn-green" title="Approuver"><i class="fas fa-check"></i></button>` : ''}
+                    <button onclick="extendLicense('${l.id}')" class="btn-sm btn-blue" title="Étendre"><i class="fas fa-calendar-plus"></i></button>
+                    <button onclick="changePlan('${l.id}')" class="btn-sm btn-purple" title="Plan"><i class="fas fa-arrow-up"></i></button>
                 </div>
             </td>
         </tr>`;
-    }).join('') || '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Aucune licence trouvée</td></tr>';
+    }).join('') || '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--gray-500)">Aucune licence trouvée</td></tr>';
 }
 
 function renderPayments() {
     const filtered = allPayments.filter(p => !paymentFilter || p.status === paymentFilter);
     const tbody = document.getElementById('paymentsTable');
     tbody.innerHTML = filtered.map(p => `
-        <tr class="table-row border-b border-gray-700">
-            <td class="px-4 py-3">
-                <div class="font-medium">${p.user?.firstName || ''} ${p.user?.lastName || ''}</div>
-                <div class="text-xs text-gray-500">${p.user?.email || '-'}</div>
+        <tr>
+            <td>
+                <div style="font-weight:600">${p.user?.firstName || ''} ${p.user?.lastName || ''}</div>
+                <div style="font-size:11px;color:var(--gray-500)">${p.user?.email || '-'}</div>
             </td>
-            <td class="px-4 py-3 text-center"><span class="badge bg-gray-700">${(p.plan||'-').toUpperCase()}</span></td>
-            <td class="px-4 py-3 text-right font-medium">${fmtAmount(p.amount)}</td>
-            <td class="px-4 py-3 text-center text-xs">${p.method || '-'}</td>
-            <td class="px-4 py-3 text-center text-xs font-mono">${p.reference || '-'}</td>
-            <td class="px-4 py-3 text-center"><span class="badge badge-${p.status}">${statusLabel(p.status)}</span></td>
-            <td class="px-4 py-3 text-center text-xs">${fmtDate(p.createdAt)}</td>
-            <td class="px-4 py-3 text-center">
+            <td class="center"><span class="badge badge-gray">${(p.plan||'-').toUpperCase()}</span></td>
+            <td class="center" style="font-weight:600">${fmtAmount(p.amount)} XOF</td>
+            <td class="center" style="font-size:12px">${p.method || '-'}</td>
+            <td class="center" style="font-size:11px;font-family:monospace">${p.reference || '-'}</td>
+            <td class="center"><span class="badge badge-${p.status}">${statusLabel(p.status)}</span></td>
+            <td class="center" style="font-size:12px">${fmtDate(p.createdAt)}</td>
+            <td class="center">
                 ${p.status === 'pending' ? `
-                    <div class="flex items-center justify-center gap-1">
-                        <button onclick="validatePayment('${p.id}')" class="px-2 py-1 text-xs rounded bg-green-700 hover:bg-green-600" title="Valider"><i class="fas fa-check"></i></button>
-                        <button onclick="rejectPayment('${p.id}')" class="px-2 py-1 text-xs rounded bg-red-700 hover:bg-red-600" title="Rejeter"><i class="fas fa-times"></i></button>
+                    <div class="action-btns">
+                        <button onclick="validatePayment('${p.id}')" class="btn-sm btn-green" title="Valider"><i class="fas fa-check"></i></button>
+                        <button onclick="rejectPayment('${p.id}')" class="btn-sm btn-red" title="Rejeter"><i class="fas fa-times"></i></button>
                     </div>
-                ` : '-'}
+                ` : '<span style="color:var(--gray-500)">-</span>'}
             </td>
         </tr>
-    `).join('') || '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">Aucun paiement trouvé</td></tr>';
+    `).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--gray-500)">Aucun paiement trouvé</td></tr>';
 }
 
 function renderUsers() {
@@ -756,14 +740,14 @@ function statusLabel(s) {
 function renewLicense(id, plan) {
     const days = plan === 'annual' ? 365 : 30;
     openModal(`Renouveler (${plan === 'annual' ? '1 an' : '1 mois'})`, `
-        <p class="text-gray-400 text-sm mb-3">Ajouter <strong class="text-white">${days} jours</strong> à cette licence ?</p>
-        <label class="block text-sm text-gray-400 mb-1">Ou choisir une durée :</label>
-        <select id="mDays" class="w-full p-2.5 bg-gray-700 rounded-lg border border-gray-600">
+        <p style="color:var(--gray-400);font-size:13px;margin-bottom:12px">Ajouter <strong style="color:#fff">${days} jours</strong> à cette licence ?</p>
+        <div class="modal-field"><label class="modal-label">Ou choisir une durée :</label>
+        <select id="mDays" class="modal-input">
             <option value="30" ${plan==='monthly'?'selected':''}>30 jours (1 mois)</option>
             <option value="90">90 jours (3 mois)</option>
             <option value="180">180 jours (6 mois)</option>
             <option value="365" ${plan==='annual'?'selected':''}>365 jours (1 an)</option>
-        </select>
+        </select></div>
     `, async () => {
         const d = document.getElementById('mDays').value;
         await api(`/admin/licenses/${id}/extend`, { method: 'POST', body: JSON.stringify({ days: +d }) });
@@ -775,18 +759,16 @@ function renewLicense(id, plan) {
 // ─── Create License ───
 function openCreateLicense() {
     openModal('Nouvelle licence', `
-        <div class="space-y-3">
-            <div><label class="block text-xs text-gray-400 mb-1">Bureau de change *</label><input id="nBusiness" class="w-full p-2.5 bg-gray-700 rounded-lg border border-gray-600 text-sm" placeholder="Ex: Exchange Dakar" /></div>
-            <div><label class="block text-xs text-gray-400 mb-1">Nom propriétaire *</label><input id="nOwner" class="w-full p-2.5 bg-gray-700 rounded-lg border border-gray-600 text-sm" placeholder="Prénom Nom" /></div>
-            <div><label class="block text-xs text-gray-400 mb-1">Email *</label><input id="nEmail" type="email" class="w-full p-2.5 bg-gray-700 rounded-lg border border-gray-600 text-sm" placeholder="email@exemple.com" /></div>
-            <div><label class="block text-xs text-gray-400 mb-1">Téléphone</label><input id="nPhone" class="w-full p-2.5 bg-gray-700 rounded-lg border border-gray-600 text-sm" placeholder="+221..." /></div>
-            <div><label class="block text-xs text-gray-400 mb-1">Plan</label>
-                <select id="nPlan" class="w-full p-2.5 bg-gray-700 rounded-lg border border-gray-600 text-sm">
-                    <option value="trial">Essai 14 jours</option>
-                    <option value="monthly">Mensuel (30 jours)</option>
-                    <option value="annual">Annuel (1 an)</option>
-                </select>
-            </div>
+        <div class="modal-field"><label class="modal-label">Bureau de change *</label><input id="nBusiness" class="modal-input" placeholder="Ex: Exchange Dakar" /></div>
+        <div class="modal-field"><label class="modal-label">Nom propriétaire *</label><input id="nOwner" class="modal-input" placeholder="Prénom Nom" /></div>
+        <div class="modal-field"><label class="modal-label">Email *</label><input id="nEmail" type="email" class="modal-input" placeholder="email@exemple.com" /></div>
+        <div class="modal-field"><label class="modal-label">Téléphone</label><input id="nPhone" class="modal-input" placeholder="+221..." /></div>
+        <div class="modal-field"><label class="modal-label">Plan</label>
+            <select id="nPlan" class="modal-input">
+                <option value="trial">Essai 14 jours</option>
+                <option value="monthly">Mensuel (30 jours)</option>
+                <option value="annual">Annuel (1 an)</option>
+            </select>
         </div>
     `, async () => {
         const b = document.getElementById('nBusiness').value.trim();
