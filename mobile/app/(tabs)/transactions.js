@@ -3,7 +3,7 @@ import {
   View, Text, FlatList, StyleSheet, TouchableOpacity,
   TextInput, RefreshControl, Modal, ScrollView
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import useTransactionStore from '../../src/store/transactionStore';
 import useLanguageStore from '../../src/store/languageStore';
@@ -59,6 +59,7 @@ export default function TransactionsScreen() {
     amountMin: '',
     amountMax: '',
   });
+
   const { transactions, isLoading, fetchTransactions } = useTransactionStore();
   const { t } = useLanguageStore();
   const router = useRouter();
@@ -81,19 +82,23 @@ export default function TransactionsScreen() {
     return p;
   }, []);
 
+  // Re-apply filter from params every time the screen gets focus
+  // (handles navigation from dashboard when tab is already mounted)
+  useFocusEffect(useCallback(() => {
+    const newStatus = params.status || '';
+    const newDateFrom = params.dateFrom || '';
+    const newDateTo = params.dateTo || '';
+    setActiveFilter(newStatus);
+    const newAdv = { dateFrom: newDateFrom, dateTo: newDateTo, currencyFrom: '', currencyTo: '', amountMin: '', amountMax: '' };
+    if (newDateFrom || newDateTo) setAdv(a => ({ ...a, dateFrom: newDateFrom, dateTo: newDateTo }));
+    fetchTransactions(buildParams(newStatus || undefined, newAdv));
+  }, [params.status, params.dateFrom, params.dateTo, fetchTransactions, buildParams]));
+
   const advCount = Object.values(adv).filter(v => v !== '').length;
 
   useEffect(() => {
     fetchTransactions(buildParams(activeFilter || undefined, adv));
   }, [activeFilter]);
-
-  // Auto-open advanced panel if date params were passed
-  useEffect(() => {
-    if (params.dateFrom || params.dateTo) {
-      setShowAdvanced(false);
-      fetchTransactions(buildParams(activeFilter || undefined, adv));
-    }
-  }, []);
 
   const onRefresh = useCallback(() => {
     fetchTransactions(buildParams(activeFilter || undefined, adv));

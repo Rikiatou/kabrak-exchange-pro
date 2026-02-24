@@ -132,7 +132,7 @@ export default function DepositsScreen() {
     fetchSettings();
   }, []);
 
-  useEffect(() => { load(); }, [filterStatus]);
+  useEffect(() => { load(); }, [filterStatus, search]);
 
   // Auto-refresh when screen gets focus
   useFocusEffect(useCallback(() => { load(); }, [filterStatus]));
@@ -328,7 +328,7 @@ export default function DepositsScreen() {
           placeholder={lang === 'fr' ? 'Rechercher client, référence...' : 'Search client, reference...'}
           placeholderTextColor={COLORS.textMuted}
           value={search}
-          onChangeText={setSearch}
+          onChangeText={text => { setSearch(text); }}
           onSubmitEditing={load}
         />
       </View>

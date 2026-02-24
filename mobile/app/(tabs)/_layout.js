@@ -48,15 +48,15 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: 68, backgroundColor: BG,
+    height: 60, backgroundColor: BG,
     borderTopWidth: 1, borderTopColor: '#f1f5f9',
-    paddingBottom: 8, paddingTop: 4,
+    paddingBottom: 4, paddingTop: 6,
     shadowColor: '#000', shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.05, shadowRadius: 10, elevation: 16
   },
-  tabItem: { alignItems: 'center', justifyContent: 'center', gap: 3 },
+  tabItem: { alignItems: 'center', justifyContent: 'center', gap: 2 },
   tabIconWrap: {
-    width: 36, height: 28, borderRadius: 8,
+    width: 40, height: 30, borderRadius: 8,
     justifyContent: 'center', alignItems: 'center'
   },
   tabIconWrapActive: { backgroundColor: 'rgba(11,110,79,0.1)' },
