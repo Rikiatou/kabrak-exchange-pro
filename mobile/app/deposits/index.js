@@ -174,8 +174,11 @@ export default function DepositsScreen() {
       setShowNew(false);
       setClientSearch('');
       setForm({ clientName: '', clientPhone: '', clientId: null, amountForeign: '', foreignCurrency: 'EUR', rate: '', totalAmount: '', currency: 'FCFA', bank: '', notes: '' });
+      setFilterStatus(''); // reset to "Tous" so new pending order is visible
+      setSearch('');
       setSelected(result.data);
       setShowDetail(true);
+      load(); // force refresh
     } else {
       Alert.alert(lang === 'fr' ? 'Erreur' : 'Error', result.message);
     }

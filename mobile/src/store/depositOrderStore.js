@@ -20,7 +20,7 @@ const useDepositOrderStore = create((set, get) => ({
   createOrder: async (data) => {
     try {
       const res = await api.post('/deposit-orders', data);
-      await get().fetchOrders();
+      await get().fetchOrders({}); // fetch all, no filter
       return { success: true, data: res.data.data };
     } catch (e) {
       return { success: false, message: e.response?.data?.message || 'Error' };
