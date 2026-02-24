@@ -81,7 +81,8 @@ const changePassword = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ success: false, message: 'Current password is incorrect.' });
     }
-    await user.update({ password: newPassword });
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await user.update({ password: hashed });
     return res.json({ success: true, message: 'Password changed successfully.' });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -98,26 +99,30 @@ const register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Cet email est déjà utilisé' });
     }
     
-    // Build the display name from available fields
-    const name = businessName || [firstName, lastName].filter(Boolean).join(' ') || email.split('@')[0];
+    // Hash password manually (user.model.js has no beforeCreate hook)
+    const hashedPassword = await bcrypt.hash(password, 12);
     
-    // Créer l'utilisateur — password will be hashed by beforeCreate hook
+    // Créer l'utilisateur
     const user = await User.create({
-      name,
       email: email.toLowerCase(),
-      password,
-      role: 'admin',
+      password: hashedPassword,
+      firstName: firstName || businessName || email.split('@')[0],
+      lastName: lastName || '',
+      businessName: businessName || '',
       phone: phone || null,
+      role: 'admin',
+      teamRole: 'owner',
     });
     
     // Créer une licence trial
+    const displayName = businessName || [firstName, lastName].filter(Boolean).join(' ') || email.split('@')[0];
     const licenseKey = generateLicenseKey();
     const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 jours trial
     
     await License.create({
       userId: user.id,
-      businessName: name,
-      ownerName: name,
+      businessName: displayName,
+      ownerName: displayName,
       ownerEmail: email.toLowerCase(),
       ownerPhone: phone || null,
       plan: 'trial',
@@ -138,7 +143,9 @@ const register = async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          businessName: user.businessName,
         },
         token,
         refreshToken: rt,

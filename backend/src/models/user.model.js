@@ -49,13 +49,11 @@ module.exports = (sequelize) => {
     },
     teamOwnerId: {
       type: DataTypes.UUID,
-      allowNull: true,
-      comment: 'ID of the bureau owner this user belongs to (null = owner)'
+      allowNull: true
     },
     teamRole: {
       type: DataTypes.ENUM('owner', 'manager', 'cashier'),
-      defaultValue: 'owner',
-      comment: 'Role within the team: owner, manager, or cashier'
+      defaultValue: 'owner'
     },
     expoPushToken: {
       type: DataTypes.STRING,
@@ -65,6 +63,18 @@ module.exports = (sequelize) => {
     tableName: 'users',
     timestamps: true
   });
+
+  const bcrypt = require('bcryptjs');
+
+  User.prototype.comparePassword = async function(candidatePassword) {
+    return bcrypt.compare(candidatePassword, this.password);
+  };
+
+  User.prototype.toJSON = function() {
+    const values = { ...this.get() };
+    delete values.password;
+    return values;
+  };
 
   return User;
 };
