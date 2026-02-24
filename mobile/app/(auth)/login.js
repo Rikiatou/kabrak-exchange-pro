@@ -149,6 +149,11 @@ export default function LoginScreen() {
               </View>
             </View>
 
+            {/* Forgot password */}
+            <TouchableOpacity style={styles.forgotRow} onPress={() => router.push('/(auth)/forgot-password')}>
+              <Text style={styles.forgotText}>{language === 'fr' ? 'Mot de passe oublié ?' : 'Forgot password?'}</Text>
+            </TouchableOpacity>
+
             {/* Sign In button */}
             <TouchableOpacity
               style={[styles.loginBtn, isLoading && { opacity: 0.65 }]}
@@ -298,6 +303,8 @@ const styles = StyleSheet.create({
   trustLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
   trustText: { fontSize: 11, color: 'rgba(255,255,255,0.35)', letterSpacing: 0.3 },
 
+  forgotRow: { alignSelf: 'flex-end', marginTop: 4, marginBottom: 8 },
+  forgotText: { color: GOLD, fontSize: 13, fontWeight: '600' },
   backBtn: { alignSelf: 'flex-start', marginBottom: 16, padding: 4 },
   registerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   registerLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 13 },

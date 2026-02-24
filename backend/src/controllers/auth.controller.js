@@ -161,6 +161,83 @@ const register = async (req, res) => {
   }
 };
 
+const crypto = require('crypto');
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: 'Email requis.' });
+
+    const user = await User.findOne({ where: { email: email.toLowerCase() } });
+    // Always return success to avoid email enumeration
+    if (!user) return res.json({ success: true, message: 'Si cet email existe, un code de réinitialisation a été envoyé.' });
+
+    // Generate a 6-digit code + JWT reset token (15 min expiry)
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedCode = crypto.createHash('sha256').update(resetCode).digest('hex');
+    const resetToken = jwt.sign(
+      { id: user.id, code: hashedCode, type: 'reset' },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    // Send reset email
+    const { sendPasswordReset } = require('../services/email.service');
+    await sendPasswordReset({
+      email: user.email,
+      name: user.businessName || user.firstName || 'Client',
+      resetCode,
+    });
+
+    return res.json({
+      success: true,
+      message: 'Si cet email existe, un code de réinitialisation a été envoyé.',
+      data: { resetToken }
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { resetToken, code, newPassword } = req.body;
+    if (!resetToken || !code || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Token, code et nouveau mot de passe requis.' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'Le mot de passe doit contenir au moins 6 caractères.' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    } catch (e) {
+      return res.status(400).json({ success: false, message: 'Le lien de réinitialisation a expiré. Veuillez réessayer.' });
+    }
+
+    if (decoded.type !== 'reset') {
+      return res.status(400).json({ success: false, message: 'Token invalide.' });
+    }
+
+    // Verify code
+    const hashedCode = crypto.createHash('sha256').update(code).digest('hex');
+    if (hashedCode !== decoded.code) {
+      return res.status(400).json({ success: false, message: 'Code incorrect.' });
+    }
+
+    const user = await User.findByPk(decoded.id);
+    if (!user) return res.status(404).json({ success: false, message: 'Utilisateur introuvable.' });
+
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await user.update({ password: hashed });
+
+    return res.json({ success: true, message: 'Mot de passe réinitialisé avec succès.' });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 function generateLicenseKey() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = 'KAB-';
@@ -173,4 +250,4 @@ function generateLicenseKey() {
   return result;
 }
 
-module.exports = { login, getMe, changePassword, refreshToken, register };
+module.exports = { login, getMe, changePassword, refreshToken, register, forgotPassword, resetPassword };

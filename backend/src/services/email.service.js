@@ -141,4 +141,32 @@ async function sendPaymentRejected({ email, businessName, reason }) {
   });
 }
 
-module.exports = { sendTrialActivated, sendPaymentReceived, sendLicenseActivated, sendPaymentRejected };
+// Email: Réinitialisation de mot de passe
+async function sendPasswordReset({ email, name, resetCode }) {
+  return sendEmail({
+    to: email,
+    subject: '🔐 Code de réinitialisation — KABRAK Exchange Pro',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#071a12;color:#fff;border-radius:12px;overflow:hidden;">
+        <div style="background:#0B6E4F;padding:32px;text-align:center;">
+          <h1 style="margin:0;font-size:24px;color:#e8a020;">KABRAK Exchange Pro</h1>
+          <p style="margin:8px 0 0;opacity:0.8;">Réinitialisation du mot de passe</p>
+        </div>
+        <div style="padding:32px;">
+          <h2>Bonjour ${name},</h2>
+          <p>Vous avez demandé la réinitialisation de votre mot de passe. Voici votre code :</p>
+          <div style="background:#0a3d22;border-radius:8px;padding:24px;margin:24px 0;text-align:center;">
+            <p style="margin:0 0 8px;opacity:0.7;font-size:12px;letter-spacing:1px;">VOTRE CODE</p>
+            <p style="margin:0;font-size:36px;font-weight:bold;color:#e8a020;letter-spacing:8px;">${resetCode}</p>
+          </div>
+          <p>⏱️ Ce code expire dans <strong>15 minutes</strong>.</p>
+          <p>Si vous n'avez pas fait cette demande, ignorez simplement cet email.</p>
+          <hr style="border:none;border-top:1px solid #0a3d22;margin:24px 0;">
+          <p style="opacity:0.5;font-size:12px;text-align:center;">KABRAK ENG — Bureau de Change Management System</p>
+        </div>
+      </div>
+    `
+  });
+}
+
+module.exports = { sendTrialActivated, sendPaymentReceived, sendLicenseActivated, sendPaymentRejected, sendPasswordReset };
