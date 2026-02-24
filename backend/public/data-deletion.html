@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suppression de Compte — KABRAK Exchange Pro</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',Arial,sans-serif; background:#071a12; color:#e2e8f0; line-height:1.7; }
+    .topbar { background:#0B6E4F; padding:20px 0; text-align:center; }
+    .topbar h1 { color:#e8a020; font-size:22px; margin-bottom:4px; }
+    .topbar p { color:rgba(255,255,255,.7); font-size:13px; }
+    .lang-toggle { position:absolute; top:20px; right:24px; background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.2); color:#fff; padding:6px 14px; border-radius:6px; cursor:pointer; font-size:13px; }
+    .container { max-width:640px; margin:0 auto; padding:40px 24px 60px; }
+    h2 { color:#e8a020; font-size:20px; margin-bottom:16px; text-align:center; }
+    p { font-size:14px; color:#cbd5e1; margin-bottom:12px; }
+    ul { padding-left:22px; margin:12px 0 20px; }
+    li { margin-bottom:6px; font-size:14px; color:#cbd5e1; }
+    a { color:#e8a020; text-decoration:none; }
+    .form-card { background:#0a3d22; border-radius:14px; padding:28px; margin-top:24px; }
+    label { display:block; color:rgba(255,255,255,.6); font-size:12px; font-weight:600; letter-spacing:.5px; margin-bottom:6px; margin-top:16px; }
+    label:first-child { margin-top:0; }
+    input, textarea { width:100%; padding:12px 14px; border-radius:8px; border:1.5px solid rgba(255,255,255,.1); background:rgba(255,255,255,.06); color:#fff; font-size:14px; font-family:inherit; }
+    input:focus, textarea:focus { outline:none; border-color:#0B6E4F; }
+    textarea { min-height:80px; resize:vertical; }
+    .submit-btn { width:100%; margin-top:24px; padding:14px; background:#dc2626; color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; transition:opacity .2s; }
+    .submit-btn:hover { opacity:.85; }
+    .submit-btn:disabled { opacity:.5; cursor:not-allowed; }
+    .success-msg { display:none; text-align:center; padding:32px; }
+    .success-msg .icon { font-size:48px; margin-bottom:16px; }
+    .success-msg h3 { color:#4ade80; font-size:20px; margin-bottom:12px; }
+    .info-box { background:rgba(232,160,32,.1); border:1px solid rgba(232,160,32,.2); border-radius:8px; padding:14px 18px; margin:20px 0; }
+    .info-box p { margin:0; font-size:13px; color:#e8a020; }
+    .footer { text-align:center; margin-top:48px; padding-top:24px; border-top:1px solid rgba(255,255,255,.08); color:rgba(255,255,255,.3); font-size:12px; }
+    @media(max-width:600px){ .container{padding:24px 16px 40px;} .form-card{padding:20px;} }
+  </style>
+</head>
+<body>
+  <div style="position:relative;">
+    <div class="topbar">
+      <h1>KABRAK Exchange Pro</h1>
+      <p id="subtitle">Demande de suppression de compte</p>
+    </div>
+    <button class="lang-toggle" onclick="toggleLang()" id="langBtn">EN</button>
+  </div>
+
+  <!-- FRENCH -->
+  <div class="container" id="content-fr">
+    <h2>Supprimer votre compte</h2>
+    <p>Conform&eacute;ment &agrave; notre <a href="/privacy-policy.html">Politique de Confidentialit&eacute;</a>, vous avez le droit de demander la suppression compl&egrave;te de votre compte et de toutes les donn&eacute;es associ&eacute;es.</p>
+
+    <div class="info-box">
+      <p><strong>Important :</strong> La suppression est irr&eacute;versible. Toutes vos donn&eacute;es (transactions, clients, rapports, licences) seront d&eacute;finitivement supprim&eacute;es dans un d&eacute;lai de 30 jours.</p>
+    </div>
+
+    <p><strong>Donn&eacute;es supprim&eacute;es :</strong></p>
+    <ul>
+      <li>Informations du compte (nom, email, t&eacute;l&eacute;phone)</li>
+      <li>Historique des transactions</li>
+      <li>Donn&eacute;es des clients</li>
+      <li>Rapports et re&ccedil;us</li>
+      <li>Licences et abonnements</li>
+      <li>Logs de connexion</li>
+    </ul>
+
+    <div class="form-card" id="form-section-fr">
+      <form id="deleteForm">
+        <label>ADRESSE EMAIL DU COMPTE</label>
+        <input type="email" id="del-email" placeholder="votre@email.com" required>
+
+        <label>NOM COMPLET</label>
+        <input type="text" id="del-name" placeholder="Votre nom" required>
+
+        <label>RAISON (OPTIONNEL)</label>
+        <textarea id="del-reason" placeholder="Dites-nous pourquoi vous souhaitez supprimer votre compte..."></textarea>
+
+        <button type="submit" class="submit-btn" id="del-btn">Demander la suppression de mon compte</button>
+      </form>
+    </div>
+
+    <div class="success-msg" id="success-fr">
+      <div class="icon">&#10003;</div>
+      <h3>Demande re&ccedil;ue</h3>
+      <p>Votre demande de suppression de compte a &eacute;t&eacute; enregistr&eacute;e. Nous traiterons votre demande dans un d&eacute;lai maximum de 30 jours.</p>
+      <p style="margin-top:16px;">Un email de confirmation vous sera envoy&eacute; &agrave; l'adresse indiqu&eacute;e.</p>
+      <p style="margin-top:24px; font-size:13px; color:rgba(255,255,255,.4);">Vous pouvez aussi nous contacter directement : <a href="mailto:kabrakeng@gmail.com">kabrakeng@gmail.com</a></p>
+    </div>
+
+    <div class="footer">
+      <p style="color:#e8a020; font-weight:700; margin-bottom:4px;">KABRAK Exchange Pro</p>
+      <p>Smart Currency Management</p>
+      <p style="margin-top:8px;">&copy; 2026 KABRAK ENG. Tous droits r&eacute;serv&eacute;s.</p>
+      <p style="margin-top:12px;"><a href="/privacy-policy.html">Politique de Confidentialit&eacute;</a> &middot; <a href="/terms.html">Conditions d'Utilisation</a></p>
+    </div>
+  </div>
+
+  <!-- ENGLISH -->
+  <div class="container" id="content-en" style="display:none;">
+    <h2>Delete Your Account</h2>
+    <p>In accordance with our <a href="/privacy-policy.html">Privacy Policy</a>, you have the right to request the complete deletion of your account and all associated data.</p>
+
+    <div class="info-box">
+      <p><strong>Important:</strong> Deletion is irreversible. All your data (transactions, clients, reports, licenses) will be permanently deleted within 30 days.</p>
+    </div>
+
+    <p><strong>Data deleted:</strong></p>
+    <ul>
+      <li>Account information (name, email, phone)</li>
+      <li>Transaction history</li>
+      <li>Client data</li>
+      <li>Reports and receipts</li>
+      <li>Licenses and subscriptions</li>
+      <li>Connection logs</li>
+    </ul>
+
+    <div class="form-card" id="form-section-en">
+      <form id="deleteFormEn">
+        <label>ACCOUNT EMAIL ADDRESS</label>
+        <input type="email" id="del-email-en" placeholder="your@email.com" required>
+
+        <label>FULL NAME</label>
+        <input type="text" id="del-name-en" placeholder="Your name" required>
+
+        <label>REASON (OPTIONAL)</label>
+        <textarea id="del-reason-en" placeholder="Tell us why you want to delete your account..."></textarea>
+
+        <button type="submit" class="submit-btn" id="del-btn-en">Request account deletion</button>
+      </form>
+    </div>
+
+    <div class="success-msg" id="success-en">
+      <div class="icon">&#10003;</div>
+      <h3>Request received</h3>
+      <p>Your account deletion request has been recorded. We will process your request within a maximum of 30 days.</p>
+      <p style="margin-top:16px;">A confirmation email will be sent to the address provided.</p>
+      <p style="margin-top:24px; font-size:13px; color:rgba(255,255,255,.4);">You can also contact us directly: <a href="mailto:kabrakeng@gmail.com">kabrakeng@gmail.com</a></p>
+    </div>
+
+    <div class="footer">
+      <p style="color:#e8a020; font-weight:700; margin-bottom:4px;">KABRAK Exchange Pro</p>
+      <p>Smart Currency Management</p>
+      <p style="margin-top:8px;">&copy; 2026 KABRAK ENG. All rights reserved.</p>
+      <p style="margin-top:12px;"><a href="/privacy-policy.html">Privacy Policy</a> &middot; <a href="/terms.html">Terms & Conditions</a></p>
+    </div>
+  </div>
+
+  <script>
+    let lang = 'fr';
+    function toggleLang() {
+      lang = lang === 'fr' ? 'en' : 'fr';
+      document.getElementById('content-fr').style.display = lang === 'fr' ? 'block' : 'none';
+      document.getElementById('content-en').style.display = lang === 'en' ? 'block' : 'none';
+      document.getElementById('langBtn').textContent = lang === 'fr' ? 'EN' : 'FR';
+      document.getElementById('subtitle').textContent = lang === 'fr' ? 'Demande de suppression de compte' : 'Account Deletion Request';
+    }
+
+    // Handle FR form
+    document.getElementById('deleteForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('del-btn');
+      btn.disabled = true;
+      btn.textContent = 'Envoi en cours...';
+      try {
+        const res = await fetch('/api/account/delete-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('del-email').value,
+            name: document.getElementById('del-name').value,
+            reason: document.getElementById('del-reason').value
+          })
+        });
+        // Show success regardless (avoid enumeration)
+        document.getElementById('form-section-fr').style.display = 'none';
+        document.getElementById('success-fr').style.display = 'block';
+      } catch (err) {
+        document.getElementById('form-section-fr').style.display = 'none';
+        document.getElementById('success-fr').style.display = 'block';
+      }
+    });
+
+    // Handle EN form
+    document.getElementById('deleteFormEn').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('del-btn-en');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      try {
+        const res = await fetch('/api/account/delete-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('del-email-en').value,
+            name: document.getElementById('del-name-en').value,
+            reason: document.getElementById('del-reason-en').value
+          })
+        });
+        document.getElementById('form-section-en').style.display = 'none';
+        document.getElementById('success-en').style.display = 'block';
+      } catch (err) {
+        document.getElementById('form-section-en').style.display = 'none';
+        document.getElementById('success-en').style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

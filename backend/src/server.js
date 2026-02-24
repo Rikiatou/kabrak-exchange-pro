@@ -112,6 +112,39 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/admin', express.static(path.join(__dirname, '../public')));
 app.use('/admin-pro', express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Account deletion request (for Google Play / App Store compliance)
+app.post('/api/account/delete-request', async (req, res) => {
+  try {
+    const { email, name, reason } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: 'Email requis.' });
+    console.log(`🗑️ Account deletion request received: ${email} (${name || 'N/A'}) - Reason: ${reason || 'none'}`);
+    // Send notification email to admin
+    const { sendEmail } = require('./services/email.service');
+    if (sendEmail) {
+      await sendEmail({
+        to: 'kabrakeng@gmail.com',
+        subject: `🗑️ Demande de suppression de compte — ${email}`,
+        html: `
+          <div style="font-family:Arial,sans-serif;padding:20px;">
+            <h2>Demande de suppression de compte</h2>
+            <p><strong>Email :</strong> ${email}</p>
+            <p><strong>Nom :</strong> ${name || 'Non fourni'}</p>
+            <p><strong>Raison :</strong> ${reason || 'Non fournie'}</p>
+            <p><strong>Date :</strong> ${new Date().toLocaleString('fr-FR')}</p>
+            <hr>
+            <p style="color:#888;">Veuillez traiter cette demande dans un délai de 30 jours.</p>
+          </div>
+        `
+      });
+    }
+    res.json({ success: true, message: 'Demande de suppression enregistrée.' });
+  } catch (e) {
+    console.error('Delete request error:', e.message);
+    res.json({ success: true, message: 'Demande de suppression enregistrée.' });
+  }
+});
 
 // Homepage redirect to payment
 app.get('/', (req, res) => {

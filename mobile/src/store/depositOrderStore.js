@@ -55,6 +55,15 @@ const useDepositOrderStore = create((set, get) => ({
       return { success: false, message: e.response?.data?.message || 'Error' };
     }
   },
+
+  getClientOrders: async (clientName) => {
+    try {
+      const res = await api.get(`/deposit-orders?search=${encodeURIComponent(clientName)}`);
+      return { success: true, data: res.data.data };
+    } catch (e) {
+      return { success: false, message: e.response?.data?.message || 'Error' };
+    }
+  },
 }));
 
 export default useDepositOrderStore;

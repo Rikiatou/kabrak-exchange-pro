@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Alert, FlatList, Share, Clipboard
+  ActivityIndicator, Alert, Modal, TextInput, Share, Clipboard
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import useClientStore from '../../src/store/clientStore';
+import useDepositOrderStore from '../../src/store/depositOrderStore';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import useLanguageStore from '../../src/store/languageStore';
 import { formatCurrency, formatDate, getStatusConfig, getInitials } from '../../src/utils/helpers';
@@ -47,19 +48,60 @@ export default function ClientDetailScreen() {
   const router = useRouter();
   const { t } = useLanguageStore();
   const { currentClient, isLoading, fetchClientById, deleteClient, getClientTransactions } = useClientStore();
+  const { getClientOrders, addPayment } = useDepositOrderStore();
   const [transactions, setTransactions] = useState([]);
   const [txLoading, setTxLoading] = useState(false);
+  const [depositOrders, setDepositOrders] = useState([]);
+  const [depositLoading, setDepositLoading] = useState(false);
+  const [showAddPayment, setShowAddPayment] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [payAmount, setPayAmount] = useState('');
+  const [payNotes, setPayNotes] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchClientById(id);
     loadTransactions();
   }, [id]);
 
+  useEffect(() => {
+    if (currentClient?.name) loadDepositOrders();
+  }, [currentClient?.name]);
+
   const loadTransactions = async () => {
     setTxLoading(true);
     const result = await getClientTransactions(id, { limit: 20 });
     if (result?.success) setTransactions(result.data);
     setTxLoading(false);
+  };
+
+  const loadDepositOrders = async () => {
+    setDepositLoading(true);
+    const result = await getClientOrders(currentClient.name);
+    if (result?.success) setDepositOrders(result.data);
+    setDepositLoading(false);
+  };
+
+  const handleAddPayment = async () => {
+    if (!payAmount || parseFloat(payAmount) <= 0) {
+      Alert.alert('Erreur', 'Entrez un montant valide.');
+      return;
+    }
+    setSaving(true);
+    const result = await addPayment(selectedOrder.id, {
+      amount: parseFloat(payAmount.replace(/\s/g, '')),
+      notes: payNotes || null,
+    });
+    setSaving(false);
+    if (result.success) {
+      setShowAddPayment(false);
+      setPayAmount('');
+      setPayNotes('');
+      Alert.alert('✅', 'Versement créé ! Envoyez le lien au client.');
+      loadDepositOrders();
+    } else {
+      Alert.alert('Erreur', result.message);
+    }
   };
 
   const handleDelete = () => {
@@ -206,6 +248,134 @@ export default function ClientDetailScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Deposit Orders */}
+      <View style={styles.txSection}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.sm }}>
+          <Text style={styles.sectionTitle}>Commandes de dépôt</Text>
+          <TouchableOpacity
+            onPress={() => router.push(`/deposits?clientId=${id}`)}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: COLORS.primary, paddingHorizontal: 10, paddingVertical: 6, borderRadius: RADIUS.md }}
+          >
+            <Ionicons name="add" size={14} color={COLORS.white} />
+            <Text style={{ color: COLORS.white, fontSize: FONTS.sizes.xs, fontWeight: '700' }}>Nouvelle</Text>
+          </TouchableOpacity>
+        </View>
+
+        {depositLoading ? (
+          <ActivityIndicator color={COLORS.primary} />
+        ) : depositOrders.length === 0 ? (
+          <Text style={styles.emptyTx}>Aucune commande de dépôt</Text>
+        ) : (
+          depositOrders.map((order) => {
+            const remaining = parseFloat(order.remainingAmount || 0);
+            const total = parseFloat(order.totalAmount || 0);
+            const pct = total > 0 ? Math.min(1, (total - remaining) / total) : 0;
+            const isActive = order.status !== 'completed' && order.status !== 'cancelled';
+            const statusColor = order.status === 'completed' ? COLORS.primary : order.status === 'partial' ? '#d97706' : order.status === 'cancelled' ? '#dc2626' : '#0369a1';
+            const statusBg = order.status === 'completed' ? '#e6f4ef' : order.status === 'partial' ? '#fef3c7' : order.status === 'cancelled' ? '#fee2e2' : '#e0f2fe';
+            const statusLabel = order.status === 'completed' ? 'Complété' : order.status === 'partial' ? 'Partiel' : order.status === 'cancelled' ? 'Annulé' : 'En attente';
+            return (
+              <View key={order.id} style={[styles.depositCard, { borderLeftColor: statusColor }]}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: FONTS.sizes.sm, fontWeight: '700', color: COLORS.textPrimary }}>{order.reference}</Text>
+                    <Text style={{ fontSize: FONTS.sizes.xs, color: COLORS.textSecondary, marginTop: 2 }}>{order.currency} • {order.bank || 'Banque non précisée'}</Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                    <Text style={{ fontSize: FONTS.sizes.md, fontWeight: '700', color: COLORS.textPrimary }}>{formatCurrency(total, order.currency)}</Text>
+                    <View style={{ backgroundColor: statusBg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.full }}>
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: statusColor }}>{statusLabel}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Progress bar */}
+                <View style={{ height: 5, backgroundColor: COLORS.border, borderRadius: 3, marginVertical: 8 }}>
+                  <View style={{ width: `${Math.round(pct * 100)}%`, height: 5, borderRadius: 3, backgroundColor: statusColor }} />
+                </View>
+
+                {/* Remaining */}
+                {remaining > 0 && (
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={{ fontSize: FONTS.sizes.xs, color: '#dc2626', fontWeight: '600' }}>
+                      Restant dû : {formatCurrency(remaining, order.currency)}
+                    </Text>
+                    {isActive && (
+                      <TouchableOpacity
+                        onPress={() => { setSelectedOrder(order); setPayAmount(String(remaining)); setShowAddPayment(true); }}
+                        style={{ backgroundColor: COLORS.primary, paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.md, flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                      >
+                        <Ionicons name="add-circle-outline" size={13} color={COLORS.white} />
+                        <Text style={{ color: COLORS.white, fontSize: 11, fontWeight: '700' }}>Versement</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+
+                {/* Payments count */}
+                {(order.payments?.length > 0) && (
+                  <Text style={{ fontSize: FONTS.sizes.xs, color: COLORS.textMuted, marginTop: 4 }}>
+                    {order.payments.length} versement{order.payments.length > 1 ? 's' : ''} • {formatDate(order.createdAt)}
+                  </Text>
+                )}
+              </View>
+            );
+          })
+        )}
+      </View>
+
+      {/* Add Payment Modal */}
+      <Modal visible={showAddPayment} animationType="slide" transparent>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: COLORS.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: SPACING.lg }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.md }}>
+              <Text style={{ fontSize: FONTS.sizes.lg, fontWeight: '700', color: COLORS.textPrimary }}>Nouveau versement</Text>
+              <TouchableOpacity onPress={() => setShowAddPayment(false)}>
+                <Ionicons name="close" size={22} color={COLORS.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            {selectedOrder && (
+              <View style={{ backgroundColor: '#e0f2fe', borderRadius: RADIUS.md, padding: SPACING.sm, marginBottom: SPACING.md }}>
+                <Text style={{ fontSize: FONTS.sizes.sm, color: '#0369a1', fontWeight: '600' }}>
+                  Commande {selectedOrder.reference}
+                </Text>
+                <Text style={{ fontSize: FONTS.sizes.xs, color: '#0369a1' }}>
+                  Total : {formatCurrency(selectedOrder.totalAmount, selectedOrder.currency)} • Restant : {formatCurrency(selectedOrder.remainingAmount, selectedOrder.currency)}
+                </Text>
+              </View>
+            )}
+
+            <Text style={{ fontSize: FONTS.sizes.xs, fontWeight: '700', color: COLORS.textSecondary, marginBottom: 6, textTransform: 'uppercase' }}>Montant du versement</Text>
+            <TextInput
+              style={{ backgroundColor: COLORS.background, borderRadius: RADIUS.md, paddingHorizontal: SPACING.md, paddingVertical: 12, fontSize: FONTS.sizes.xl, fontWeight: '700', color: COLORS.primary, borderWidth: 1, borderColor: COLORS.border, marginBottom: SPACING.sm, textAlign: 'center' }}
+              value={payAmount}
+              onChangeText={setPayAmount}
+              keyboardType="numeric"
+              autoFocus
+              placeholder="0"
+            />
+            <Text style={{ fontSize: FONTS.sizes.xs, fontWeight: '700', color: COLORS.textSecondary, marginBottom: 6, textTransform: 'uppercase' }}>Notes (optionnel)</Text>
+            <TextInput
+              style={{ backgroundColor: COLORS.background, borderRadius: RADIUS.md, paddingHorizontal: SPACING.md, paddingVertical: 12, fontSize: FONTS.sizes.sm, color: COLORS.textPrimary, borderWidth: 1, borderColor: COLORS.border, marginBottom: SPACING.md }}
+              value={payNotes}
+              onChangeText={setPayNotes}
+              placeholder="Ex: Virement, espèces..."
+            />
+            <TouchableOpacity
+              style={{ backgroundColor: COLORS.primary, borderRadius: RADIUS.lg, paddingVertical: 16, alignItems: 'center' }}
+              onPress={handleAddPayment}
+              disabled={saving}
+            >
+              {saving
+                ? <ActivityIndicator color={COLORS.white} />
+                : <Text style={{ color: COLORS.white, fontWeight: '700', fontSize: FONTS.sizes.md }}>Créer & Envoyer lien</Text>
+              }
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Transactions */}
       <View style={styles.txSection}>
         <Text style={styles.sectionTitle}>{t.transactions.paymentHistory}</Text>
@@ -285,6 +455,7 @@ const styles = StyleSheet.create({
   actionsRow: { flexDirection: 'row', paddingHorizontal: SPACING.lg, marginTop: SPACING.md, gap: SPACING.sm },
   actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: RADIUS.md, paddingVertical: 12 },
   actionBtnText: { color: COLORS.white, fontWeight: '700', fontSize: FONTS.sizes.sm },
+  depositCard: { backgroundColor: COLORS.white, borderRadius: RADIUS.md, padding: SPACING.md, marginBottom: SPACING.sm, borderLeftWidth: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
   txSection: { marginHorizontal: SPACING.lg, marginTop: SPACING.md },
   txItem: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white,
