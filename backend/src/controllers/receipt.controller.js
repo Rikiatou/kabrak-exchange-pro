@@ -7,19 +7,27 @@ const DARK = '#1a1a2e';
 const GRAY = '#6b7280';
 const LIGHT_BG = '#f0f4ff';
 
-const getBusinessInfo = async () => {
+const getBusinessInfo = async (operatorId) => {
   try {
-    const rows = await Setting.findAll();
+    let ownerId = operatorId;
+    if (operatorId) {
+      const op = await User.findByPk(operatorId, { attributes: ['id', 'teamOwnerId'] });
+      if (op?.teamOwnerId) ownerId = op.teamOwnerId;
+    }
+    const where = ownerId ? { userId: ownerId } : {};
+    const rows = await Setting.findAll({ where });
     const settings = {};
     rows.forEach(r => { settings[r.key] = r.value; });
     return {
-      name: settings.businessName || 'KABRAK Exchange Pro',
+      name: settings.businessName || 'Mon Bureau de Change',
       phone: settings.businessPhone || '',
       address: settings.businessAddress || '',
       email: settings.businessEmail || '',
+      brandColor: settings.brandColor || '#0B6E4F',
+      logo: settings.businessLogo || null,
     };
   } catch (_) {
-    return { name: 'KABRAK Exchange Pro', phone: '', address: '', email: '' };
+    return { name: 'Mon Bureau de Change', phone: '', address: '', email: '', brandColor: '#0B6E4F', logo: null };
   }
 };
 
@@ -101,7 +109,8 @@ const generateReceipt = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Transaction not found.' });
     }
 
-    const business = await getBusinessInfo();
+    const business = await getBusinessInfo(transaction.operator?.id);
+    const BRAND = business.brandColor || '#0B6E4F';
     const doc = new PDFDocument({ size: 'A4', margin: 50 });
 
     res.setHeader('Content-Type', 'application/pdf');
@@ -109,11 +118,13 @@ const generateReceipt = async (req, res) => {
     doc.pipe(res);
 
     // --- Header ---
-    doc.rect(0, 0, doc.page.width, 120).fill(DARK);
+    doc.rect(0, 0, doc.page.width, 120).fill(BRAND);
     doc.fontSize(22).fillColor('#ffffff').font('Helvetica-Bold')
       .text(business.name, 50, 30, { align: 'center' });
-    doc.fontSize(10).fillColor('rgba(255,255,255,0.6)').font('Helvetica')
-      .text('KABRAK Exchange Pro', 50, 56, { align: 'center' });
+    if (business.address || business.phone) {
+      doc.fontSize(9).fillColor('rgba(255,255,255,0.65)').font('Helvetica')
+        .text([business.address, business.phone].filter(Boolean).join(' · '), 50, 56, { align: 'center' });
+    }
     doc.fontSize(13).fillColor('rgba(255,255,255,0.85)')
       .text(L.receipt, 50, 72, { align: 'center' });
 
@@ -147,7 +158,7 @@ const generateReceipt = async (req, res) => {
       [L.client, transaction.client?.name || 'N/A'],
       [L.phone, transaction.client?.phone || '-'],
       [L.date, moment(transaction.createdAt).format('DD/MM/YYYY HH:mm')],
-      [L.operator, transaction.operator?.name || 'N/A'],
+      [L.operator, [transaction.operator?.firstName, transaction.operator?.lastName].filter(Boolean).join(' ') || 'N/A'],
       [L.type, (transaction.type || 'sell').toUpperCase()],
     ];
 
@@ -256,6 +267,9 @@ const generateReceipt = async (req, res) => {
 
     doc.fontSize(9).fillColor(GRAY).font('Helvetica')
       .text(`${L.generated} ${moment().format('DD/MM/YYYY HH:mm')}`, 50, y, { align: 'center', width: boxW });
+    y += 14;
+    doc.fontSize(7).fillColor('#c0c0c0').font('Helvetica')
+      .text('Powered by KABRAK Exchange Pro', 50, y, { align: 'center', width: boxW });
 
     doc.end();
   } catch (error) {
@@ -283,7 +297,8 @@ const generateReceiptHTML = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Transaction not found.' });
     }
 
-    const business = await getBusinessInfo();
+    const business = await getBusinessInfo(transaction.operator?.id);
+    const BRAND = business.brandColor || '#0B6E4F';
     const statusKey = transaction.status || 'unpaid';
     const statusLabel = SL[statusKey] || SL.unpaid;
     const statusColors = { paid: '#e8f5e9', partial: '#fff3e0', unpaid: '#ffebee' };
@@ -306,7 +321,7 @@ const generateReceiptHTML = async (req, res) => {
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:Arial,sans-serif;background:#f5f5f5;padding:20px;color:#1a1a2e}
     .receipt{max-width:480px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1)}
-    .header{background:linear-gradient(135deg,#071a12,#0B6E4F);color:#fff;padding:28px 24px;text-align:center}
+    .header{background:linear-gradient(135deg,#071a12,${BRAND});color:#fff;padding:28px 24px;text-align:center}
     .header h1{font-size:22px;font-weight:700;margin-bottom:2px}
     .header .sub{font-size:11px;opacity:.65;letter-spacing:.5px}
     .header p{font-size:13px;opacity:.85;margin-top:4px}
@@ -344,7 +359,7 @@ const generateReceiptHTML = async (req, res) => {
   <div class="receipt">
     <div class="header">
       <h1>${business.name}</h1>
-      <div class="sub">KABRAK Exchange Pro</div>
+      ${business.address || business.phone ? `<div class="sub">${[business.address, business.phone].filter(Boolean).join(' · ')}</div>` : ''}
       <p>${L.receipt}</p>
       <div class="ref-badge">${transaction.reference}</div>
     </div>
@@ -355,7 +370,7 @@ const generateReceiptHTML = async (req, res) => {
         <div class="info-row"><span class="info-label">${L.client}</span><span class="info-value">${transaction.client?.name || 'N/A'}</span></div>
         <div class="info-row"><span class="info-label">${L.phone}</span><span class="info-value">${transaction.client?.phone || '-'}</span></div>
         <div class="info-row"><span class="info-label">${L.date}</span><span class="info-value">${moment(transaction.createdAt).format('DD/MM/YYYY HH:mm')}</span></div>
-        <div class="info-row"><span class="info-label">${L.operator}</span><span class="info-value">${transaction.operator?.name || 'N/A'}</span></div>
+        <div class="info-row"><span class="info-label">${L.operator}</span><span class="info-value">${[transaction.operator?.firstName, transaction.operator?.lastName].filter(Boolean).join(' ') || 'N/A'}</span></div>
       </div>
       <div class="section">
         <div class="section-title">${L.exchangeDetail}</div>
@@ -395,6 +410,7 @@ const generateReceiptHTML = async (req, res) => {
       <div class="thanks">${L.thanks}</div>
       ${[business.phone, business.address, business.email].filter(Boolean).length > 0 ? `<p>${[business.phone, business.address, business.email].filter(Boolean).join(' · ')}</p>` : ''}
       <p style="margin-top:4px;font-size:11px">${L.generated} ${moment().format('DD/MM/YYYY HH:mm')}</p>
+      <p style="margin-top:6px;font-size:10px;color:#c0c0c0">Powered by KABRAK Exchange Pro</p>
     </div>
   </div>
 </body>

@@ -1,16 +1,19 @@
 const { Setting } = require('../models');
 
 const DEFAULTS = {
-  businessName: 'KABRAK Exchange Pro',
+  businessName: 'Mon Bureau de Change',
   businessPhone: '',
   businessAddress: '',
   businessEmail: '',
+  brandColor: '#0B6E4F',
+  businessLogo: '',
 };
 
 // GET /api/settings — retourne tous les settings
 const getSettings = async (req, res) => {
   try {
-    const rows = await Setting.findAll();
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const rows = await Setting.findAll({ where: { userId: ownerId } });
     const settings = { ...DEFAULTS };
     rows.forEach(r => { settings[r.key] = r.value; });
     res.json({ success: true, data: settings });
@@ -22,11 +25,12 @@ const getSettings = async (req, res) => {
 // PUT /api/settings — met à jour un ou plusieurs settings
 const updateSettings = async (req, res) => {
   try {
-    const updates = req.body; // { businessName: '...', ... }
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const updates = req.body;
     for (const [key, value] of Object.entries(updates)) {
-      await Setting.upsert({ key, value: String(value) });
+      await Setting.upsert({ key, value: String(value), userId: ownerId });
     }
-    const rows = await Setting.findAll();
+    const rows = await Setting.findAll({ where: { userId: ownerId } });
     const settings = { ...DEFAULTS };
     rows.forEach(r => { settings[r.key] = r.value; });
     res.json({ success: true, data: settings });
@@ -35,11 +39,20 @@ const updateSettings = async (req, res) => {
   }
 };
 
-// GET /api/settings/public — retourne businessName uniquement (sans auth, pour portail client)
+// GET /api/settings/public?userId=... — retourne businessName + brandColor (sans auth, pour portail client)
 const getPublicSettings = async (req, res) => {
   try {
-    const row = await Setting.findOne({ where: { key: 'businessName' } });
-    res.json({ success: true, data: { businessName: row?.value || DEFAULTS.businessName } });
+    const { userId } = req.query;
+    const where = userId ? { userId } : {};
+    const rows = await Setting.findAll({ where });
+    const settings = {};
+    rows.forEach(r => { settings[r.key] = r.value; });
+    res.json({ success: true, data: {
+      businessName: settings.businessName || DEFAULTS.businessName,
+      brandColor: settings.brandColor || DEFAULTS.brandColor,
+      businessPhone: settings.businessPhone || '',
+      businessAddress: settings.businessAddress || '',
+    }});
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

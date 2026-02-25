@@ -35,6 +35,7 @@ export default function BusinessSettingsScreen() {
     businessPhone: '',
     businessAddress: '',
     businessEmail: '',
+    brandColor: '#0B6E4F',
   });
   const [saving, setSaving] = useState(false);
 
@@ -48,6 +49,7 @@ export default function BusinessSettingsScreen() {
       businessPhone: settings.businessPhone || '',
       businessAddress: settings.businessAddress || '',
       businessEmail: settings.businessEmail || '',
+      brandColor: settings.brandColor || '#0B6E4F',
     });
   }, [settings]);
 
@@ -122,16 +124,22 @@ export default function BusinessSettingsScreen() {
               keyboardType="email-address"
               icon="mail-outline"
             />
+            <Field
+              label="Couleur de marque (hex)"
+              value={form.brandColor}
+              onChangeText={v => setForm(f => ({ ...f, brandColor: v }))}
+              placeholder="Ex: #0B6E4F"
+              icon="color-palette-outline"
+            />
           </View>
 
           {/* Preview */}
           <View style={styles.previewCard}>
             <Text style={styles.previewTitle}>Aperçu en-tête reçu</Text>
-            <View style={styles.previewBox}>
-              <Text style={styles.previewName}>{form.businessName || 'Nom de l\'entreprise'}</Text>
-              <Text style={styles.previewSub}>Powered by KABRAK Exchange Pro</Text>
-              {form.businessPhone ? <Text style={styles.previewDetail}>📞 {form.businessPhone}</Text> : null}
-              {form.businessAddress ? <Text style={styles.previewDetail}>📍 {form.businessAddress}</Text> : null}
+            <View style={[styles.previewBox, { backgroundColor: form.brandColor || '#0B6E4F', borderLeftColor: form.brandColor || '#0B6E4F' }]}>
+              <Text style={[styles.previewName, { color: '#fff' }]}>{form.businessName || 'Nom de l\'entreprise'}</Text>
+              {form.businessPhone || form.businessAddress ? <Text style={[styles.previewSub, { color: 'rgba(255,255,255,0.7)' }]}>{[form.businessAddress, form.businessPhone].filter(Boolean).join(' · ')}</Text> : null}
+              <Text style={[styles.previewSub, { color: 'rgba(255,255,255,0.5)', marginTop: 4, fontSize: 9 }]}>Powered by KABRAK Exchange Pro</Text>
             </View>
           </View>
 
