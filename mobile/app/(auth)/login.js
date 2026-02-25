@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import useLanguageStore from '../../src/store/languageStore';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  View, Text, Image, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
   Alert, Animated, StatusBar, Dimensions
 } from 'react-native';
@@ -9,12 +9,13 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import useAuthStore from '../../src/store/authStore';
 import useLicenseStore from '../../src/store/licenseStore';
+import { IS_BOGO, APP_NAME_SHORT, APP_NAME_SUB, BRAND_DARK, BRAND_MID, BRAND_MAIN, BRAND_GOLD, LOGO_IMAGE } from '../../src/constants/whitelabel';
 
 const { width, height } = Dimensions.get('window');
-const GREEN_DARK = '#071a12';
-const GREEN_MID  = '#0a3d22';
-const GREEN_MAIN = '#0B6E4F';
-const GOLD       = '#e8a020';
+const GREEN_DARK = BRAND_DARK;
+const GREEN_MID  = BRAND_MID;
+const GREEN_MAIN = BRAND_MAIN;
+const GOLD       = BRAND_GOLD;
 const WHITE      = '#ffffff';
 
 export default function LoginScreen() {
@@ -50,6 +51,11 @@ export default function LoginScreen() {
       const user = useAuthStore.getState().user;
       // Team members share owner's license — go directly to dashboard
       if (user?.teamOwnerId) {
+        router.replace('/(tabs)/dashboard');
+        return;
+      }
+      // Bogo whitelabel build: bypass license screen — go directly to dashboard
+      if (IS_BOGO) {
         router.replace('/(tabs)/dashboard');
         return;
       }
@@ -105,12 +111,18 @@ export default function LoginScreen() {
 
           {/* Logo */}
           <View style={styles.logoRow}>
-            <View style={styles.logoIconWrap}>
-              <Ionicons name="swap-horizontal" size={20} color={GOLD} />
-            </View>
-            <Text style={styles.logoText}>
-              KABRAK <Text style={styles.logoTextGold}>Exchange Pro</Text>
-            </Text>
+            {IS_BOGO ? (
+              <Image source={LOGO_IMAGE} style={styles.bogoLogo} resizeMode="contain" />
+            ) : (
+              <>
+                <View style={styles.logoIconWrap}>
+                  <Ionicons name="swap-horizontal" size={20} color={GOLD} />
+                </View>
+                <Text style={styles.logoText}>
+                  {APP_NAME_SHORT} <Text style={styles.logoTextGold}>{APP_NAME_SUB}</Text>
+                </Text>
+              </>
+            )}
           </View>
 
           {/* Heading */}
@@ -257,6 +269,9 @@ const styles = StyleSheet.create({
   logoRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     marginBottom: 40, alignSelf: 'center',
+  },
+  bogoLogo: {
+    width: 140, height: 140, borderRadius: 16,
   },
   logoIconWrap: {
     width: 38, height: 38, borderRadius: 10,
