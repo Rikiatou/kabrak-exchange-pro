@@ -6,20 +6,16 @@ const {
 } = require('../controllers/license.controller');
 const { authenticate, authorize } = require('../middleware/auth.middleware');
 
-// Public routes (no auth required)
+// Public routes (no auth required) — must be BEFORE /:id routes
 router.post('/verify', verifyLicense);
 router.post('/request', requestLicense);
 
-// Admin-only routes
+// Admin-only fixed routes — must be BEFORE /:id routes
 router.get('/', authenticate, authorize('admin'), getAllLicenses);
 router.get('/stats', authenticate, authorize('admin'), getLicenseStats);
 router.post('/', authenticate, authorize('admin'), createLicense);
-router.get('/:id', authenticate, authorize('admin'), getLicense);
-router.put('/:id', authenticate, authorize('admin'), updateLicense);
-router.post('/:id/renew', authenticate, authorize('admin'), renewLicense);
-router.delete('/:id', authenticate, authorize('admin'), deleteLicense);
 
-// GET /api/licenses/check/:licenseKey — vérification pour app mobile
+// GET /api/licenses/check/:licenseKey — must be BEFORE /:id
 router.get('/check/:licenseKey', async (req, res) => {
   try {
     const { licenseKey } = req.params;
@@ -51,5 +47,11 @@ router.get('/check/:licenseKey', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
+// Admin-only /:id routes — AFTER all fixed routes
+router.get('/:id', authenticate, authorize('admin'), getLicense);
+router.put('/:id', authenticate, authorize('admin'), updateLicense);
+router.post('/:id/renew', authenticate, authorize('admin'), renewLicense);
+router.delete('/:id', authenticate, authorize('admin'), deleteLicense);
 
 module.exports = router;
