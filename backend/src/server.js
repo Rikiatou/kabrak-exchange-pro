@@ -41,7 +41,23 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.set('trust proxy', 1);
-app.use(helmet());
+
+// Serve admin static files BEFORE helmet so no CSP restriction applies
+app.use('/admin-dashboard.html', express.static(path.join(__dirname, '../public')));
+app.use('/admin-dashboard.js', express.static(path.join(__dirname, '../public')));
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+      fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://kabrak-exchange-pro-production.up.railway.app"],
+    },
+  },
+}));
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
   : ['http://localhost:3000', 'http://localhost:8090', 'http://localhost:19006', 'https://exchange.kabrakeng.com'];
@@ -227,8 +243,8 @@ const runMigrations = async () => {
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(255) NOT NULL DEFAULT 'Utilisateur'`,
     // Ensure users.expoPushToken column exists
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS "expoPushToken" VARCHAR(255)`,
-    // Ensure settings table exists
-    `CREATE TABLE IF NOT EXISTS settings (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), key VARCHAR(255) NOT NULL UNIQUE, value TEXT, "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(), "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW())`,
+    // Ensure settings table exists (INTEGER id to match Sequelize model)
+    `CREATE TABLE IF NOT EXISTS settings (id SERIAL PRIMARY KEY, key VARCHAR(100) NOT NULL UNIQUE, value TEXT)`,
     // Remove problematic unique+default constraints on reference columns if they exist
     `ALTER TABLE transactions ALTER COLUMN reference SET DEFAULT ''`,
     `ALTER TABLE deposit_orders ALTER COLUMN reference SET DEFAULT ''`,
