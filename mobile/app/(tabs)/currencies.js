@@ -59,7 +59,7 @@ export default function CurrenciesScreen() {
   const { user } = useAuthStore();
   const { t } = useLanguageStore();
   const router = useRouter();
-  const isAdmin = user?.role === 'admin';
+  const isOwner = user?.teamRole === 'owner' || user?.role === 'admin';
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState(null);
 
@@ -87,7 +87,7 @@ export default function CurrenciesScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>{t.currencies.title}</Text>
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          {isAdmin && (
+          {isOwner && (
             <TouchableOpacity
               style={[styles.addBtn, { backgroundColor: syncing ? 'rgba(255,255,255,0.1)' : 'rgba(232,160,32,0.25)' }]}
               onPress={handleSyncRates}
@@ -100,7 +100,7 @@ export default function CurrenciesScreen() {
               <Text style={[styles.addBtnText, { color: '#e8a020' }]}>{syncing ? 'Sync...' : 'Taux marché'}</Text>
             </TouchableOpacity>
           )}
-          {isAdmin && (
+          {isOwner && (
             <TouchableOpacity style={styles.addBtn} onPress={() => router.push('/currencies/new')}>
               <Ionicons name="add" size={22} color={COLORS.white} />
               <Text style={styles.addBtnText}>{t.common.add}</Text>
@@ -121,7 +121,7 @@ export default function CurrenciesScreen() {
         renderItem={({ item }) => (
           <CurrencyCard
             currency={item}
-            isAdmin={isAdmin}
+            isAdmin={isOwner}
             onPress={() => router.push(`/currencies/${item.id}`)}
             buyLabel={t.currencies.buyRate}
             sellLabel={t.currencies.sellRate}

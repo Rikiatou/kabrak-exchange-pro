@@ -29,4 +29,10 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { authenticate, authorize };
+// Allows owner (teamRole='owner') or system admin (role='admin')
+const authorizeOwner = (req, res, next) => {
+  if (req.user.teamRole === 'owner' || req.user.role === 'admin') return next();
+  return res.status(403).json({ success: false, message: 'Access denied. Owner only.' });
+};
+
+module.exports = { authenticate, authorize, authorizeOwner };

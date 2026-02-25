@@ -3,7 +3,8 @@ const axios = require('axios');
 
 const getAll = async (req, res) => {
   try {
-    const currencies = await Currency.findAll({ where: { isActive: true }, order: [['code', 'ASC']] });
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const currencies = await Currency.findAll({ where: { isActive: true, userId: ownerId }, order: [['code', 'ASC']] });
     return res.json({ success: true, data: currencies });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -31,11 +32,13 @@ const create = async (req, res) => {
     if (!code || !name || !symbol || !currentRate) {
       return res.status(400).json({ success: false, message: 'code, name, symbol and currentRate are required.' });
     }
-    const existing = await Currency.findOne({ where: { code: code.toUpperCase() } });
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const existing = await Currency.findOne({ where: { code: code.toUpperCase(), userId: ownerId } });
     if (existing) return res.status(400).json({ success: false, message: 'Currency code already exists.' });
     const currency = await Currency.create({
       code: code.toUpperCase(), name, symbol,
-      currentRate, buyRate, sellRate, stockAmount, lowStockAlert, isBase
+      currentRate, buyRate, sellRate, stockAmount, lowStockAlert, isBase,
+      userId: ownerId
     });
     return res.status(201).json({ success: true, message: 'Currency created.', data: currency });
   } catch (error) {
@@ -45,7 +48,8 @@ const create = async (req, res) => {
 
 const update = async (req, res) => {
   try {
-    const currency = await Currency.findByPk(req.params.id);
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const currency = await Currency.findOne({ where: { id: req.params.id, userId: ownerId } });
     if (!currency) return res.status(404).json({ success: false, message: 'Currency not found.' });
     const { name, symbol, currentRate, buyRate, sellRate, stockAmount, lowStockAlert } = req.body;
 
@@ -110,7 +114,8 @@ const getRateHistory = async (req, res) => {
 // PUT /api/currencies/:id/stock — adjust stock manually
 const adjustStock = async (req, res) => {
   try {
-    const currency = await Currency.findByPk(req.params.id);
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const currency = await Currency.findOne({ where: { id: req.params.id, userId: ownerId } });
     if (!currency) return res.status(404).json({ success: false, message: 'Currency not found.' });
     const { adjustment, type, notes } = req.body;
     // type: 'set' | 'add' | 'subtract'
@@ -131,7 +136,8 @@ const adjustStock = async (req, res) => {
 // GET /api/currencies/stock — all currencies with stock summary
 const getStockSummary = async (req, res) => {
   try {
-    const currencies = await Currency.findAll({ where: { isActive: true }, order: [['code', 'ASC']] });
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const currencies = await Currency.findAll({ where: { isActive: true, userId: ownerId }, order: [['code', 'ASC']] });
     const summary = currencies.map(c => ({
       id: c.id,
       code: c.code,
