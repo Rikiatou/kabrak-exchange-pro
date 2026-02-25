@@ -30,6 +30,30 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// POST /admin/licenses — créer une nouvelle licence directement
+router.post('/licenses', adminAuth, async (req, res) => {
+  try {
+    const crypto = require('crypto');
+    const { ownerEmail, businessName, ownerName, ownerPhone, country, plan = 'annual' } = req.body;
+    if (!ownerEmail || !businessName) return res.status(400).json({ error: 'ownerEmail and businessName required' });
+    const licenseKey = crypto.randomBytes(8).toString('hex').toUpperCase().match(/.{4}/g).join('-');
+    const days = plan === 'trial' ? 14 : plan === 'monthly' ? 30 : 365;
+    const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    const license = await License.create({
+      licenseKey, ownerEmail, businessName,
+      ownerName: ownerName || ownerEmail,
+      ownerPhone: ownerPhone || null,
+      country: country || null,
+      plan, status: 'active',
+      startsAt: new Date(), expiresAt,
+      maxUsers: 10
+    });
+    res.status(201).json({ success: true, data: license });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // GET /admin/licenses — voir toutes les licences (protégé)
 router.get('/licenses', adminAuth, async (req, res) => {
   try {
