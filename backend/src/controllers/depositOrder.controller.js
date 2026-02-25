@@ -62,9 +62,10 @@ const createOrder = async (req, res) => {
 // GET /api/deposit-orders — list all orders
 const getOrders = async (req, res) => {
   try {
-    const { status, search } = req.query;
+    const { status, search, clientId } = req.query;
     const where = {};
     if (status) where.status = status;
+    if (clientId) where.clientId = clientId;
     if (search) {
       where[Op.or] = [
         { clientName: { [Op.like]: `%${search}%` } },

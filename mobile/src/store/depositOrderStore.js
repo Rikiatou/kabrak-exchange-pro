@@ -56,9 +56,12 @@ const useDepositOrderStore = create((set, get) => ({
     }
   },
 
-  getClientOrders: async (clientName) => {
+  getClientOrders: async (clientName, clientId) => {
     try {
-      const res = await api.get(`/deposit-orders?search=${encodeURIComponent(clientName)}`);
+      const param = clientId
+        ? `clientId=${encodeURIComponent(clientId)}`
+        : `search=${encodeURIComponent(clientName)}`;
+      const res = await api.get(`/deposit-orders?${param}`);
       return { success: true, data: res.data.data };
     } catch (e) {
       return { success: false, message: e.response?.data?.message || 'Error' };

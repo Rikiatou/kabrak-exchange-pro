@@ -118,7 +118,7 @@ export default function ClientDetailScreen() {
 
   const loadDepositOrders = async () => {
     setDepositLoading(true);
-    const result = await getClientOrders(currentClient.name);
+    const result = await getClientOrders(currentClient.name, currentClient.id);
     if (result?.success) setDepositOrders(result.data);
     setDepositLoading(false);
   };
