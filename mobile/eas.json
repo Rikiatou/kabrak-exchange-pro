@@ -12,7 +12,7 @@
         "simulator": false
       },
       "env": {
-        "APP_NAME": "Bogo Express",
+        "APP_NAME": "BOGO EXPRESS & SAOUDIE SERVICE",
         "APP_SLUG": "bogo-express-exchange",
         "APP_BUNDLE_ID": "com.bogoexpress.exchange",
         "APP_PACKAGE": "com.bogoexpress.exchange",
@@ -30,7 +30,7 @@
         "simulator": false
       },
       "env": {
-        "APP_NAME": "Bogo Express",
+        "APP_NAME": "BOGO EXPRESS & SAOUDIE SERVICE",
         "APP_SLUG": "bogo-express-exchange",
         "APP_BUNDLE_ID": "com.bogoexpress.exchange",
         "APP_PACKAGE": "com.bogoexpress.exchange",
