@@ -4,7 +4,12 @@ let allLicenses = [], allPayments = [], allUsers = [];
 let licenseFilter = '', paymentFilter = '';
 
 // ─── Auth ───
-if (token) showDashboard();
+if (token) {
+    // Validate token before showing dashboard
+    fetch(`${API}/admin/dashboard`, { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(r => { if (r.ok) showDashboard(); else { localStorage.removeItem('kabrak_admin_token'); token = null; } })
+        .catch(() => { localStorage.removeItem('kabrak_admin_token'); token = null; });
+}
 
 async function handleLogin(e) {
     e.preventDefault();
