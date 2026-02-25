@@ -51,8 +51,13 @@ export default function LoginScreen() {
       // Team members share owner's license — go directly to dashboard
       if (user?.teamOwnerId) {
         router.replace('/(tabs)/dashboard');
-      } else if (!licenseValid) {
-        // Owner without valid license → activate license first
+        return;
+      }
+      // Owner: reload license from storage before deciding
+      const { loadStoredLicense } = useLicenseStore.getState();
+      await loadStoredLicense();
+      const { isValid } = useLicenseStore.getState();
+      if (!isValid) {
         router.replace('/(auth)/license');
       } else {
         router.replace('/(tabs)/dashboard');
