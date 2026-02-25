@@ -342,4 +342,34 @@ router.post('/migrate-currencies', adminAuth, async (req, res) => {
   }
 });
 
+// POST /admin/migrate-settings — assign settings with userId=NULL to all owners
+router.post('/migrate-settings', adminAuth, async (req, res) => {
+  try {
+    const { Setting, User } = require('../models');
+    const orphanSettings = await Setting.findAll({ where: { userId: null } });
+    if (orphanSettings.length === 0) {
+      return res.json({ success: true, message: 'Aucun setting orphelin trouvé.' });
+    }
+    const owners = await User.findAll({ where: { teamRole: 'owner', isActive: true } });
+    if (owners.length === 0) {
+      return res.json({ success: true, message: 'Aucun owner trouvé.' });
+    }
+    let created = 0, skipped = 0;
+    for (const owner of owners) {
+      for (const s of orphanSettings) {
+        const existing = await Setting.findOne({ where: { key: s.key, userId: owner.id } });
+        if (!existing) {
+          await Setting.create({ key: s.key, value: s.value, userId: owner.id });
+          created++;
+        } else {
+          skipped++;
+        }
+      }
+    }
+    res.json({ success: true, message: `Migration terminée: ${created} setting(s) créés, ${skipped} déjà existants pour ${owners.length} owner(s).` });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
