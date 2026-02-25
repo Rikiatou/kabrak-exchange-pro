@@ -12,8 +12,8 @@
         "simulator": false
       },
       "env": {
+        "APP_VARIANT": "bogo",
         "APP_NAME": "B&S",
-        "APP_SLUG": "bogo-express-exchange",
         "APP_BUNDLE_ID": "com.bogoexpress.exchange",
         "APP_PACKAGE": "com.bogoexpress.exchange",
         "APP_SCHEME": "bogo-exchange",

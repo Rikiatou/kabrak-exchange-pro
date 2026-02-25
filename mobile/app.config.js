@@ -1,7 +1,7 @@
-const IS_BOGO = process.env.APP_NAME === 'Bogo Express';
+const IS_BOGO = process.env.APP_VARIANT === 'bogo';
 
 const appName = process.env.APP_NAME || 'KABRAK Exchange Pro';
-const slug = process.env.APP_SLUG || 'kabrak-exchange-pro';
+const slug = 'kabrak-exchange-pro';
 const bundleId = process.env.APP_BUNDLE_ID || 'com.kabrak.exchangepro';
 const packageName = process.env.APP_PACKAGE || 'com.kabrak.exchangepro';
 const scheme = process.env.APP_SCHEME || 'kabrak-exchange';
