@@ -1,7 +1,7 @@
 const IS_BOGO = process.env.APP_VARIANT === 'bogo';
 
 const appName = process.env.APP_NAME || 'KABRAK Exchange Pro';
-const slug = 'kabrak-exchange-pro';
+const slug = 'kabrak-exchange-pro'; // matches EAS project — rename on expo.dev if needed
 const bundleId = process.env.APP_BUNDLE_ID || 'com.kabrak.exchangepro';
 const packageName = process.env.APP_PACKAGE || 'com.kabrak.exchangepro';
 const scheme = process.env.APP_SCHEME || 'kabrak-exchange';
@@ -78,6 +78,9 @@ export default {
     ],
     scheme,
     extra: {
+      eas: {
+        projectId: 'cbf6d54d-0207-4b4f-8429-5a7793458893',
+      },
       appName,
       isBogo: IS_BOGO,
     },
