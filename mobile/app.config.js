@@ -78,9 +78,6 @@ export default {
     ],
     scheme,
     extra: {
-      eas: {
-        projectId: 'cbf6d54d-0207-4b4f-8429-5a7793458893',
-      },
       appName,
       isBogo: IS_BOGO,
     },
