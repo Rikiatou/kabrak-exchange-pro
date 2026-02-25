@@ -53,7 +53,7 @@ const getDeposits = async (req, res) => {
     const deposits = await Deposit.findAll({
       where,
       order: [['createdAt', 'DESC']],
-      include: [{ model: User, as: 'operator', attributes: ['id', 'name'] }],
+      include: [{ model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] }],
     });
     res.json({ success: true, data: deposits });
   } catch (err) {
@@ -65,7 +65,7 @@ const getDeposits = async (req, res) => {
 const getDeposit = async (req, res) => {
   try {
     const deposit = await Deposit.findByPk(req.params.id, {
-      include: [{ model: User, as: 'operator', attributes: ['id', 'name'] }],
+      include: [{ model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] }],
     });
     if (!deposit) return res.status(404).json({ success: false, message: 'Deposit not found' });
     res.json({ success: true, data: deposit });

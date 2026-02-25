@@ -55,8 +55,8 @@ const getById = async (req, res) => {
     const transaction = await Transaction.findByPk(req.params.id, {
       include: [
         { model: Client, as: 'client' },
-        { model: User, as: 'operator', attributes: ['id', 'name'] },
-        { model: Payment, as: 'payments', include: [{ model: User, as: 'operator', attributes: ['id', 'name'] }] }
+        { model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] },
+        { model: Payment, as: 'payments', include: [{ model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] }] }
       ]
     });
     if (!transaction) return res.status(404).json({ success: false, message: 'Transaction not found.' });
@@ -213,7 +213,7 @@ const create = async (req, res) => {
     const fullTransaction = await Transaction.findByPk(transaction.id, {
       include: [
         { model: Client, as: 'client', attributes: ['id', 'name', 'phone'] },
-        { model: User, as: 'operator', attributes: ['id', 'name'] }
+        { model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] }
       ]
     });
 
@@ -244,7 +244,7 @@ const getByReference = async (req, res) => {
       where: { reference: req.params.reference },
       include: [
         { model: Client, as: 'client' },
-        { model: User, as: 'operator', attributes: ['id', 'name'] },
+        { model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] },
         { model: Payment, as: 'payments' }
       ]
     });

@@ -92,8 +92,8 @@ const generateReceipt = async (req, res) => {
     const transaction = await Transaction.findByPk(req.params.transactionId, {
       include: [
         { model: Client, as: 'client' },
-        { model: User, as: 'operator', attributes: ['id', 'name'] },
-        { model: Payment, as: 'payments', include: [{ model: User, as: 'operator', attributes: ['id', 'name'] }] }
+        { model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] },
+        { model: Payment, as: 'payments', include: [{ model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] }] }
       ]
     });
 
@@ -274,7 +274,7 @@ const generateReceiptHTML = async (req, res) => {
     const transaction = await Transaction.findByPk(req.params.transactionId, {
       include: [
         { model: Client, as: 'client' },
-        { model: User, as: 'operator', attributes: ['id', 'name'] },
+        { model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] },
         { model: Payment, as: 'payments' }
       ]
     });

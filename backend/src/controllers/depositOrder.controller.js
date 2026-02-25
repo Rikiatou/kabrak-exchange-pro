@@ -95,7 +95,7 @@ const getOrder = async (req, res) => {
   try {
     const order = await DepositOrder.findByPk(req.params.id, {
       include: [
-        { model: User, as: 'operator', attributes: ['id', 'name'], required: false },
+        { model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'], required: false },
         { model: Deposit, as: 'payments', separate: true, order: [['createdAt', 'ASC']] }
       ],
     });

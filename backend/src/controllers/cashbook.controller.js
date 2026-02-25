@@ -16,7 +16,7 @@ const getAll = async (req, res) => {
       limit: parseInt(limit),
       offset,
       order: [['date', 'DESC']],
-      include: [{ model: User, as: 'operator', attributes: ['id', 'name'] }]
+      include: [{ model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] }]
     });
     return res.json({
       success: true,
@@ -33,7 +33,7 @@ const getToday = async (req, res) => {
     const today = moment().format('YYYY-MM-DD');
     const entries = await CashBook.findAll({
       where: { date: today },
-      include: [{ model: User, as: 'operator', attributes: ['id', 'name'] }]
+      include: [{ model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] }]
     });
     return res.json({ success: true, data: entries });
   } catch (error) {

@@ -31,7 +31,7 @@ const transactionConfirmation = async (req, res) => {
     const tx = await Transaction.findByPk(transactionId, {
       include: [
         { model: Client, as: 'client' },
-        { model: User, as: 'operator', attributes: ['id', 'name'] },
+        { model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] },
       ]
     });
     if (!tx) return res.status(404).json({ success: false, message: 'Transaction not found.' });
