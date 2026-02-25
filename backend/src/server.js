@@ -168,10 +168,12 @@ app.get('/', (req, res) => {
   res.redirect('/payment.html');
 });
 
-// Short admin URL
-app.get('/admin', (req, res) => {
-  res.redirect('/admin-dashboard.html');
-});
+// Admin dashboard routes
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, '../public/admin-dashboard.html')));
+app.get('/admin/', (req, res) => res.sendFile(path.join(__dirname, '../public/admin-dashboard.html')));
+app.get('/admin-dashboard.html', (req, res) => res.sendFile(path.join(__dirname, '../public/admin-dashboard.html')));
+app.get('/admin-dashboard.html/', (req, res) => res.sendFile(path.join(__dirname, '../public/admin-dashboard.html')));
+app.get('/admin-dashboard.js', (req, res) => res.sendFile(path.join(__dirname, '../public/admin-dashboard.js')));
 
 // Simple healthcheck without database dependency
 app.get('/api/health-simple', (req, res) => {
