@@ -595,6 +595,12 @@ export default function DepositsScreen() {
                               <TouchableOpacity onPress={() => sendWhatsApp(selected, p.code)} style={[styles.payIconBtn, { backgroundColor: '#25D36622' }]}>
                                 <Ionicons name="logo-whatsapp" size={16} color="#25D366" />
                               </TouchableOpacity>
+                              <TouchableOpacity onPress={() => handleConfirmPayment(p)} style={[styles.payIconBtn, { backgroundColor: COLORS.successLight }]}>
+                                <Ionicons name="checkmark" size={16} color={COLORS.primary} />
+                              </TouchableOpacity>
+                              <TouchableOpacity onPress={() => handleRejectPayment(p)} style={[styles.payIconBtn, { backgroundColor: COLORS.dangerLight }]}>
+                                <Ionicons name="close" size={16} color={COLORS.danger} />
+                              </TouchableOpacity>
                             </View>
                           )}
                           {p.status === 'receipt_uploaded' && (
