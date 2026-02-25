@@ -303,4 +303,43 @@ router.post('/reset-data', adminAuth, async (req, res) => {
   }
 });
 
+// POST /admin/migrate-currencies — assign currencies with userId=NULL to all owners
+router.post('/migrate-currencies', adminAuth, async (req, res) => {
+  try {
+    const { Currency, User } = require('../models');
+    const { Op } = require('sequelize');
+    // Get all currencies without userId
+    const orphanCurrencies = await Currency.findAll({ where: { userId: null } });
+    if (orphanCurrencies.length === 0) {
+      return res.json({ success: true, message: 'Aucune devise orpheline trouvée.' });
+    }
+    // Get all owners
+    const owners = await User.findAll({ where: { teamRole: 'owner', isActive: true } });
+    if (owners.length === 0) {
+      return res.json({ success: true, message: 'Aucun owner trouvé.' });
+    }
+    let created = 0;
+    let skipped = 0;
+    for (const owner of owners) {
+      for (const cur of orphanCurrencies) {
+        const existing = await Currency.findOne({ where: { code: cur.code, userId: owner.id } });
+        if (!existing) {
+          await Currency.create({
+            code: cur.code, name: cur.name, symbol: cur.symbol,
+            currentRate: cur.currentRate, buyRate: cur.buyRate, sellRate: cur.sellRate,
+            stockAmount: cur.stockAmount, lowStockAlert: cur.lowStockAlert,
+            isActive: cur.isActive, isBase: cur.isBase, userId: owner.id
+          });
+          created++;
+        } else {
+          skipped++;
+        }
+      }
+    }
+    res.json({ success: true, message: `Migration terminée: ${created} devise(s) créées, ${skipped} déjà existantes pour ${owners.length} owner(s).` });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
