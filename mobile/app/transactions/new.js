@@ -33,7 +33,8 @@ export default function NewTransactionScreen() {
     exchangeRate: '',
     type: 'sell',
     notes: '',
-    dueDate: ''
+    dueDate: '',
+    paymentMethod: ''
   });
   const [amountTo, setAmountTo] = useState(0);
   const [showClientPicker, setShowClientPicker] = useState(false);
@@ -275,6 +276,24 @@ export default function NewTransactionScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+          </View>
+
+          {/* Payment Method */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Méthode de paiement</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+              {['', 'Mobile Money CM', 'Mobile Money Gabon', 'Virement Europe', 'Cash Dubaï', 'Wave', 'Orange Money', 'Virement USA', 'Autre'].map((method) => (
+                <TouchableOpacity
+                  key={method}
+                  style={[styles.currencyChip, form.paymentMethod === method && styles.currencyChipActive, { marginRight: 8 }]}
+                  onPress={() => set('paymentMethod', method)}
+                >
+                  <Text style={[styles.currencyChipText, form.paymentMethod === method && styles.currencyChipTextActive]}>
+                    {method === '' ? 'Non spécifié' : method}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
 
           {/* Notes */}

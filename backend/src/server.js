@@ -247,6 +247,7 @@ const runMigrations = async () => {
     `CREATE TABLE IF NOT EXISTS settings (id SERIAL PRIMARY KEY, key VARCHAR(100) NOT NULL UNIQUE, value TEXT)`,
     // Remove problematic unique+default constraints on reference columns if they exist
     `ALTER TABLE transactions ALTER COLUMN reference SET DEFAULT ''`,
+    `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS "paymentMethod" VARCHAR(100)`,
     `ALTER TABLE deposit_orders ALTER COLUMN reference SET DEFAULT ''`,
     `ALTER TABLE deposits ALTER COLUMN code SET DEFAULT ''`,
   ];

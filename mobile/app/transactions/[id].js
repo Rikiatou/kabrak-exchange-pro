@@ -263,6 +263,12 @@ export default function TransactionDetailScreen() {
             <Text style={styles.infoLabel}>{t.common.type}</Text>
             <Text style={styles.infoValue}>{tx.type?.toUpperCase()}</Text>
           </View>
+          {tx.paymentMethod && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Méthode paiement</Text>
+              <Text style={[styles.infoValue, { color: COLORS.primary }]}>{tx.paymentMethod}</Text>
+            </View>
+          )}
           {tx.notes && (
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>{t.common.notes}</Text>

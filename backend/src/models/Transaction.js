@@ -1,7 +1,6 @@
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../database/connection');
 
-const Transaction = sequelize.define('Transaction', {
+module.exports = (sequelize) => sequelize.define('Transaction', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   reference: { type: DataTypes.STRING, allowNull: false, defaultValue: '' },
   clientId: { type: DataTypes.UUID, allowNull: false },
@@ -22,7 +21,8 @@ const Transaction = sequelize.define('Transaction', {
   buyRate: { type: DataTypes.DECIMAL(20, 6), allowNull: true },
   sellRate: { type: DataTypes.DECIMAL(20, 6), allowNull: true },
   profit: { type: DataTypes.DECIMAL(20, 4), defaultValue: 0 },
-  profitCurrency: { type: DataTypes.STRING(10), allowNull: true }
+  profitCurrency: { type: DataTypes.STRING(10), allowNull: true },
+  paymentMethod: { type: DataTypes.STRING(100), allowNull: true }
 }, {
   tableName: 'transactions',
   indexes: [{ unique: true, fields: ['reference'], where: { reference: { [require('sequelize').Op.ne]: '' } } }],
@@ -38,4 +38,3 @@ const Transaction = sequelize.define('Transaction', {
   }
 });
 
-module.exports = (sequelize) => Transaction;

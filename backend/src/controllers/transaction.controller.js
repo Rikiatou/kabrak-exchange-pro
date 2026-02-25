@@ -68,7 +68,7 @@ const getById = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { clientId, currencyFrom, currencyTo, amountFrom, exchangeRate, type, notes } = req.body;
+    const { clientId, currencyFrom, currencyTo, amountFrom, exchangeRate, type, notes, paymentMethod } = req.body;
     const dueDate = req.body.dueDate && req.body.dueDate !== '' ? req.body.dueDate : null;
     if (!clientId || !currencyFrom || !currencyTo || !amountFrom || !exchangeRate) {
       return res.status(400).json({ success: false, message: 'Missing required fields.' });
@@ -151,6 +151,7 @@ const create = async (req, res) => {
       type: txType,
       notes,
       dueDate,
+      paymentMethod: paymentMethod || null,
       marketRate,
       buyRate: buyRateUsed,
       sellRate: sellRateUsed,
