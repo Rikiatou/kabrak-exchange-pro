@@ -220,4 +220,24 @@ router.get('/payments', adminAuth, async (req, res) => {
   }
 });
 
+// POST /admin/reset-data — delete all transactions, clients, deposits (keep users)
+router.post('/reset-data', adminAuth, async (req, res) => {
+  try {
+    const { Transaction, Client, Payment, Deposit, DepositOrder, CashBook, Alert, AuditLog, PaymentProof } = require('../models');
+    await Payment.destroy({ where: {} });
+    await Deposit.destroy({ where: {} });
+    await DepositOrder.destroy({ where: {} });
+    await Transaction.destroy({ where: {} });
+    await CashBook.destroy({ where: {} });
+    await Alert.destroy({ where: {} });
+    await AuditLog.destroy({ where: {} });
+    await PaymentProof.destroy({ where: {} });
+    // Reset client balances
+    await Client.update({ totalDebt: 0, totalPaid: 0 }, { where: {} });
+    res.json({ success: true, message: 'Toutes les données ont été réinitialisées.' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
