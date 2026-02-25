@@ -138,12 +138,15 @@ async function loadUsers() {
 
 // ─── Rendering ───
 function renderLicenses() {
-    const filtered = licenseFilter ? allLicenses.filter(l => l.status === licenseFilter) : allLicenses;
+    const search = (document.getElementById('licenseSearch')?.value || '').toLowerCase();
+    let filtered = licenseFilter ? allLicenses.filter(l => l.status === licenseFilter) : allLicenses;
+    if (search) filtered = filtered.filter(l => (l.businessName||'').toLowerCase().includes(search) || (l.ownerEmail||'').toLowerCase().includes(search) || (l.licenseKey||'').toLowerCase().includes(search));
     const tbody = document.getElementById('licensesTable');
     tbody.innerHTML = filtered.map(l => `
         <tr>
-            <td><div style="font-weight:600">${l.businessName}</div><div style="font-size:12px;color:var(--gray-400)">${l.ownerName}</div></td>
+            <td><div style="font-weight:600">${l.businessName}</div><div style="font-size:12px;color:var(--gray-400)">${l.ownerName||''}</div></td>
             <td>${l.ownerEmail}</td>
+            <td class="center"><span style="font-family:monospace;font-size:12px;color:#e8a020;cursor:pointer;background:rgba(232,160,32,.1);padding:3px 8px;border-radius:6px" onclick="copyKey('${l.licenseKey||''}')" title="Cliquer pour copier">${l.licenseKey||'-'}</span></td>
             <td class="center"><span class="badge badge-${l.plan}">${l.plan||'-'}</span></td>
             <td class="center"><span class="badge badge-${l.status}">${statusLabel(l.status)}</span></td>
             <td class="center">${l.expiresAt ? fmtDate(l.expiresAt) : '-'}</td>
@@ -153,7 +156,7 @@ function renderLicenses() {
                 <button class="btn-action" onclick="changePlan('${l.id}')"><i class="fas fa-edit"></i></button>
             </td>
         </tr>
-    `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--gray-500)">Aucune licence</td></tr>';
+    `).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--gray-500)">Aucune licence</td></tr>';
 }
 
 function renderPayments() {
@@ -202,14 +205,26 @@ async function approveLicense(id) {
     const days = prompt('Durée (jours) :', '90');
     if (!days) return;
     const res = await api(`/admin/licenses/${id}/approve`, { method: 'POST', body: JSON.stringify({ days: parseInt(days) }) });
-    if (res.ok) { toast('Licence approuvée'); refreshData(); }
+    if (res.ok) {
+        const data = await res.json();
+        const key = data.license?.licenseKey || '';
+        toast('Licence approuvée ✅');
+        if (key) { alert(`✅ Licence approuvée\n\nClé à donner au client :\n${key}`); copyKey(key); }
+        refreshData();
+    }
 }
 
 async function extendLicense(id) {
     const days = prompt('Prolonger de (jours) :', '30');
     if (!days) return;
     const res = await api(`/admin/licenses/${id}/extend`, { method: 'POST', body: JSON.stringify({ days: parseInt(days) }) });
-    if (res.ok) { toast('Licence prolongée'); refreshData(); }
+    if (res.ok) {
+        const data = await res.json();
+        const key = data.license?.licenseKey || '';
+        toast('Licence prolongée ✅');
+        if (key) alert(`✅ Licence prolongée\n\nClé : ${key}\nNouvelle expiration : ${fmtDate(data.newExpiry)}`);
+        refreshData();
+    }
 }
 
 async function changePlan(id) {
@@ -235,11 +250,30 @@ async function openCreateLicense() {
 }
 
 async function validatePayment(id) {
+    if (!confirm('Valider ce paiement et activer/prolonger la licence ?')) return;
     const res = await api(`/admin/payments/${id}/validate`, { method: 'POST' });
-    if (res.ok) { toast('Paiement validé'); refreshData(); }
+    if (res.ok) {
+        toast('Paiement validé ✅');
+        // Reload licenses to find the key for this user
+        await loadLicenses();
+        const payment = allPayments.find(p => p.id === id);
+        const userEmail = payment?.user?.email;
+        if (userEmail) {
+            const lic = allLicenses.find(l => l.ownerEmail === userEmail && l.status === 'active');
+            if (lic?.licenseKey) {
+                alert(`✅ Paiement validé — Licence activée\n\nClient : ${lic.businessName}\nEmail : ${lic.ownerEmail}\nClé de licence : ${lic.licenseKey}\nExpire : ${fmtDate(lic.expiresAt)}\n\n(Clé copiée dans le presse-papier)`);
+                copyKey(lic.licenseKey);
+            }
+        }
+        refreshData();
+    } else {
+        const d = await res.json().catch(() => ({}));
+        toast('Erreur: ' + (d.error || 'Validation échouée'), true);
+    }
 }
 
 async function rejectPayment(id) {
+    if (!confirm('Rejeter ce paiement ?')) return;
     const res = await api(`/admin/payments/${id}/reject`, { method: 'POST' });
     if (res.ok) { toast('Paiement rejeté'); refreshData(); }
 }
@@ -259,10 +293,11 @@ function toggleSidebar() {
 
 function switchTab(tab) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-nav li').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     document.getElementById(`tab-${tab}`).classList.add('active');
-    event.target.closest('li').classList.add('active');
-    document.title = `KABRAK Admin - ${tab.charAt(0).toUpperCase() + tab.slice(1)}`;
+    const navBtn = document.querySelector(`.nav-item[data-tab="${tab}"]`);
+    if (navBtn) navBtn.classList.add('active');
+    document.getElementById('pageTitle').textContent = { dashboard: 'Tableau de bord', licenses: 'Licences', payments: 'Paiements', users: 'Utilisateurs' }[tab] || tab;
 }
 
 function filterPayments(status) {
@@ -313,12 +348,21 @@ function statusLabel(s) {
     return map[s] || s;
 }
 
-function toast(msg) {
+function toast(msg, isError) {
     const el = document.createElement('div');
-    el.className = 'toast';
+    el.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
     el.textContent = msg;
     document.getElementById('toastContainer').appendChild(el);
-    setTimeout(() => el.remove(), 3000);
+    setTimeout(() => el.remove(), 4000);
+}
+
+function copyKey(key) {
+    if (!key) return;
+    navigator.clipboard.writeText(key).then(() => {
+        toast('Clé copiée : ' + key);
+    }).catch(() => {
+        prompt('Copiez cette clé :', key);
+    });
 }
 
 // ─── Init ───
