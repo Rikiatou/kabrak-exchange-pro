@@ -46,6 +46,22 @@ const useLicenseStore = create((set, get) => ({
     set({ licenseKey: null, licenseData: null, isValid: false, error: null });
   },
 
+  fetchMyLicense: async () => {
+    try {
+      const res = await api.get('/licenses/my');
+      const data = res.data.data;
+      if (data && data.licenseKey) {
+        await AsyncStorage.setItem(LICENSE_KEY, data.licenseKey);
+        await AsyncStorage.setItem(LICENSE_DATA_KEY, JSON.stringify(data));
+        set({ licenseKey: data.licenseKey, licenseData: data, isValid: data.active !== false, error: null });
+        return { success: true, data };
+      }
+      return { success: false };
+    } catch (e) {
+      return { success: false, message: e.response?.data?.message || e.message };
+    }
+  },
+
   checkOnline: async () => {
     const { licenseKey } = get();
     if (!licenseKey) return false;

@@ -53,12 +53,19 @@ export default function LoginScreen() {
         router.replace('/(tabs)/dashboard');
         return;
       }
-      // Owner: reload license from storage before deciding
-      const { loadStoredLicense } = useLicenseStore.getState();
-      await loadStoredLicense();
+      // Owner: fetch license from backend, then check
+      const { fetchMyLicense, loadStoredLicense } = useLicenseStore.getState();
+      await fetchMyLicense();
       const { isValid } = useLicenseStore.getState();
       if (!isValid) {
-        router.replace('/(auth)/license');
+        // Fallback: check local storage
+        await loadStoredLicense();
+        const fallback = useLicenseStore.getState();
+        if (!fallback.isValid) {
+          router.replace('/(auth)/license');
+        } else {
+          router.replace('/(tabs)/dashboard');
+        }
       } else {
         router.replace('/(tabs)/dashboard');
       }

@@ -10,6 +10,37 @@ const { authenticate, authorize } = require('../middleware/auth.middleware');
 router.post('/verify', verifyLicense);
 router.post('/request', requestLicense);
 
+// GET /api/licenses/my — return current user's license (authenticated)
+router.get('/my', authenticate, async (req, res) => {
+  try {
+    const { License } = require('../models');
+    const license = await License.findOne({
+      where: { ownerEmail: req.user.email },
+      order: [['createdAt', 'DESC']]
+    });
+    if (!license) {
+      return res.status(404).json({ success: false, message: 'No license found for this account.' });
+    }
+    const now = new Date();
+    const isActive = license.status === 'active' && license.expiresAt && license.expiresAt > now;
+    const daysLeft = license.expiresAt ? Math.ceil((license.expiresAt - now) / (1000 * 60 * 60 * 24)) : 0;
+    res.json({
+      success: true,
+      data: {
+        licenseKey: license.licenseKey,
+        plan: license.plan,
+        status: license.status,
+        expiresAt: license.expiresAt,
+        daysLeft,
+        businessName: license.businessName,
+        active: isActive
+      }
+    });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 // Admin-only fixed routes — must be BEFORE /:id routes
 router.get('/', authenticate, authorize('admin'), getAllLicenses);
 router.get('/stats', authenticate, authorize('admin'), getLicenseStats);

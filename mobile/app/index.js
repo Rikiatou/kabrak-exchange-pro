@@ -28,22 +28,28 @@ export default function Index() {
         return;
       }
 
-      // For owners/standalone users: check license as normal
-      await loadStoredLicense();
-      const licenseState = useLicenseStore.getState();
-      if (!licenseState.isValid) {
-        if (authState.isAuthenticated) {
-          router.replace('/(auth)/license');
-        } else {
-          router.replace('/(auth)/welcome');
-        }
-        return;
-      }
-      // checkOnline is non-blocking: if server fails, keep local license valid
-      checkOnline().catch(() => {});
+      // For owners/standalone users: check license
       if (authState.isAuthenticated) {
-        router.replace('/(tabs)/dashboard');
+        // Try fetching license from backend first
+        const { fetchMyLicense } = useLicenseStore.getState();
+        await fetchMyLicense();
+        const licState = useLicenseStore.getState();
+        if (licState.isValid) {
+          router.replace('/(tabs)/dashboard');
+        } else {
+          // Fallback: check local storage
+          await loadStoredLicense();
+          const fallback = useLicenseStore.getState();
+          if (fallback.isValid) {
+            checkOnline().catch(() => {});
+            router.replace('/(tabs)/dashboard');
+          } else {
+            router.replace('/(auth)/license');
+          }
+        }
       } else {
+        // Not authenticated: check stored license for display purposes
+        await loadStoredLicense();
         router.replace('/(auth)/welcome');
       }
     };
