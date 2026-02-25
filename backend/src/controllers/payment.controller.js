@@ -88,7 +88,7 @@ const create = async (req, res) => {
       include: [
         { model: Transaction, as: 'transaction' },
         { model: Client, as: 'client', attributes: ['id', 'name'] },
-        { model: User, as: 'operator', attributes: ['id', 'name'] }
+        { model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] }
       ]
     });
 

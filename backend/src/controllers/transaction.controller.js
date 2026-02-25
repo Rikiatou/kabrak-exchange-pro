@@ -36,7 +36,7 @@ const getAll = async (req, res) => {
       order: [['createdAt', 'DESC']],
       include: [
         { model: Client, as: 'client', attributes: ['id', 'name', 'phone'] },
-        { model: User, as: 'operator', attributes: ['id', 'name'] },
+        { model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] },
         { model: Payment, as: 'payments' }
       ]
     });
