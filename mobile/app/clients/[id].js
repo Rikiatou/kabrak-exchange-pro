@@ -98,6 +98,7 @@ export default function ClientDetailScreen() {
   const [payAmount, setPayAmount] = useState('');
   const [payNotes, setPayNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const [receiptModal, setReceiptModal] = useState(null);
 
   useEffect(() => {
     fetchClientById(id);
@@ -165,8 +166,6 @@ export default function ClientDetailScreen() {
   if (!client) return null;
 
   const hasDebt = parseFloat(client.totalDebt) > 0;
-
-  const [receiptModal, setReceiptModal] = useState(null);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
