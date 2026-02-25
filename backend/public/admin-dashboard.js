@@ -4,12 +4,7 @@ let allLicenses = [], allPayments = [], allUsers = [];
 let licenseFilter = '', paymentFilter = '';
 
 // ─── Auth ───
-if (token) {
-    // Validate token before showing dashboard
-    fetch(`${API}/admin/dashboard`, { headers: { 'Authorization': `Bearer ${token}` } })
-        .then(r => { if (r.ok) showDashboard(); else { localStorage.removeItem('kabrak_admin_token'); token = null; } })
-        .catch(() => { localStorage.removeItem('kabrak_admin_token'); token = null; });
-}
+if (token) showDashboard();
 
 async function handleLogin(e) {
     e.preventDefault();
@@ -240,6 +235,13 @@ async function toggleUser(id) {
 }
 
 // ─── UI ───
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const main = document.getElementById('mainContent');
+    if (sidebar) sidebar.classList.toggle('collapsed');
+    if (main) main.classList.toggle('sidebar-collapsed');
+}
+
 function switchTab(tab) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-nav li').forEach(el => el.classList.remove('active'));
