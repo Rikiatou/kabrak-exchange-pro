@@ -77,7 +77,6 @@ router.post('/licenses/:id/approve', adminAuth, async (req, res) => {
       status: 'active',
       startsAt: new Date(),
       expiresAt: new Date(Date.now() + days * 24 * 60 * 60 * 1000),
-      plan: 'basic' // plan par défaut
     });
     
     res.json({ success: true, license });
