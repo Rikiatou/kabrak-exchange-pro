@@ -84,6 +84,6 @@ export default {
       appName,
       isBogo: IS_BOGO,
     },
-    owner: 'kabrakeng',
+    owner: 'kabrak',
   },
 };
