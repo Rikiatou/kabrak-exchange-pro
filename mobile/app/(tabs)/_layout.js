@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useLanguageStore from '../../src/store/languageStore';
 
 const ACTIVE = '#0B6E4F';
@@ -20,8 +21,10 @@ function TabIcon({ name, nameActive, focused, label }) {
 
 export default function TabsLayout() {
   const { t } = useLanguageStore();
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = 60 + insets.bottom;
   return (
-    <Tabs screenOptions={{ headerShown: false, tabBarStyle: styles.tabBar, tabBarShowLabel: false }}>
+    <Tabs screenOptions={{ headerShown: false, tabBarStyle: [styles.tabBar, { height: tabBarHeight, paddingBottom: insets.bottom + 4 }], tabBarShowLabel: false }}>
       <Tabs.Screen
         name="dashboard"
         options={{ tabBarIcon: ({ focused }) => <TabIcon name="grid-outline" nameActive="grid" focused={focused} label={t.tabs.dashboard} /> }}
