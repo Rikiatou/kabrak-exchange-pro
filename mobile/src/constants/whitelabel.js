@@ -3,9 +3,9 @@ import Constants from 'expo-constants';
 // Reads from app.config.js extra.isBogo (set by EAS build profile env vars)
 export const IS_BOGO = Constants.expoConfig?.extra?.isBogo === true;
 
-export const APP_NAME = IS_BOGO ? 'BOGO EXPRESS\n& SAOUDIE SERVICE' : 'KABRAK Exchange Pro';
-export const APP_NAME_SHORT = IS_BOGO ? 'BOGO EXPRESS' : 'KABRAK';
-export const APP_NAME_SUB = IS_BOGO ? '& SAOUDIE SERVICE' : 'Exchange Pro';
+export const APP_NAME = IS_BOGO ? 'B&S' : 'KABRAK Exchange Pro';
+export const APP_NAME_SHORT = IS_BOGO ? 'B&S' : 'KABRAK';
+export const APP_NAME_SUB = IS_BOGO ? '' : 'Exchange Pro';
 
 // Colors
 export const BRAND_DARK   = IS_BOGO ? '#0d1447' : '#071a12';
