@@ -1,4 +1,4 @@
-const Setting = require('../models/Setting');
+const { Setting } = require('../models');
 
 const DEFAULTS = {
   businessName: 'KABRAK Exchange Pro',
