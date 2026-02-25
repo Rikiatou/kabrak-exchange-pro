@@ -109,12 +109,54 @@ router.post('/licenses/:id/extend', adminAuth, async (req, res) => {
 // POST /admin/licenses/:id/plan — changer le plan d'une licence (protégé)
 router.post('/licenses/:id/plan', adminAuth, async (req, res) => {
   try {
-    const { plan } = req.body; // basic, pro, premium
+    const { plan } = req.body; // trial, monthly, annual
+    const validPlans = ['trial', 'monthly', 'annual'];
+    if (!validPlans.includes(plan)) return res.status(400).json({ error: `Plan invalide. Valeurs acceptées: ${validPlans.join(', ')}` });
     const license = await License.findByPk(req.params.id);
     if (!license) return res.status(404).json({ error: 'License not found' });
-    
-    await license.update({ plan });
+    const days = plan === 'trial' ? 14 : plan === 'monthly' ? 30 : 365;
+    const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    await license.update({ plan, expiresAt, status: 'active' });
     res.json({ success: true, license });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /admin/payments/:id/validate — valider un paiement
+router.post('/payments/:id/validate', adminAuth, async (req, res) => {
+  try {
+    const payment = await PaymentProof.findByPk(req.params.id);
+    if (!payment) return res.status(404).json({ error: 'Payment not found' });
+    await payment.update({ status: 'validated', validatedAt: new Date() });
+    // Activate or extend license for this user
+    if (payment.userId) {
+      const user = await User.findByPk(payment.userId, { attributes: ['id', 'email', 'firstName', 'lastName', 'businessName'] });
+      const days = payment.plan === 'trial' ? 14 : payment.plan === 'monthly' ? 30 : 365;
+      const existing = await License.findOne({ where: { ownerEmail: user.email } });
+      if (existing) {
+        const base = existing.expiresAt > new Date() ? new Date(existing.expiresAt) : new Date();
+        base.setDate(base.getDate() + days);
+        await existing.update({ status: 'active', expiresAt: base });
+      } else {
+        const crypto = require('crypto');
+        const licenseKey = crypto.randomBytes(8).toString('hex').toUpperCase().match(/.{4}/g).join('-');
+        await License.create({ licenseKey, ownerEmail: user.email, businessName: user.businessName || user.email, ownerName: `${user.firstName||''} ${user.lastName||''}`.trim(), plan: payment.plan || 'monthly', status: 'active', startsAt: new Date(), expiresAt: new Date(Date.now() + days * 24 * 60 * 60 * 1000), maxUsers: 10 });
+      }
+    }
+    res.json({ success: true, payment });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /admin/payments/:id/reject — rejeter un paiement
+router.post('/payments/:id/reject', adminAuth, async (req, res) => {
+  try {
+    const payment = await PaymentProof.findByPk(req.params.id);
+    if (!payment) return res.status(404).json({ error: 'Payment not found' });
+    await payment.update({ status: 'rejected' });
+    res.json({ success: true, payment });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

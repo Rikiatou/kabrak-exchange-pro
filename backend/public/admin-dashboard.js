@@ -213,10 +213,25 @@ async function extendLicense(id) {
 }
 
 async function changePlan(id) {
-    const plan = prompt('Nouveau plan (basic/pro/premium) :', 'basic');
+    const plan = prompt('Nouveau plan (trial / monthly / annual) :', 'annual');
     if (!plan) return;
-    const res = await api(`/admin/licenses/${id}/plan`, { method: 'POST', body: JSON.stringify({ plan }) });
-    if (res.ok) { toast('Plan modifié'); refreshData(); }
+    const validPlans = ['trial', 'monthly', 'annual'];
+    if (!validPlans.includes(plan.toLowerCase().trim())) { toast('Plan invalide. Utilisez: trial, monthly, annual'); return; }
+    const res = await api(`/admin/licenses/${id}/plan`, { method: 'POST', body: JSON.stringify({ plan: plan.toLowerCase().trim() }) });
+    if (res.ok) { toast('Plan modifié ✅'); refreshData(); } else { const d = await res.json(); toast('Erreur: ' + (d.error||'?')); }
+}
+
+async function openCreateLicense() {
+    const email = prompt('Email du propriétaire :');
+    if (!email) return;
+    const business = prompt('Nom du bureau de change :');
+    if (!business) return;
+    const plan = prompt('Plan (trial / monthly / annual) :', 'annual');
+    if (!plan) return;
+    const res = await api('/admin/licenses', { method: 'POST', body: JSON.stringify({ ownerEmail: email.trim(), businessName: business.trim(), ownerName: business.trim(), plan: plan.trim() }) });
+    const data = await res.json();
+    if (res.ok) { toast(`Licence créée ✅ Clé: ${data.data?.licenseKey}`); alert(`Clé de licence: ${data.data?.licenseKey}`); refreshData(); }
+    else { toast('Erreur: ' + (data.error || '?')); }
 }
 
 async function validatePayment(id) {
@@ -239,7 +254,7 @@ function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const main = document.getElementById('mainContent');
     if (sidebar) sidebar.classList.toggle('collapsed');
-    if (main) main.classList.toggle('sidebar-collapsed');
+    if (main) main.classList.toggle('expanded');
 }
 
 function switchTab(tab) {
