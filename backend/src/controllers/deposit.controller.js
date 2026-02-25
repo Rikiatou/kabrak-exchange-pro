@@ -155,23 +155,19 @@ const confirmDeposit = async (req, res) => {
     await deposit.update({ status: 'confirmed', confirmedAt: new Date() });
     let order = null;
     if (deposit.orderId) order = await recalcOrder(deposit.orderId);
-    // Notify operator: versement confirmé
-    if (deposit.expoPushToken) {
-      await sendPushNotification(
-        deposit.expoPushToken,
-        '✅ Versement confirmé',
-        `${deposit.clientName} — ${deposit.amount} ${deposit.currency} — Code: ${deposit.code}${order ? ` — Restant: ${order.remainingAmount} ${order.currency}` : ''}`,
-        { depositId: deposit.id, orderId: deposit.orderId }
-      );
-    }
-    // Notify user account push token
+    // Notify operator + owner (if team member)
     if (deposit.userId) {
       try {
-        const owner = await User.findByPk(deposit.userId, { attributes: ['id', 'expoPushToken'] });
-        if (owner?.expoPushToken && owner.expoPushToken !== deposit.expoPushToken) {
-          await sendPushNotification(owner.expoPushToken, '✅ Versement confirmé',
-            `${deposit.clientName} — ${deposit.amount} ${deposit.currency}`, { depositId: deposit.id });
+        const tokens = new Set();
+        if (deposit.expoPushToken) tokens.add(deposit.expoPushToken);
+        const operator = await User.findByPk(deposit.userId, { attributes: ['id', 'expoPushToken', 'teamOwnerId'] });
+        if (operator?.expoPushToken) tokens.add(operator.expoPushToken);
+        if (operator?.teamOwnerId) {
+          const owner = await User.findByPk(operator.teamOwnerId, { attributes: ['id', 'expoPushToken'] });
+          if (owner?.expoPushToken) tokens.add(owner.expoPushToken);
         }
+        const msg = `${deposit.clientName} — ${deposit.amount} ${deposit.currency}${order ? ` — Restant: ${order.remainingAmount}` : ''}`;
+        await Promise.all([...tokens].map(t => sendPushNotification(t, '✅ Versement confirmé', msg, { depositId: deposit.id })));
       } catch (_) {}
     }
     res.json({ success: true, data: deposit });
@@ -187,14 +183,20 @@ const rejectDeposit = async (req, res) => {
     if (!deposit) return res.status(404).json({ success: false, message: 'Deposit not found' });
     await deposit.update({ status: 'rejected' });
     if (deposit.orderId) await recalcOrder(deposit.orderId);
-    // Notify operator: versement rejeté
-    if (deposit.expoPushToken) {
-      await sendPushNotification(
-        deposit.expoPushToken,
-        '❌ Versement rejeté',
-        `${deposit.clientName} — ${deposit.amount} ${deposit.currency} — Code: ${deposit.code}`,
-        { depositId: deposit.id, orderId: deposit.orderId }
-      );
+    // Notify operator + owner (if team member)
+    if (deposit.userId) {
+      try {
+        const tokens = new Set();
+        if (deposit.expoPushToken) tokens.add(deposit.expoPushToken);
+        const operator = await User.findByPk(deposit.userId, { attributes: ['id', 'expoPushToken', 'teamOwnerId'] });
+        if (operator?.expoPushToken) tokens.add(operator.expoPushToken);
+        if (operator?.teamOwnerId) {
+          const owner = await User.findByPk(operator.teamOwnerId, { attributes: ['id', 'expoPushToken'] });
+          if (owner?.expoPushToken) tokens.add(owner.expoPushToken);
+        }
+        const msg = `${deposit.clientName} — ${deposit.amount} ${deposit.currency} — Code: ${deposit.code}`;
+        await Promise.all([...tokens].map(t => sendPushNotification(t, '❌ Versement rejeté', msg, { depositId: deposit.id, orderId: deposit.orderId })));
+      } catch (_) {}
     }
     res.json({ success: true, data: deposit });
   } catch (err) {

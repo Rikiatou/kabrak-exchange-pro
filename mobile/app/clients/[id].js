@@ -7,6 +7,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import useClientStore from '../../src/store/clientStore';
 import useDepositOrderStore from '../../src/store/depositOrderStore';
+import useAuthStore from '../../src/store/authStore';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import useLanguageStore from '../../src/store/languageStore';
 import { formatCurrency, formatDate, getStatusConfig, getInitials } from '../../src/utils/helpers';
@@ -86,6 +87,8 @@ export default function ClientDetailScreen() {
   const { t } = useLanguageStore();
   const { currentClient, isLoading, fetchClientById, deleteClient, getClientTransactions } = useClientStore();
   const { getClientOrders, addPayment } = useDepositOrderStore();
+  const { user } = useAuthStore();
+  const canDelete = !user?.teamRole;
   const [transactions, setTransactions] = useState([]);
   const [txLoading, setTxLoading] = useState(false);
   const [depositOrders, setDepositOrders] = useState([]);
@@ -333,13 +336,15 @@ export default function ClientDetailScreen() {
         <InfoRow label="Notes" value={client.notes} icon="document-text-outline" />
       </View>
 
-      {/* Danger */}
-      <View style={{ marginHorizontal: SPACING.lg, marginTop: SPACING.sm, marginBottom: 40 }}>
-        <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
-          <Ionicons name="trash-outline" size={18} color={COLORS.danger} />
-          <Text style={styles.deleteBtnText}>{t.clients.deactivate}</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Danger — owner only */}
+      {canDelete && (
+        <View style={{ marginHorizontal: SPACING.lg, marginTop: SPACING.sm, marginBottom: 40 }}>
+          <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
+            <Ionicons name="trash-outline" size={18} color={COLORS.danger} />
+            <Text style={styles.deleteBtnText}>{t.clients.deactivate}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Add Payment Modal */}
       <Modal visible={showAddPayment} animationType="slide" transparent>

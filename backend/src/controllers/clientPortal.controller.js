@@ -1,4 +1,5 @@
 const { Client, DepositOrder, Deposit, User } = require('../models');
+const { Op } = require('sequelize');
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
@@ -91,15 +92,25 @@ const submitClientPayment = async (req, res) => {
       expoPushToken: order.expoPushToken || null,
     });
 
-    // Notify operator
-    if (order.expoPushToken) {
-      await sendPush(
-        order.expoPushToken,
-        '📸 Nouveau versement reçu',
-        `${client.name} — ${parseFloat(amount).toLocaleString('fr-FR')} ${order.currency} — Reste: ${(parseFloat(order.remainingAmount) - parseFloat(amount)).toLocaleString('fr-FR')}`,
-        { orderId: order.id, depositId: deposit.id, clientCode: client.clientCode }
-      );
+    // Notify operator who created the order + owner if operator is a team member
+    const notifTitle = '📸 Nouveau versement reçu';
+    const notifBody = `${client.name} — ${parseFloat(amount).toLocaleString('fr-FR')} ${order.currency} — Reste: ${(parseFloat(order.remainingAmount) - parseFloat(amount)).toLocaleString('fr-FR')}`;
+    const notifData = { orderId: order.id, depositId: deposit.id, clientCode: client.clientCode };
+
+    const tokensToNotify = new Set();
+    if (order.expoPushToken) tokensToNotify.add(order.expoPushToken);
+
+    // Also notify the owner if the operator is a team member
+    if (order.userId) {
+      const operator = await User.findByPk(order.userId, { attributes: ['id', 'expoPushToken', 'teamOwnerId'] });
+      if (operator?.expoPushToken) tokensToNotify.add(operator.expoPushToken);
+      if (operator?.teamOwnerId) {
+        const owner = await User.findByPk(operator.teamOwnerId, { attributes: ['id', 'expoPushToken'] });
+        if (owner?.expoPushToken) tokensToNotify.add(owner.expoPushToken);
+      }
     }
+
+    await Promise.all([...tokensToNotify].map(t => sendPush(t, notifTitle, notifBody, notifData)));
 
     res.status(201).json({ success: true, data: { depositId: deposit.id } });
   } catch (err) {
