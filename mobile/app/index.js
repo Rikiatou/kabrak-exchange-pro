@@ -39,12 +39,8 @@ export default function Index() {
         }
         return;
       }
-      await checkOnline();
-      const licenseStateAfter = useLicenseStore.getState();
-      if (!licenseStateAfter.isValid) {
-        router.replace('/(auth)/license');
-        return;
-      }
+      // checkOnline is non-blocking: if server fails, keep local license valid
+      checkOnline().catch(() => {});
       if (authState.isAuthenticated) {
         router.replace('/(tabs)/dashboard');
       } else {
