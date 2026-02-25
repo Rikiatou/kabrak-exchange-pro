@@ -291,7 +291,7 @@ const requestLicense = async (req, res) => {
       businessName, ownerName, ownerEmail, ownerPhone: ownerPhone || null,
       country: country || null,
       plan: 'trial',
-      status: 'pending',
+      status: 'active',
       licenseKey,
       expiresAt,
       maxUsers: 3,
