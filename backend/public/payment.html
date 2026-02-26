@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KABRAK Exchange - Paiement</title>
+    <title>Activation de licence</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #071a12; }
@@ -38,7 +38,13 @@
 <body class="min-h-screen text-white">
     <div class="container mx-auto p-6 max-w-md">
         <header class="text-center mb-8">
-            <h1 class="text-2xl font-bold green-accent">🏪 KABRAK Exchange</h1>
+            <div id="brandHeader" class="flex flex-col items-center gap-3 mb-4">
+                <div id="logoWrap" class="hidden">
+                    <img id="businessLogoImg" src="" alt="Logo" class="w-16 h-16 rounded-xl object-contain border border-gray-600" />
+                </div>
+                <div id="logoIconWrap" class="w-14 h-14 rounded-xl flex items-center justify-center text-2xl" style="background:rgba(232,160,32,0.15);border:1px solid rgba(232,160,32,0.3)">🏪</div>
+            </div>
+            <h1 id="businessTitle" class="text-2xl font-bold green-accent">KABRAK Exchange</h1>
             <p class="text-gray-400">Activation de votre licence</p>
         </header>
 
@@ -471,9 +477,38 @@
             messageDiv.classList.remove('hidden');
         }
 
+        // Charger le branding depuis les settings publics
+        async function loadBranding() {
+            try {
+                const userId = currentUser?.id;
+                const url = userId
+                    ? `${API_URL}/settings/public?userId=${userId}`
+                    : `${API_URL}/settings/public`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.success) {
+                    const { businessName, businessLogo, brandColor } = data.data;
+                    if (businessName) {
+                        document.getElementById('businessTitle').textContent = businessName;
+                        document.title = businessName + ' - Activation licence';
+                    }
+                    if (businessLogo) {
+                        document.getElementById('businessLogoImg').src = businessLogo;
+                        document.getElementById('logoWrap').classList.remove('hidden');
+                        document.getElementById('logoIconWrap').classList.add('hidden');
+                    }
+                    if (brandColor) {
+                        document.getElementById('businessTitle').style.color = brandColor;
+                    }
+                }
+            } catch (e) {
+                // silently fail, keep defaults
+            }
+        }
+
         // Initialisation
         if (getCurrentUser()) {
-            // L'utilisateur est connecté, on peut continuer
+            loadBranding();
         }
     </script>
 </body>
