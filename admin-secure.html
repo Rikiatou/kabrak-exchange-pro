@@ -1,312 +1,467 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KABRAK Admin - Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background: #071a12; }
-        .green-accent { color: #e8a020; }
-        .btn-green { background: #0B6E4F; }
-        .btn-green:hover { background: #0a5d41; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KABRAK Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #071a12; font-family: 'Inter', sans-serif; }
+    .gold { color: #e8a020; }
+    .bg-primary { background: #0B6E4F; }
+    .bg-primary:hover { background: #0a5d41; }
+    .sidebar { width: 220px; min-height: 100vh; background: #0a1f14; }
+    .badge-active { background:#dcfce7; color:#166534; }
+    .badge-expired { background:#fee2e2; color:#991b1b; }
+    .badge-pending { background:#fef9c3; color:#854d0e; }
+    .badge-trial { background:#dbeafe; color:#1e40af; }
+    input[type=password]::-ms-reveal { display:none; }
+  </style>
 </head>
-<body class="min-h-screen text-white flex items-center justify-center">
-    <div class="bg-gray-800 p-8 rounded-lg max-w-md w-full mx-4">
-        <h1 class="text-2xl font-bold green-accent mb-6 text-center">🔐 KABRAK Admin</h1>
-        
-        <div id="loginForm">
-            <h2 class="text-lg mb-4">Connexion Administrateur</h2>
-            <form onsubmit="login(event)">
-                <div class="mb-4">
-                    <label class="block mb-2">Nom d'utilisateur:</label>
-                    <input type="text" id="username" class="w-full p-2 bg-gray-700 rounded" required>
-                </div>
-                <div class="mb-4">
-                    <label class="block mb-2">Mot de passe:</label>
-                    <input type="password" id="password" class="w-full p-2 bg-gray-700 rounded" required>
-                </div>
-                <button type="submit" class="w-full btn-green py-2 rounded hover:bg-green-600">
-                    Se connecter
-                </button>
-            </form>
-            <div id="loginError" class="text-red-500 mt-4 hidden"></div>
+<body class="text-white min-h-screen">
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="min-h-screen flex items-center justify-center">
+  <div class="bg-gray-800 p-8 rounded-2xl w-full max-w-sm mx-4 shadow-2xl">
+    <div class="text-center mb-8">
+      <div class="text-4xl mb-2">🔐</div>
+      <h1 class="text-2xl font-bold gold">KABRAK Admin</h1>
+      <p class="text-gray-400 text-sm mt-1">Portail de gestion des licences</p>
+    </div>
+    <form onsubmit="doLogin(event)">
+      <div class="mb-4">
+        <label class="block text-sm text-gray-300 mb-1">Nom d'utilisateur</label>
+        <input type="text" id="loginUser" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:border-green-500 outline-none" placeholder="kabrak" required>
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm text-gray-300 mb-1">Mot de passe</label>
+        <div class="relative">
+          <input type="password" id="loginPass" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:border-green-500 outline-none pr-10" placeholder="••••••••" required>
+          <button type="button" onclick="togglePass('loginPass', this)" class="absolute right-3 top-3 text-gray-400 hover:text-white">👁</button>
         </div>
+      </div>
+      <button type="submit" class="w-full bg-primary py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+        Se connecter
+      </button>
+      <div id="loginErr" class="text-red-400 text-sm mt-3 text-center hidden"></div>
+    </form>
+  </div>
+</div>
 
-        <div id="adminPanel" class="hidden">
-            <div class="mb-4 flex justify-between items-center">
-                <h2 class="text-lg">Gestion des Licences</h2>
-                <button onclick="logout()" class="px-3 py-1 bg-red-600 rounded text-sm hover:bg-red-700">
-                    Déconnexion
-                </button>
-            </div>
+<!-- MAIN DASHBOARD -->
+<div id="dashboard" class="hidden flex min-h-screen">
 
-            <!-- Stats -->
-            <div class="grid grid-cols-3 gap-4 mb-6">
-                <div class="bg-gray-700 p-3 rounded text-center">
-                    <div class="text-2xl font-bold green-accent" id="totalLicenses">0</div>
-                    <div class="text-xs">Total</div>
-                </div>
-                <div class="bg-gray-700 p-3 rounded text-center">
-                    <div class="text-2xl font-bold text-yellow-500" id="pendingLicenses">0</div>
-                    <div class="text-xs">Attente</div>
-                </div>
-                <div class="bg-gray-700 p-3 rounded text-center">
-                    <div class="text-2xl font-bold text-green-500" id="activeLicenses">0</div>
-                    <div class="text-xs">Actives</div>
-                </div>
-            </div>
+  <!-- Sidebar -->
+  <div class="sidebar flex flex-col p-4">
+    <div class="mb-8 mt-2">
+      <div class="text-lg font-bold gold">KABRAK</div>
+      <div class="text-xs text-gray-400">Admin Portal</div>
+    </div>
+    <nav class="flex flex-col gap-1 flex-1">
+      <button onclick="showSection('licences')" id="nav-licences" class="nav-btn text-left px-3 py-2 rounded-lg text-sm font-medium bg-green-900 text-white">📋 Licences</button>
+      <button onclick="showSection('create')" id="nav-create" class="nav-btn text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700">➕ Créer licence</button>
+      <button onclick="showSection('password')" id="nav-password" class="nav-btn text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700">🔑 Mot de passe</button>
+    </nav>
+    <button onclick="doLogout()" class="mt-4 px-3 py-2 bg-red-800 hover:bg-red-700 rounded-lg text-sm text-center">
+      Déconnexion
+    </button>
+  </div>
 
-            <!-- Licences List -->
-            <div class="bg-gray-700 rounded p-4 max-h-96 overflow-y-auto">
-                <h3 class="font-semibold mb-3">Licences</h3>
-                <div id="licensesList" class="space-y-2">
-                    <div class="text-center text-gray-500">Chargement...</div>
-                </div>
-            </div>
-        </div>
+  <!-- Content -->
+  <div class="flex-1 p-6 overflow-auto" style="background:#0e2418">
+
+    <!-- Stats bar -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="bg-gray-800 rounded-xl p-4 text-center">
+        <div class="text-3xl font-bold gold" id="statTotal">—</div>
+        <div class="text-xs text-gray-400 mt-1">Total licences</div>
+      </div>
+      <div class="bg-gray-800 rounded-xl p-4 text-center">
+        <div class="text-3xl font-bold text-green-400" id="statActive">—</div>
+        <div class="text-xs text-gray-400 mt-1">Actives</div>
+      </div>
+      <div class="bg-gray-800 rounded-xl p-4 text-center">
+        <div class="text-3xl font-bold text-red-400" id="statExpired">—</div>
+        <div class="text-xs text-gray-400 mt-1">Expirées</div>
+      </div>
+      <div class="bg-gray-800 rounded-xl p-4 text-center">
+        <div class="text-3xl font-bold text-yellow-400" id="statPending">—</div>
+        <div class="text-xs text-gray-400 mt-1">En attente</div>
+      </div>
     </div>
 
-    <!-- Action Modal -->
-    <div id="actionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-        <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
-            <h3 class="text-xl font-semibold mb-4" id="modalTitle">Action</h3>
-            <div id="modalContent"></div>
-            <div class="flex gap-3 mt-4">
-                <button onclick="closeModal()" class="px-4 py-2 bg-gray-600 rounded hover:bg-gray-700">Annuler</button>
-                <button id="modalConfirm" class="px-4 py-2 btn-green rounded hover:bg-green-600">Confirmer</button>
-            </div>
-        </div>
+    <!-- SECTION: Licences -->
+    <div id="sec-licences">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Gestion des licences</h2>
+        <button onclick="loadLicenses()" class="px-3 py-1 bg-gray-700 rounded text-sm hover:bg-gray-600">🔄 Actualiser</button>
+      </div>
+      <div id="licensesList" class="space-y-3">
+        <div class="text-gray-400 text-center py-8">Chargement...</div>
+      </div>
     </div>
 
-    <script>
-        const API_URL = 'https://kabrak-exchange-pro-production.up.railway.app/api';
-        let adminToken = localStorage.getItem('kabrakAdminToken');
-        let currentLicenseId = null;
+    <!-- SECTION: Créer licence -->
+    <div id="sec-create" class="hidden">
+      <h2 class="text-xl font-bold mb-6">Créer une nouvelle licence</h2>
+      <div class="bg-gray-800 rounded-2xl p-6 max-w-lg">
+        <div class="mb-4">
+          <label class="block text-sm text-gray-300 mb-1">Email du client *</label>
+          <input type="email" id="newEmail" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 outline-none focus:border-green-500" placeholder="client@example.com">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm text-gray-300 mb-1">Nom de l'entreprise *</label>
+          <input type="text" id="newBusiness" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 outline-none focus:border-green-500" placeholder="Bureau de Change XYZ">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm text-gray-300 mb-1">Plan</label>
+          <select id="newPlan" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 outline-none">
+            <option value="trial">Essai (trial)</option>
+            <option value="monthly">Mensuel</option>
+            <option value="annual" selected>Annuel</option>
+          </select>
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm text-gray-300 mb-1">Durée (jours)</label>
+          <select id="newDays" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 outline-none">
+            <option value="14">14 jours (essai)</option>
+            <option value="30">30 jours</option>
+            <option value="90">90 jours</option>
+            <option value="180">180 jours</option>
+            <option value="365" selected>365 jours (1 an)</option>
+          </select>
+        </div>
+        <button onclick="createLicense()" class="w-full bg-primary py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+          ✅ Créer la licence
+        </button>
+        <div id="createResult" class="mt-3 text-sm text-center hidden"></div>
+      </div>
+    </div>
 
-        // Check if already logged in
-        if (adminToken) {
-            showAdminPanel();
-        }
+    <!-- SECTION: Mot de passe -->
+    <div id="sec-password" class="hidden">
+      <h2 class="text-xl font-bold mb-6">Changer le mot de passe admin</h2>
+      <div class="bg-gray-800 rounded-2xl p-6 max-w-lg">
+        <div class="mb-4">
+          <label class="block text-sm text-gray-300 mb-1">Mot de passe actuel</label>
+          <div class="relative">
+            <input type="password" id="currPass" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 outline-none focus:border-green-500 pr-10" placeholder="••••••••">
+            <button type="button" onclick="togglePass('currPass', this)" class="absolute right-3 top-3 text-gray-400 hover:text-white">👁</button>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm text-gray-300 mb-1">Nouveau mot de passe</label>
+          <div class="relative">
+            <input type="password" id="newPass" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 outline-none focus:border-green-500 pr-10" placeholder="••••••••">
+            <button type="button" onclick="togglePass('newPass', this)" class="absolute right-3 top-3 text-gray-400 hover:text-white">👁</button>
+          </div>
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm text-gray-300 mb-1">Confirmer nouveau mot de passe</label>
+          <div class="relative">
+            <input type="password" id="confPass" class="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 outline-none focus:border-green-500 pr-10" placeholder="••••••••">
+            <button type="button" onclick="togglePass('confPass', this)" class="absolute right-3 top-3 text-gray-400 hover:text-white">👁</button>
+          </div>
+        </div>
+        <button onclick="changePassword()" class="w-full bg-primary py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+          🔑 Changer le mot de passe
+        </button>
+        <div id="passResult" class="mt-3 text-sm text-center hidden"></div>
+      </div>
+    </div>
 
-        // Login
-        async function login(event) {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('loginError');
+  </div>
+</div>
 
-            try {
-                const response = await fetch(`${API_URL}/admin/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
+<!-- Modal -->
+<div id="modal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50">
+  <div class="bg-gray-800 p-6 rounded-2xl max-w-md w-full mx-4 shadow-2xl">
+    <h3 class="text-lg font-bold mb-4" id="modalTitle"></h3>
+    <div id="modalBody" class="mb-6"></div>
+    <div class="flex gap-3 justify-end">
+      <button onclick="closeModal()" class="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-700 text-sm">Annuler</button>
+      <button id="modalOk" class="px-4 py-2 bg-primary rounded-lg hover:bg-green-700 text-sm font-semibold">Confirmer</button>
+    </div>
+  </div>
+</div>
 
-                const data = await response.json();
-                
-                if (response.ok) {
-                    adminToken = data.token;
-                    localStorage.setItem('kabrakAdminToken', adminToken);
-                    showAdminPanel();
-                } else {
-                    errorDiv.textContent = data.error || 'Erreur de connexion';
-                    errorDiv.classList.remove('hidden');
-                }
-            } catch (e) {
-                errorDiv.textContent = 'Erreur réseau';
-                errorDiv.classList.remove('hidden');
-            }
-        }
+<script>
+  const API = 'https://kabrak-exchange-pro-production.up.railway.app/api';
+  let token = localStorage.getItem('kabrakAdminToken');
+  let activeLicId = null;
 
-        // Logout
-        function logout() {
-            adminToken = null;
-            localStorage.removeItem('kabrakAdminToken');
-            document.getElementById('loginForm').classList.remove('hidden');
-            document.getElementById('adminPanel').classList.add('hidden');
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        }
+  if (token) showDash();
 
-        // Show admin panel
-        function showAdminPanel() {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('adminPanel').classList.remove('hidden');
-            loadStats();
-            loadLicenses();
-        }
+  // ─── AUTH ───────────────────────────────────────────────
+  async function doLogin(e) {
+    e.preventDefault();
+    const err = document.getElementById('loginErr');
+    err.classList.add('hidden');
+    try {
+      const r = await fetch(`${API}/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: document.getElementById('loginUser').value, password: document.getElementById('loginPass').value })
+      });
+      const d = await r.json();
+      if (r.ok) { token = d.token; localStorage.setItem('kabrakAdminToken', token); showDash(); }
+      else { err.textContent = d.error || 'Identifiants incorrects'; err.classList.remove('hidden'); }
+    } catch { err.textContent = 'Erreur réseau'; err.classList.remove('hidden'); }
+  }
 
-        // API calls with auth
-        async function apiCall(endpoint, options = {}) {
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${adminToken}`,
-                ...options.headers
-            };
-            return fetch(`${API_URL}${endpoint}`, { ...options, headers });
-        }
+  function doLogout() {
+    token = null; localStorage.removeItem('kabrakAdminToken');
+    document.getElementById('dashboard').classList.add('hidden');
+    document.getElementById('loginPage').classList.remove('hidden');
+    document.getElementById('loginPass').value = '';
+  }
 
-        // Load stats
-        async function loadStats() {
-            try {
-                const response = await apiCall('/admin/licenses/stats');
-                const stats = await response.json();
-                document.getElementById('totalLicenses').textContent = stats.total || 0;
-                document.getElementById('pendingLicenses').textContent = stats.pending || 0;
-                document.getElementById('activeLicenses').textContent = stats.active || 0;
-            } catch (e) {
-                console.error('Error loading stats:', e);
-            }
-        }
+  function showDash() {
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+    loadStats(); loadLicenses();
+  }
 
-        // Load licenses
-        async function loadLicenses() {
-            try {
-                const response = await apiCall('/admin/licenses');
-                const licenses = await response.json();
-                
-                const listDiv = document.getElementById('licensesList');
-                listDiv.innerHTML = '';
-                
-                licenses.forEach(license => {
-                    const statusColor = license.status === 'active' ? 'text-green-500' : 
-                                     license.status === 'pending' ? 'text-yellow-500' : 'text-red-500';
-                    const statusText = license.status === 'active' ? 'Actif' : 
-                                      license.status === 'pending' ? 'Attente' : 'Expiré';
-                    
-                    const expiryDate = license.expiresAt ? new Date(license.expiresAt).toLocaleDateString('fr-FR') : 'N/A';
-                    
-                    const licenseDiv = document.createElement('div');
-                    licenseDiv.className = 'bg-gray-600 p-3 rounded';
-                    licenseDiv.innerHTML = `
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <div class="font-semibold">${license.businessName}</div>
-                                <div class="text-sm text-gray-300">${license.ownerEmail}</div>
-                            </div>
-                            <div class="${statusColor} text-sm">${statusText}</div>
-                        </div>
-                        <div class="text-sm text-gray-400 mb-2">
-                            Plan: ${license.plan || 'trial'} | Expire: ${expiryDate}
-                        </div>
-                        <div class="flex gap-2">
-                            ${license.status === 'pending' ? `<button onclick="approveLicense('${license.id}')" class="px-2 py-1 btn-green text-xs rounded">Approuver</button>` : ''}
-                            <button onclick="extendLicense('${license.id}')" class="px-2 py-1 bg-blue-600 text-xs rounded hover:bg-blue-700">Étendre</button>
-                            <button onclick="changePlan('${license.id}')" class="px-2 py-1 bg-purple-600 text-xs rounded hover:bg-purple-700">Plan</button>
-                        </div>
-                    `;
-                    listDiv.appendChild(licenseDiv);
-                });
-            } catch (e) {
-                console.error('Error loading licenses:', e);
-                document.getElementById('licensesList').innerHTML = '<div class="text-center text-red-500">Erreur de chargement</div>';
-            }
-        }
+  // ─── API HELPER ─────────────────────────────────────────
+  async function api(path, opts = {}) {
+    return fetch(`${API}${path}`, {
+      ...opts,
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...(opts.headers || {}) }
+    });
+  }
 
-        // Action functions
-        function approveLicense(id) {
-            currentLicenseId = id;
-            document.getElementById('modalTitle').textContent = 'Approuver Licence';
-            document.getElementById('modalContent').innerHTML = `
-                <label class="block mb-2">Durée (jours):</label>
-                <select id="approveDays" class="w-full p-2 bg-gray-700 rounded">
-                    <option value="30">30 jours</option>
-                    <option value="90" selected>90 jours</option>
-                    <option value="180">180 jours</option>
-                    <option value="365">1 an</option>
-                </select>
-            `;
-            document.getElementById('modalConfirm').onclick = confirmApprove;
-            document.getElementById('actionModal').classList.remove('hidden');
-        }
+  // ─── STATS ──────────────────────────────────────────────
+  async function loadStats() {
+    try {
+      const r = await api('/admin/licenses/stats');
+      const d = await r.json();
+      document.getElementById('statTotal').textContent = d.total || 0;
+      document.getElementById('statActive').textContent = d.active || 0;
+      document.getElementById('statExpired').textContent = d.expired || 0;
+      document.getElementById('statPending').textContent = d.pending || 0;
+    } catch {}
+  }
 
-        function extendLicense(id) {
-            currentLicenseId = id;
-            document.getElementById('modalTitle').textContent = 'Étendre Licence';
-            document.getElementById('modalContent').innerHTML = `
-                <label class="block mb-2">Ajouter (jours):</label>
-                <select id="extendDays" class="w-full p-2 bg-gray-700 rounded">
-                    <option value="7">7 jours</option>
-                    <option value="30" selected>30 jours</option>
-                    <option value="90">90 jours</option>
-                    <option value="365">1 an</option>
-                </select>
-            `;
-            document.getElementById('modalConfirm').onclick = confirmExtend;
-            document.getElementById('actionModal').classList.remove('hidden');
-        }
+  // ─── LICENCES ───────────────────────────────────────────
+  async function loadLicenses() {
+    const list = document.getElementById('licensesList');
+    list.innerHTML = '<div class="text-gray-400 text-center py-8">Chargement...</div>';
+    try {
+      const r = await api('/admin/licenses');
+      const licenses = await r.json();
+      if (!licenses.length) { list.innerHTML = '<div class="text-gray-400 text-center py-8">Aucune licence</div>'; return; }
+      list.innerHTML = '';
+      licenses.forEach(lic => {
+        const isActive = lic.status === 'active';
+        const isPending = lic.status === 'pending';
+        const badgeCls = isActive ? 'badge-active' : isPending ? 'badge-pending' : 'badge-expired';
+        const badgeTxt = isActive ? 'Actif' : isPending ? 'En attente' : 'Expiré';
+        const exp = lic.expiresAt ? new Date(lic.expiresAt).toLocaleDateString('fr-FR') : 'N/A';
+        const div = document.createElement('div');
+        div.className = 'bg-gray-800 rounded-xl p-4 border border-gray-700';
+        div.innerHTML = `
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <div class="font-bold text-white">${lic.businessName || '—'}</div>
+              <div class="text-sm text-gray-400">${lic.ownerEmail}</div>
+            </div>
+            <span class="px-2 py-1 rounded-full text-xs font-semibold ${badgeCls}">${badgeTxt}</span>
+          </div>
+          <div class="flex gap-4 text-xs text-gray-400 mb-3">
+            <span>Plan: <b class="text-white">${lic.plan || 'trial'}</b></span>
+            <span>Expire: <b class="text-white">${exp}</b></span>
+            <span>Clé: <b class="text-gray-300 font-mono text-xs">${(lic.licenseKey || '').slice(0,12)}…</b></span>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            ${isPending ? `<button onclick="openApprove('${lic.id}')" class="px-3 py-1 bg-green-700 hover:bg-green-600 text-xs rounded-lg">✅ Approuver</button>` : ''}
+            ${isActive ? `<button onclick="openSuspend('${lic.id}', '${lic.businessName}')" class="px-3 py-1 bg-red-700 hover:bg-red-600 text-xs rounded-lg">🚫 Suspendre</button>` : ''}
+            ${!isActive && !isPending ? `<button onclick="openReactivate('${lic.id}', '${lic.businessName}')" class="px-3 py-1 bg-green-700 hover:bg-green-600 text-xs rounded-lg">✅ Réactiver</button>` : ''}
+            <button onclick="openExtend('${lic.id}')" class="px-3 py-1 bg-blue-700 hover:bg-blue-600 text-xs rounded-lg">📅 Étendre</button>
+            <button onclick="openChangePlan('${lic.id}')" class="px-3 py-1 bg-purple-700 hover:bg-purple-600 text-xs rounded-lg">🔄 Plan</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    } catch(e) {
+      list.innerHTML = '<div class="text-red-400 text-center py-8">Erreur de chargement</div>';
+    }
+  }
 
-        function changePlan(id) {
-            currentLicenseId = id;
-            document.getElementById('modalTitle').textContent = 'Changer Plan';
-            document.getElementById('modalContent').innerHTML = `
-                <label class="block mb-2">Nouveau plan:</label>
-                <select id="newPlan" class="w-full p-2 bg-gray-700 rounded">
-                    <option value="basic">Basic</option>
-                    <option value="pro">Pro</option>
-                    <option value="premium">Premium</option>
-                </select>
-            `;
-            document.getElementById('modalConfirm').onclick = confirmPlan;
-            document.getElementById('actionModal').classList.remove('hidden');
-        }
+  // ─── ACTIONS LICENCES ───────────────────────────────────
+  function openApprove(id) {
+    activeLicId = id;
+    setModal('Approuver la licence', `
+      <label class="block text-sm text-gray-300 mb-1">Durée</label>
+      <select id="mDays" class="w-full p-2 bg-gray-700 rounded-lg">
+        <option value="30">30 jours</option>
+        <option value="90">90 jours</option>
+        <option value="180">180 jours</option>
+        <option value="365" selected>1 an</option>
+      </select>
+    `, confirmApprove);
+  }
 
-        // Confirm actions
-        async function confirmApprove() {
-            const days = document.getElementById('approveDays').value;
-            try {
-                const response = await apiCall(`/admin/licenses/${currentLicenseId}/approve`, {
-                    method: 'POST',
-                    body: JSON.stringify({ days: parseInt(days) })
-                });
-                if (response.ok) {
-                    closeModal();
-                    loadLicenses();
-                    loadStats();
-                }
-            } catch (e) {
-                console.error('Error approving license:', e);
-            }
-        }
+  function openSuspend(id, name) {
+    activeLicId = id;
+    setModal('Suspendre la licence', `<p class="text-gray-300">Suspendre la licence de <b class="text-white">${name}</b> ?<br><span class="text-red-400 text-sm">L'accès sera bloqué immédiatement.</span></p>`, confirmSuspend);
+  }
 
-        async function confirmExtend() {
-            const days = document.getElementById('extendDays').value;
-            try {
-                const response = await apiCall(`/admin/licenses/${currentLicenseId}/extend`, {
-                    method: 'POST',
-                    body: JSON.stringify({ days: parseInt(days) })
-                });
-                if (response.ok) {
-                    closeModal();
-                    loadLicenses();
-                    loadStats();
-                }
-            } catch (e) {
-                console.error('Error extending license:', e);
-            }
-        }
+  function openReactivate(id, name) {
+    activeLicId = id;
+    setModal('Réactiver la licence', `
+      <p class="text-gray-300 mb-3">Réactiver la licence de <b class="text-white">${name}</b></p>
+      <label class="block text-sm text-gray-300 mb-1">Durée supplémentaire</label>
+      <select id="mDays" class="w-full p-2 bg-gray-700 rounded-lg">
+        <option value="30">30 jours</option>
+        <option value="90">90 jours</option>
+        <option value="180">180 jours</option>
+        <option value="365" selected>1 an</option>
+      </select>
+    `, confirmReactivate);
+  }
 
-        async function confirmPlan() {
-            const plan = document.getElementById('newPlan').value;
-            try {
-                const response = await apiCall(`/admin/licenses/${currentLicenseId}/plan`, {
-                    method: 'POST',
-                    body: JSON.stringify({ plan })
-                });
-                if (response.ok) {
-                    closeModal();
-                    loadLicenses();
-                }
-            } catch (e) {
-                console.error('Error changing plan:', e);
-            }
-        }
+  function openExtend(id) {
+    activeLicId = id;
+    setModal('Étendre la licence', `
+      <label class="block text-sm text-gray-300 mb-1">Ajouter</label>
+      <select id="mDays" class="w-full p-2 bg-gray-700 rounded-lg">
+        <option value="7">7 jours</option>
+        <option value="30" selected>30 jours</option>
+        <option value="90">90 jours</option>
+        <option value="365">1 an</option>
+      </select>
+    `, confirmExtend);
+  }
 
-        function closeModal() {
-            document.getElementById('actionModal').classList.add('hidden');
-        }
-    </script>
+  function openChangePlan(id) {
+    activeLicId = id;
+    setModal('Changer le plan', `
+      <label class="block text-sm text-gray-300 mb-1">Nouveau plan</label>
+      <select id="mPlan" class="w-full p-2 bg-gray-700 rounded-lg">
+        <option value="trial">Essai (trial)</option>
+        <option value="monthly">Mensuel</option>
+        <option value="annual">Annuel</option>
+      </select>
+    `, confirmPlan);
+  }
+
+  async function confirmApprove() {
+    const days = document.getElementById('mDays').value;
+    const r = await api(`/admin/licenses/${activeLicId}/approve`, { method: 'POST', body: JSON.stringify({ days: parseInt(days) }) });
+    if (r.ok) { closeModal(); loadLicenses(); loadStats(); }
+    else { alert('Erreur lors de l\'approbation'); }
+  }
+
+  async function confirmSuspend() {
+    const r = await api(`/admin/licenses/${activeLicId}/suspend`, { method: 'POST' });
+    if (r.ok) { closeModal(); loadLicenses(); loadStats(); }
+    else {
+      // Fallback: use expire endpoint
+      const r2 = await api(`/admin/licenses/${activeLicId}/expire`, { method: 'POST' });
+      if (r2.ok) { closeModal(); loadLicenses(); loadStats(); }
+      else { alert('Erreur lors de la suspension'); }
+    }
+  }
+
+  async function confirmReactivate() {
+    const days = parseInt(document.getElementById('mDays').value);
+    const r = await api(`/admin/licenses/${activeLicId}/approve`, { method: 'POST', body: JSON.stringify({ days }) });
+    if (r.ok) { closeModal(); loadLicenses(); loadStats(); }
+    else { alert('Erreur lors de la réactivation'); }
+  }
+
+  async function confirmExtend() {
+    const days = document.getElementById('mDays').value;
+    const r = await api(`/admin/licenses/${activeLicId}/extend`, { method: 'POST', body: JSON.stringify({ days: parseInt(days) }) });
+    if (r.ok) { closeModal(); loadLicenses(); loadStats(); }
+    else { alert('Erreur lors de l\'extension'); }
+  }
+
+  async function confirmPlan() {
+    const plan = document.getElementById('mPlan').value;
+    const r = await api(`/admin/licenses/${activeLicId}/plan`, { method: 'POST', body: JSON.stringify({ plan }) });
+    if (r.ok) { closeModal(); loadLicenses(); }
+    else { alert('Erreur lors du changement de plan'); }
+  }
+
+  // ─── CRÉER LICENCE ──────────────────────────────────────
+  async function createLicense() {
+    const email = document.getElementById('newEmail').value.trim();
+    const business = document.getElementById('newBusiness').value.trim();
+    const plan = document.getElementById('newPlan').value;
+    const days = parseInt(document.getElementById('newDays').value);
+    const res = document.getElementById('createResult');
+    res.classList.add('hidden');
+    if (!email || !business) { res.textContent = 'Email et nom requis.'; res.className = 'mt-3 text-sm text-center text-red-400'; res.classList.remove('hidden'); return; }
+    try {
+      const r = await api('/admin/licenses', { method: 'POST', body: JSON.stringify({ ownerEmail: email, businessName: business, plan, days }) });
+      const d = await r.json();
+      if (r.ok) {
+        res.textContent = `✅ Licence créée ! Clé: ${d.licenseKey || d.data?.licenseKey || 'OK'}`;
+        res.className = 'mt-3 text-sm text-center text-green-400';
+        document.getElementById('newEmail').value = '';
+        document.getElementById('newBusiness').value = '';
+        loadStats();
+      } else {
+        res.textContent = d.message || d.error || 'Erreur';
+        res.className = 'mt-3 text-sm text-center text-red-400';
+      }
+    } catch { res.textContent = 'Erreur réseau'; res.className = 'mt-3 text-sm text-center text-red-400'; }
+    res.classList.remove('hidden');
+  }
+
+  // ─── MOT DE PASSE ───────────────────────────────────────
+  async function changePassword() {
+    const curr = document.getElementById('currPass').value;
+    const nw = document.getElementById('newPass').value;
+    const conf = document.getElementById('confPass').value;
+    const res = document.getElementById('passResult');
+    res.classList.add('hidden');
+    if (!curr || !nw) { res.textContent = 'Tous les champs sont requis.'; res.className = 'mt-3 text-sm text-center text-red-400'; res.classList.remove('hidden'); return; }
+    if (nw !== conf) { res.textContent = 'Les mots de passe ne correspondent pas.'; res.className = 'mt-3 text-sm text-center text-red-400'; res.classList.remove('hidden'); return; }
+    if (nw.length < 8) { res.textContent = 'Minimum 8 caractères.'; res.className = 'mt-3 text-sm text-center text-red-400'; res.classList.remove('hidden'); return; }
+    try {
+      const r = await api('/admin/change-password', { method: 'POST', body: JSON.stringify({ currentPassword: curr, newPassword: nw }) });
+      const d = await r.json();
+      if (r.ok) {
+        res.textContent = '✅ Mot de passe changé avec succès.';
+        res.className = 'mt-3 text-sm text-center text-green-400';
+        document.getElementById('currPass').value = '';
+        document.getElementById('newPass').value = '';
+        document.getElementById('confPass').value = '';
+      } else {
+        res.textContent = d.message || d.error || 'Erreur';
+        res.className = 'mt-3 text-sm text-center text-red-400';
+      }
+    } catch { res.textContent = 'Erreur réseau'; res.className = 'mt-3 text-sm text-center text-red-400'; }
+    res.classList.remove('hidden');
+  }
+
+  // ─── NAV ────────────────────────────────────────────────
+  function showSection(name) {
+    ['licences','create','password'].forEach(s => {
+      document.getElementById(`sec-${s}`).classList.add('hidden');
+      document.getElementById(`nav-${s}`).className = 'nav-btn text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700';
+    });
+    document.getElementById(`sec-${name}`).classList.remove('hidden');
+    document.getElementById(`nav-${name}`).className = 'nav-btn text-left px-3 py-2 rounded-lg text-sm font-medium bg-green-900 text-white';
+  }
+
+  // ─── MODAL ──────────────────────────────────────────────
+  function setModal(title, body, onConfirm) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalBody').innerHTML = body;
+    document.getElementById('modalOk').onclick = onConfirm;
+    document.getElementById('modal').classList.remove('hidden');
+  }
+  function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+  // ─── UTILS ──────────────────────────────────────────────
+  function togglePass(inputId, btn) {
+    const inp = document.getElementById(inputId);
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else { inp.type = 'password'; btn.textContent = '👁'; }
+  }
+</script>
 </body>
 </html>

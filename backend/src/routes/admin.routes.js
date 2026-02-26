@@ -123,6 +123,49 @@ router.post('/licenses/:id/plan', adminAuth, async (req, res) => {
   }
 });
 
+// POST /admin/licenses/:id/suspend — suspendre une licence active
+router.post('/licenses/:id/suspend', adminAuth, async (req, res) => {
+  try {
+    const license = await License.findByPk(req.params.id);
+    if (!license) return res.status(404).json({ error: 'License not found' });
+    await license.update({ status: 'expired', expiresAt: new Date() });
+    res.json({ success: true, license });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /admin/licenses/:id/expire — alias suspend
+router.post('/licenses/:id/expire', adminAuth, async (req, res) => {
+  try {
+    const license = await License.findByPk(req.params.id);
+    if (!license) return res.status(404).json({ error: 'License not found' });
+    await license.update({ status: 'expired', expiresAt: new Date() });
+    res.json({ success: true, license });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /admin/change-password — changer le mot de passe admin
+router.post('/change-password', adminAuth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin@1234';
+    if (currentPassword !== ADMIN_PASSWORD) {
+      return res.status(401).json({ error: 'Mot de passe actuel incorrect' });
+    }
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ error: 'Le nouveau mot de passe doit faire au moins 8 caractères' });
+    }
+    // Update env variable in memory for this session — user must also update Railway env
+    process.env.ADMIN_PASSWORD = newPassword;
+    res.json({ success: true, message: 'Mot de passe changé. Pensez à mettre à jour la variable ADMIN_PASSWORD sur Railway pour rendre le changement permanent.' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // POST /admin/payments/:id/validate — valider un paiement
 router.post('/payments/:id/validate', adminAuth, async (req, res) => {
   try {
