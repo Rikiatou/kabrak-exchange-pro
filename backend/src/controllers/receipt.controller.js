@@ -1,6 +1,19 @@
 const PDFDocument = require('pdfkit');
 const { Transaction, Client, Payment, User, Setting } = require('../models');
 const moment = require('moment');
+const https = require('https');
+const http = require('http');
+
+const fetchImageBuffer = (url) => new Promise((resolve) => {
+  if (!url) return resolve(null);
+  const client = url.startsWith('https') ? https : http;
+  client.get(url, (res) => {
+    const chunks = [];
+    res.on('data', c => chunks.push(c));
+    res.on('end', () => resolve(Buffer.concat(chunks)));
+    res.on('error', () => resolve(null));
+  }).on('error', () => resolve(null));
+});
 
 const GREEN = '#0B6E4F';
 const DARK = '#1a1a2e';
@@ -111,6 +124,7 @@ const generateReceipt = async (req, res) => {
 
     const business = await getBusinessInfo(transaction.operator?.id);
     const BRAND = business.brandColor || '#0B6E4F';
+    const logoBuffer = await fetchImageBuffer(business.logo);
     const doc = new PDFDocument({ size: 'A4', margin: 50 });
 
     res.setHeader('Content-Type', 'application/pdf');
@@ -118,23 +132,39 @@ const generateReceipt = async (req, res) => {
     doc.pipe(res);
 
     // --- Header ---
-    doc.rect(0, 0, doc.page.width, 120).fill(BRAND);
-    doc.fontSize(22).fillColor('#ffffff').font('Helvetica-Bold')
-      .text(business.name, 50, 30, { align: 'center' });
-    if (business.address || business.phone) {
-      doc.fontSize(9).fillColor('rgba(255,255,255,0.65)').font('Helvetica')
-        .text([business.address, business.phone].filter(Boolean).join(' · '), 50, 56, { align: 'center' });
+    doc.rect(0, 0, doc.page.width, 130).fill(BRAND);
+
+    // Logo if available
+    if (logoBuffer) {
+      const logoSize = 52;
+      const logoX = (doc.page.width - logoSize) / 2;
+      try { doc.image(logoBuffer, logoX, 14, { width: logoSize, height: logoSize }); } catch (_) {}
+      doc.fontSize(16).fillColor('#ffffff').font('Helvetica-Bold')
+        .text(business.name, 50, 72, { align: 'center' });
+      if (business.address || business.phone) {
+        doc.fontSize(9).fillColor('rgba(255,255,255,0.65)').font('Helvetica')
+          .text([business.address, business.phone].filter(Boolean).join(' · '), 50, 92, { align: 'center' });
+      }
+      doc.fontSize(12).fillColor('rgba(255,255,255,0.85)')
+        .text(L.receipt, 50, 108, { align: 'center' });
+    } else {
+      doc.fontSize(22).fillColor('#ffffff').font('Helvetica-Bold')
+        .text(business.name, 50, 30, { align: 'center' });
+      if (business.address || business.phone) {
+        doc.fontSize(9).fillColor('rgba(255,255,255,0.65)').font('Helvetica')
+          .text([business.address, business.phone].filter(Boolean).join(' · '), 50, 56, { align: 'center' });
+      }
+      doc.fontSize(13).fillColor('rgba(255,255,255,0.85)')
+        .text(L.receipt, 50, 72, { align: 'center' });
     }
-    doc.fontSize(13).fillColor('rgba(255,255,255,0.85)')
-      .text(L.receipt, 50, 72, { align: 'center' });
 
     // Reference badge
     const refText = transaction.reference;
     const refWidth = doc.widthOfString(refText) + 30;
     const refX = (doc.page.width - refWidth) / 2;
-    doc.roundedRect(refX, 92, refWidth, 22, 11).fill('rgba(255,255,255,0.2)');
+    doc.roundedRect(refX, 108, refWidth, 22, 11).fill('rgba(255,255,255,0.2)');
     doc.fontSize(11).fillColor('#ffffff').font('Helvetica-Bold')
-      .text(refText, refX, 96, { width: refWidth, align: 'center' });
+      .text(refText, refX, 112, { width: refWidth, align: 'center' });
 
     // --- Status bar ---
     const statusKey = transaction.status || 'unpaid';
@@ -142,9 +172,9 @@ const generateReceipt = async (req, res) => {
     const statusColors = { paid: '#e8f5e9', partial: '#fff3e0', unpaid: '#ffebee' };
     const statusTextColors = { paid: '#2e7d32', partial: '#f57c00', unpaid: '#c62828' };
 
-    doc.rect(0, 120, doc.page.width, 30).fill(statusColors[statusKey] || statusColors.unpaid);
+    doc.rect(0, 130, doc.page.width, 30).fill(statusColors[statusKey] || statusColors.unpaid);
     doc.fontSize(11).fillColor(statusTextColors[statusKey] || statusTextColors.unpaid).font('Helvetica-Bold')
-      .text(statusLabel, 50, 128, { align: 'center' });
+      .text(statusLabel, 50, 138, { align: 'center' });
 
     let y = 170;
 
@@ -358,6 +388,7 @@ const generateReceiptHTML = async (req, res) => {
 <body>
   <div class="receipt">
     <div class="header">
+      ${business.logo ? `<img src="${business.logo}" style="width:64px;height:64px;border-radius:12px;object-fit:contain;margin-bottom:10px;background:rgba(255,255,255,0.15);padding:4px;" />` : ''}
       <h1>${business.name}</h1>
       ${business.address || business.phone ? `<div class="sub">${[business.address, business.phone].filter(Boolean).join(' · ')}</div>` : ''}
       <p>${L.receipt}</p>
