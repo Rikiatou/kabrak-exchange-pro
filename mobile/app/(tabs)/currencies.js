@@ -59,7 +59,7 @@ export default function CurrenciesScreen() {
   const { user } = useAuthStore();
   const { t } = useLanguageStore();
   const router = useRouter();
-  const isOwner = user?.teamRole === 'owner' || user?.role === 'admin';
+  const isOwner = user?.teamRole === 'owner';
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState(null);
 

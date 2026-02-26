@@ -153,6 +153,7 @@ export default function DashboardScreen() {
 }
 
 function EmployeeView({ data, isLoading, onRefresh, settings, user, router, t, s, greeting }) {
+  const isManager = user?.teamRole === 'owner' || user?.teamRole === 'manager';
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={GREEN_DARK} />
@@ -199,7 +200,7 @@ function EmployeeView({ data, isLoading, onRefresh, settings, user, router, t, s
           </View>
 
           {/* Hero card */}
-          {isAdmin ? (
+          {isManager ? (
             <View style={styles.heroCard}>
               <View>
                 <Text style={styles.heroLabel}>{t.dashboard.pendingDebt}</Text>
@@ -240,8 +241,8 @@ function EmployeeView({ data, isLoading, onRefresh, settings, user, router, t, s
             { icon: 'swap-horizontal', label: t.transactions.new, color: '#0B6E4F', route: '/transactions/new' },
             { icon: 'person-add-outline', label: t.clients.new, color: '#0369a1', route: '/clients/new' },
             { icon: 'wallet-outline', label: t.more.deposits, color: '#0369a1', route: '/deposits' },
-            isAdmin && { icon: 'images-outline', label: 'Galerie reçus', color: '#0891b2', route: '/receipts' },
-            isAdmin && { icon: 'bar-chart-outline', label: t.more.reports, color: '#7c3aed', route: '/reports' },
+            isManager && { icon: 'images-outline', label: 'Galerie reçus', color: '#0891b2', route: '/receipts' },
+            isManager && { icon: 'bar-chart-outline', label: t.more.reports, color: '#7c3aed', route: '/reports' },
           ].filter(Boolean).map((q) => (
             <TouchableOpacity key={q.label} style={styles.quickBtn} onPress={() => router.push(q.route)} activeOpacity={0.7}>
               <View style={[styles.quickIcon, { backgroundColor: `${q.color}12` }]}>
@@ -255,7 +256,7 @@ function EmployeeView({ data, isLoading, onRefresh, settings, user, router, t, s
         {/* Metric cards */}
         <View style={styles.metricsRow}>
           <MetricCard label={t.tabs.transactions} value={s.totalTransactions || 0} icon="swap-horizontal" accent="#0B6E4F" onPress={() => router.push('/(tabs)/transactions')} />
-          {isAdmin && <MetricCard label={t.common.unpaid} value={s.unpaidCount || 0} icon="alert-circle" accent="#dc2626" sub={s.unpaidCount > 0 ? '⚠' : null} onPress={() => router.push('/(tabs)/transactions?status=unpaid')} />}
+          {isManager && <MetricCard label={t.common.unpaid} value={s.unpaidCount || 0} icon="alert-circle" accent="#dc2626" sub={s.unpaidCount > 0 ? '⚠' : null} onPress={() => router.push('/(tabs)/transactions?status=unpaid')} />}
           <MetricCard label={t.dashboard.todayTx} value={s.todayTransactions || 0} icon="today-outline" accent="#0369a1" onPress={() => { const today = new Date().toISOString().split('T')[0]; router.push(`/(tabs)/transactions?dateFrom=${today}&dateTo=${today}`); }} />
           <MetricCard label={t.tabs.clients} value={s.totalClients || 0} icon="people-outline" accent="#7c3aed" onPress={() => router.push('/(tabs)/clients')} />
         </View>

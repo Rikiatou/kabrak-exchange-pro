@@ -25,8 +25,9 @@ export default function ReportsScreen() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [exporting, setExporting] = useState(null);
 
+  const isManager = user?.teamRole === 'owner' || user?.teamRole === 'manager';
   useEffect(() => {
-    if (user && user.role !== 'admin' && user.teamRole !== 'manager' && user.teamRole !== 'owner') { router.back(); }
+    if (user && !isManager) { router.back(); }
   }, [user]);
   useEffect(() => { fetchClients(); }, []);
 

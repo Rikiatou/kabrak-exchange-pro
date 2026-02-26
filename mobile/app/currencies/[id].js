@@ -18,8 +18,8 @@ export default function CurrencyDetailScreen() {
   const { fetchCurrencyById, updateCurrency, getLiveRates } = useCurrencyStore();
   const { user } = useAuthStore();
   const { t } = useLanguageStore();
-  const isAdmin = user?.role === 'admin';
-  const canEdit = user?.role === 'admin' || user?.teamRole === 'owner' || user?.teamRole === 'manager';
+  const isOwner = user?.teamRole === 'owner';
+  const canEdit = user?.teamRole === 'owner' || user?.teamRole === 'manager';
 
   const [showStockModal, setShowStockModal] = useState(false);
   const [stockAdj, setStockAdj] = useState('');

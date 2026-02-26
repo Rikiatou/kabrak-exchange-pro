@@ -53,8 +53,9 @@ export default function AuditLogScreen() {
   const { t } = useLanguageStore();
   const { user } = useAuthStore();
 
+  const isOwner = user?.teamRole === 'owner';
   useEffect(() => {
-    if (user && user.role !== 'admin') { router.back(); }
+    if (user && !isOwner) { router.back(); }
   }, [user]);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
