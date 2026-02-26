@@ -108,7 +108,7 @@ function StockRow({ currency }) {
   );
 }
 
-export default function OwnerDashboardScreen() {
+export default function OwnerDashboardScreen({ onSwitchView }) {
   const router = useRouter();
   const { user } = useAuthStore();
   const { data: dashData, fetchDashboard, isLoading: dashLoading } = useDashboardStore();
@@ -178,6 +178,11 @@ export default function OwnerDashboardScreen() {
               <Ionicons name="notifications-outline" size={20} color="rgba(255,255,255,0.7)" />
               {alerts.length > 0 && <View style={s.notifDot} />}
             </TouchableOpacity>
+            {onSwitchView && (
+              <TouchableOpacity style={[s.headerIconBtn, { backgroundColor: 'rgba(232,160,32,0.18)' }]} onPress={onSwitchView}>
+                <Ionicons name="people-outline" size={18} color={GOLD} />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity style={s.avatarBtn} onPress={() => router.push('/(tabs)/more')}>
               <Text style={s.avatarText}>{getInitials(user?.name)}</Text>
             </TouchableOpacity>

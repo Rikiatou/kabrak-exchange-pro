@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, StatusBar, Dimensions, Image
@@ -131,20 +131,47 @@ export default function DashboardScreen() {
   const { user } = useAuthStore();
   const { settings, fetchSettings } = useSettingStore();
   const router = useRouter();
+  const { t } = useLanguageStore();
+  const [ownerView, setOwnerView] = useState(true);
+
   const isAdmin = user?.role === 'admin';
   const isOwner = user?.teamRole === 'owner' || (isAdmin && !user?.teamRole);
 
   useEffect(() => { fetchDashboard(); fetchSettings(); }, []);
   const onRefresh = useCallback(() => { fetchDashboard(); fetchSettings(); }, []);
 
-  const { t } = useLanguageStore();
   const s = data?.summary || {};
   const hour = new Date().getHours();
   const greeting = hour < 12 ? t.dashboard.goodMorning : hour < 18 ? t.dashboard.goodAfternoon : t.dashboard.goodEvening;
 
-  // Owner/admin sees the enriched owner dashboard
-  if (isOwner) return <OwnerDashboardScreen />;
+  // Owner: show enriched owner dashboard with toggle to employee view
+  if (isOwner && ownerView) return <OwnerDashboardScreen onSwitchView={() => setOwnerView(false)} />;
+  if (isOwner && !ownerView) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#f1f5f9' }}>
+        <TouchableOpacity style={styles.viewToggleBtn} onPress={() => setOwnerView(true)}>
+          <Ionicons name="stats-chart" size={14} color={WHITE} />
+          <Text style={styles.viewToggleTxt}>Vue Propriétaire</Text>
+        </TouchableOpacity>
+        <EmployeeView
+          data={data} isLoading={isLoading} onRefresh={onRefresh}
+          settings={settings} user={user} router={router}
+          isAdmin={false} t={t} s={s} greeting={greeting}
+        />
+      </View>
+    );
+  }
 
+  return (
+    <EmployeeView
+      data={data} isLoading={isLoading} onRefresh={onRefresh}
+      settings={settings} user={user} router={router}
+      isAdmin={isAdmin} t={t} s={s} greeting={greeting}
+    />
+  );
+}
+
+function EmployeeView({ data, isLoading, onRefresh, settings, user, router, isAdmin, t, s, greeting }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={GREEN_DARK} />
@@ -152,7 +179,7 @@ export default function DashboardScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={onRefresh} tintColor={GREEN_MAIN} colors={[GREEN_MAIN]} />}
       >
-        {/* Header — same bg as welcome/login */}
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerBlobTR} />
           <View style={styles.headerBlobBL} />
@@ -190,7 +217,7 @@ export default function DashboardScreen() {
             </Text>
           </View>
 
-          {/* Hero outstanding card — admin only */}
+          {/* Hero card */}
           {isAdmin ? (
             <View style={styles.heroCard}>
               <View>
@@ -502,4 +529,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
   },
   chartTitle: { fontSize: 11, fontWeight: '700', color: '#64748b', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
+
+  viewToggleBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: GREEN_MAIN, paddingVertical: 10, paddingHorizontal: 20,
+    marginHorizontal: 16, marginTop: 12, marginBottom: 4, borderRadius: 10,
+    shadowColor: GREEN_MAIN, shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35, shadowRadius: 6, elevation: 4,
+  },
+  viewToggleTxt: { color: WHITE, fontSize: 13, fontWeight: '700', marginLeft: 6 },
 });
