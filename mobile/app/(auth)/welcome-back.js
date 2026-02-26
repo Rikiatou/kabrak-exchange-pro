@@ -41,7 +41,7 @@ export default function WelcomeBackScreen() {
 
     const timer = setTimeout(() => {
       router.replace('/(tabs)/dashboard');
-    }, 2800);
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, []);
