@@ -3,10 +3,12 @@ import api from '../services/api';
 
 const useSettingStore = create((set) => ({
   settings: {
-    businessName: 'KABRAK Exchange Pro',
+    businessName: '',
     businessPhone: '',
     businessAddress: '',
     businessEmail: '',
+    brandColor: '#0B6E4F',
+    businessLogo: '',
   },
   isLoading: false,
 

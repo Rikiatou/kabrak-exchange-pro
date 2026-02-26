@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, StatusBar, Dimensions
+  RefreshControl, StatusBar, Dimensions, Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import Svg, { Rect, Text as SvgText, Line } from 'react-native-svg';
 import useDashboardStore from '../../src/store/dashboardStore';
 import useLanguageStore from '../../src/store/languageStore';
 import useAuthStore from '../../src/store/authStore';
+import useSettingStore from '../../src/store/settingStore';
 import { formatCurrency, getInitials } from '../../src/utils/helpers';
 import OwnerDashboardScreen from '../owner-dashboard';
 
@@ -128,12 +129,13 @@ function TxRow({ tx, onPress }) {
 export default function DashboardScreen() {
   const { data, isLoading, fetchDashboard } = useDashboardStore();
   const { user } = useAuthStore();
+  const { settings, fetchSettings } = useSettingStore();
   const router = useRouter();
   const isAdmin = user?.role === 'admin';
   const isOwner = user?.teamRole === 'owner' || (isAdmin && !user?.teamRole);
 
-  useEffect(() => { fetchDashboard(); }, []);
-  const onRefresh = useCallback(() => { fetchDashboard(); }, []);
+  useEffect(() => { fetchDashboard(); fetchSettings(); }, []);
+  const onRefresh = useCallback(() => { fetchDashboard(); fetchSettings(); }, []);
 
   const { t } = useLanguageStore();
   const s = data?.summary || {};
@@ -155,13 +157,17 @@ export default function DashboardScreen() {
           <View style={styles.headerBlobTR} />
           <View style={styles.headerBlobBL} />
 
-          {/* Logo row — same as welcome */}
+          {/* Logo row */}
           <View style={styles.logoRow}>
-            <View style={styles.logoIconWrap}>
-              <Ionicons name="swap-horizontal" size={18} color={GOLD} />
-            </View>
-            <Text style={styles.logoText}>
-              KABRAK <Text style={styles.logoTextGold}>Exchange Pro</Text>
+            {settings?.businessLogo ? (
+              <Image source={{ uri: settings.businessLogo }} style={styles.businessLogo} resizeMode="contain" />
+            ) : (
+              <View style={styles.logoIconWrap}>
+                <Ionicons name="swap-horizontal" size={18} color={GOLD} />
+              </View>
+            )}
+            <Text style={styles.logoText} numberOfLines={1}>
+              {settings?.businessName || 'KABRAK'} {!settings?.businessName && <Text style={styles.logoTextGold}>Exchange Pro</Text>}
             </Text>
             <View style={{ flex: 1 }} />
             <TouchableOpacity style={styles.headerIconBtn} onPress={() => router.push('/search')}>
@@ -373,6 +379,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingHorizontal: 20, paddingTop: 52, paddingBottom: 16,
   },
+  businessLogo: { width: 34, height: 34, borderRadius: 9 },
   logoIconWrap: {
     width: 34, height: 34, borderRadius: 9,
     backgroundColor: 'rgba(232,160,32,0.15)',
