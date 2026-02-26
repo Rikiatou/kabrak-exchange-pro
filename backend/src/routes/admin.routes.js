@@ -212,8 +212,8 @@ router.get('/licenses/stats', adminAuth, async (req, res) => {
     const total = await License.count();
     const pending = await License.count({ where: { status: 'pending' } });
     const active = await License.count({ where: { status: 'active', expiresAt: { [Op.gt]: now } } });
-    
-    res.json({ total, pending, active });
+    const expired = await License.count({ where: { [Op.or]: [{ status: 'expired' }, { status: 'active', expiresAt: { [Op.lte]: now } }] } });
+    res.json({ total, pending, active, expired });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

@@ -6,9 +6,9 @@ import useLicenseStore from '../../src/store/licenseStore';
 import useLanguageStore from '../../src/store/languageStore';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 
-const planLabels = { trial: 'Essai Gratuit', basic: 'Basic', pro: 'Pro', premium: 'Premium' };
-const planColors = { trial: '#6366f1', basic: COLORS.primary, pro: '#0369a1', premium: '#d97706' };
-const planIcons = { trial: 'time-outline', basic: 'shield-checkmark-outline', pro: 'diamond-outline', premium: 'trophy-outline' };
+const planLabels = { trial: 'Essai Gratuit', monthly: 'Mensuel', annual: 'Annuel' };
+const planColors = { trial: '#6366f1', monthly: COLORS.primary, annual: '#d97706' };
+const planIcons = { trial: 'time-outline', monthly: 'shield-checkmark-outline', annual: 'trophy-outline' };
 
 function InfoRow({ icon, label, value, color }) {
   return (
