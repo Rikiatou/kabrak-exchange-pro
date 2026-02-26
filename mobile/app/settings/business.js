@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  TextInput, Alert, ActivityIndicator
+  TextInput, Alert, ActivityIndicator, Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import useSettingStore from '../../src/store/settingStore';
+import useAuthStore from '../../src/store/authStore';
+
+const API_URL = 'https://kabrak-exchange-pro-production.up.railway.app';
 
 function Field({ label, value, onChangeText, placeholder, keyboardType = 'default', icon }) {
   return (
@@ -30,6 +34,7 @@ function Field({ label, value, onChangeText, placeholder, keyboardType = 'defaul
 export default function BusinessSettingsScreen() {
   const router = useRouter();
   const { settings, fetchSettings, updateSettings, isLoading } = useSettingStore();
+  const { token } = useAuthStore();
   const [form, setForm] = useState({
     businessName: '',
     businessPhone: '',
@@ -38,6 +43,8 @@ export default function BusinessSettingsScreen() {
     brandColor: '#0B6E4F',
   });
   const [saving, setSaving] = useState(false);
+  const [logoUri, setLogoUri] = useState(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -51,7 +58,46 @@ export default function BusinessSettingsScreen() {
       businessEmail: settings.businessEmail || '',
       brandColor: settings.brandColor || '#0B6E4F',
     });
+    if (settings.businessLogo) setLogoUri(settings.businessLogo);
   }, [settings]);
+
+  const handlePickLogo = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission requise', 'Autorisez l\'accès à vos photos.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled) return;
+    const uri = result.assets[0].uri;
+    setUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append('logo', { uri, name: 'logo.jpg', type: 'image/jpeg' });
+      const res = await fetch(`${API_URL}/api/settings/upload-logo`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLogoUri(data.data.businessLogo);
+        await fetchSettings();
+        Alert.alert('✅ Logo mis à jour', 'Votre logo a été enregistré.');
+      } else {
+        Alert.alert('Erreur', data.message);
+      }
+    } catch (e) {
+      Alert.alert('Erreur', 'Upload échoué. Vérifiez votre connexion.');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!form.businessName.trim()) {
@@ -89,6 +135,32 @@ export default function BusinessSettingsScreen() {
             <Text style={styles.infoText}>
               Ces informations apparaissent sur les reçus générés et sur le portail client.
             </Text>
+          </View>
+
+          {/* Logo Upload */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Logo de l'entreprise</Text>
+            <View style={styles.logoRow}>
+              <View style={styles.logoPreview}>
+                {logoUri
+                  ? <Image source={{ uri: logoUri }} style={styles.logoImg} resizeMode="contain" />
+                  : <Ionicons name="image-outline" size={40} color={COLORS.textMuted} />
+                }
+              </View>
+              <View style={styles.logoActions}>
+                <Text style={styles.logoHint}>Format recommandé : carré, PNG/JPG, max 5MB</Text>
+                <TouchableOpacity
+                  style={[styles.uploadBtn, uploadingLogo && { opacity: 0.6 }]}
+                  onPress={handlePickLogo}
+                  disabled={uploadingLogo}
+                >
+                  {uploadingLogo
+                    ? <ActivityIndicator size="small" color={COLORS.white} />
+                    : <><Ionicons name="cloud-upload-outline" size={16} color={COLORS.white} /><Text style={styles.uploadBtnText}>Choisir un logo</Text></>
+                  }
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
 
           <View style={styles.card}>
@@ -205,6 +277,21 @@ const styles = StyleSheet.create({
   previewName: { fontSize: FONTS.sizes.lg, fontWeight: '800', color: COLORS.primary, textAlign: 'center' },
   previewSub: { fontSize: FONTS.sizes.xs, color: COLORS.textMuted, marginTop: 2 },
   previewDetail: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary, marginTop: 4 },
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
+  logoPreview: {
+    width: 80, height: 80, borderRadius: RADIUS.md,
+    backgroundColor: COLORS.background, borderWidth: 1, borderColor: COLORS.divider,
+    justifyContent: 'center', alignItems: 'center', overflow: 'hidden',
+  },
+  logoImg: { width: 80, height: 80 },
+  logoActions: { flex: 1 },
+  logoHint: { fontSize: FONTS.sizes.xs, color: COLORS.textMuted, marginBottom: SPACING.sm },
+  uploadBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: COLORS.primary, borderRadius: RADIUS.md,
+    paddingVertical: 8, paddingHorizontal: 12, alignSelf: 'flex-start',
+  },
+  uploadBtnText: { color: COLORS.white, fontSize: FONTS.sizes.sm, fontWeight: '700' },
   saveBtn: {
     backgroundColor: COLORS.primary, borderRadius: RADIUS.lg, padding: SPACING.md,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
