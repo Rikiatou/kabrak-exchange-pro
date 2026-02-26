@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, ActivityIndicator, Dimensions
+  RefreshControl, ActivityIndicator, Dimensions, Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ import useDashboardStore from '../src/store/dashboardStore';
 import useReportStore from '../src/store/reportStore';
 import useCurrencyStore from '../src/store/currencyStore';
 import useLanguageStore from '../src/store/languageStore';
+import useSettingStore from '../src/store/settingStore';
 import { formatCurrency, getInitials } from '../src/utils/helpers';
 import api from '../src/services/api';
 
@@ -115,6 +116,7 @@ export default function OwnerDashboardScreen() {
   const { currencies, fetchCurrencies } = useCurrencyStore();
   const { t } = useLanguageStore();
 
+  const { settings, fetchSettings } = useSettingStore();
   const [alerts, setAlerts] = useState([]);
   const [team, setTeam] = useState([]);
   const [period, setPeriod] = useState('monthly');
@@ -125,6 +127,7 @@ export default function OwnerDashboardScreen() {
       fetchDashboard(),
       fetchProfitReport({ period }),
       fetchCurrencies(),
+      fetchSettings(),
       api.get('/alerts?limit=5').then(r => setAlerts(r.data.data || [])).catch(() => {}),
       api.get('/team').then(r => setTeam(r.data.data || [])).catch(() => {}),
     ]);
@@ -160,10 +163,16 @@ export default function OwnerDashboardScreen() {
           <View style={s.headerBlobBL} />
 
           <View style={s.logoRow}>
-            <View style={s.logoIconWrap}>
-              <Ionicons name="swap-horizontal" size={18} color={GOLD} />
-            </View>
-            <Text style={s.logoText}>KABRAK <Text style={{ color: GOLD }}>Exchange Pro</Text></Text>
+            {settings?.businessLogo ? (
+              <Image source={{ uri: settings.businessLogo }} style={s.businessLogo} resizeMode="contain" />
+            ) : (
+              <View style={s.logoIconWrap}>
+                <Ionicons name="swap-horizontal" size={18} color={GOLD} />
+              </View>
+            )}
+            <Text style={s.logoText} numberOfLines={1}>
+              {settings?.businessName || 'KABRAK'} <Text style={{ color: GOLD }}>{settings?.businessName ? '' : 'Exchange Pro'}</Text>
+            </Text>
             <View style={{ flex: 1 }} />
             <TouchableOpacity style={s.headerIconBtn} onPress={() => router.push('/alerts')}>
               <Ionicons name="notifications-outline" size={20} color="rgba(255,255,255,0.7)" />
@@ -401,6 +410,7 @@ const s = StyleSheet.create({
 
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingTop: 52, paddingBottom: 16 },
   logoIconWrap: { width: 34, height: 34, borderRadius: 9, backgroundColor: 'rgba(232,160,32,0.15)', borderWidth: 1, borderColor: 'rgba(232,160,32,0.3)', justifyContent: 'center', alignItems: 'center' },
+  businessLogo: { width: 34, height: 34, borderRadius: 9 },
   logoText: { fontSize: 17, fontWeight: '800', color: WHITE, letterSpacing: -0.3 },
   headerIconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)', justifyContent: 'center', alignItems: 'center', marginLeft: 6 },
   notifDot: { position: 'absolute', top: 6, right: 6, width: 8, height: 8, borderRadius: 4, backgroundColor: '#ef4444' },
