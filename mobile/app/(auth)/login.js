@@ -48,9 +48,9 @@ export default function LoginScreen() {
     const result = await login(email.trim().toLowerCase(), password);
     if (result.success) {
       const user = useAuthStore.getState().user;
-      // Team members share owner's license — go directly to dashboard
+      // Team members share owner's license — go directly to welcome-back
       if (user?.teamOwnerId) {
-        router.replace('/(tabs)/dashboard');
+        router.replace('/(auth)/welcome-back');
         return;
       }
       // Owner: fetch license from backend, then check
@@ -64,10 +64,10 @@ export default function LoginScreen() {
         if (!fallback.isValid) {
           router.replace('/(auth)/license');
         } else {
-          router.replace('/(tabs)/dashboard');
+          router.replace('/(auth)/welcome-back');
         }
       } else {
-        router.replace('/(tabs)/dashboard');
+        router.replace('/(auth)/welcome-back');
       }
     } else {
       shake();

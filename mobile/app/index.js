@@ -24,7 +24,7 @@ export default function Index() {
       // They share the owner's license — bypass license check
       const isTeamMember = authState.isAuthenticated && authState.user?.teamOwnerId;
       if (isTeamMember) {
-        router.replace('/(tabs)/dashboard');
+        router.replace('/(auth)/welcome-back');
         return;
       }
 
@@ -35,14 +35,14 @@ export default function Index() {
         await fetchMyLicense();
         const licState = useLicenseStore.getState();
         if (licState.isValid) {
-          router.replace('/(tabs)/dashboard');
+          router.replace('/(auth)/welcome-back');
         } else {
           // Fallback: check local storage
           await loadStoredLicense();
           const fallback = useLicenseStore.getState();
           if (fallback.isValid) {
             checkOnline().catch(() => {});
-            router.replace('/(tabs)/dashboard');
+            router.replace('/(auth)/welcome-back');
           } else {
             router.replace('/(auth)/license');
           }
