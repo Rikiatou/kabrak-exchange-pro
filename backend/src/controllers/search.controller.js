@@ -1,19 +1,23 @@
 const { Op } = require('sequelize');
 const { Transaction, Client, Currency, Payment, DepositOrder } = require('../models');
 
-// GET /api/search?q=...&limit=20
+// GET /api/search?q=...&type=clients|transactions|depositOrders|currencies&limit=20
 const globalSearch = async (req, res) => {
   try {
-    const { q, limit = 20 } = req.query;
+    const { q, type, limit = 20 } = req.query;
     if (!q || q.trim().length < 2) {
       return res.status(400).json({ success: false, message: 'Requête trop courte (min 2 caractères).' });
     }
     const term = `%${q.trim()}%`;
     const lim = Math.min(parseInt(limit), 50);
+    const ownerId = req.user.teamOwnerId || req.user.id;
+
+    const shouldSearch = (key) => !type || type === key;
 
     const [transactions, clients, currencies, depositOrders] = await Promise.all([
-      Transaction.findAll({
+      shouldSearch('transactions') ? Transaction.findAll({
         where: {
+          userId: ownerId,
           [Op.or]: [
             { reference: { [Op.like]: term } },
             { currencyFrom: { [Op.like]: term } },
@@ -25,9 +29,10 @@ const globalSearch = async (req, res) => {
         limit: lim,
         order: [['createdAt', 'DESC']],
         attributes: ['id', 'reference', 'currencyFrom', 'currencyTo', 'amountFrom', 'amountTo', 'status', 'createdAt'],
-      }),
-      Client.findAll({
+      }) : [],
+      shouldSearch('clients') ? Client.findAll({
         where: {
+          userId: ownerId,
           [Op.or]: [
             { name: { [Op.like]: term } },
             { phone: { [Op.like]: term } },
@@ -38,9 +43,10 @@ const globalSearch = async (req, res) => {
         limit: lim,
         order: [['name', 'ASC']],
         attributes: ['id', 'name', 'phone', 'email', 'totalDebt', 'isActive'],
-      }),
-      Currency.findAll({
+      }) : [],
+      shouldSearch('currencies') ? Currency.findAll({
         where: {
+          userId: ownerId,
           [Op.or]: [
             { code: { [Op.like]: term } },
             { name: { [Op.like]: term } },
@@ -48,9 +54,10 @@ const globalSearch = async (req, res) => {
         },
         limit: 10,
         attributes: ['id', 'code', 'name', 'symbol', 'currentRate', 'stockAmount'],
-      }),
-      DepositOrder.findAll({
+      }) : [],
+      shouldSearch('depositOrders') ? DepositOrder.findAll({
         where: {
+          userId: ownerId,
           [Op.or]: [
             { orderCode: { [Op.like]: term } },
             { description: { [Op.like]: term } },
@@ -60,7 +67,7 @@ const globalSearch = async (req, res) => {
         limit: lim,
         order: [['createdAt', 'DESC']],
         attributes: ['id', 'orderCode', 'totalAmount', 'currency', 'status', 'createdAt'],
-      }),
+      }) : [],
     ]);
 
     const total = transactions.length + clients.length + currencies.length + depositOrders.length;

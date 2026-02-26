@@ -12,6 +12,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import useLanguageStore from '../../src/store/languageStore';
 import { formatCurrency } from '../../src/utils/helpers';
 import { exportExcel, exportPDF, buildMonthlyReportHTML } from '../../src/utils/exportReport';
+import useSettingStore from '../../src/store/settingStore';
 
 export default function ReportsScreen() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function ReportsScreen() {
   const lang = language || 'fr';
   const { clients, fetchClients } = useClientStore();
   const { user } = useAuthStore();
+  const { settings, fetchSettings } = useSettingStore();
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -29,7 +31,7 @@ export default function ReportsScreen() {
   useEffect(() => {
     if (user && !isManager) { router.back(); }
   }, [user]);
-  useEffect(() => { fetchClients(); }, []);
+  useEffect(() => { fetchClients(); fetchSettings(); }, []);
 
   const loadReport = async () => {
     setLoading(true);
@@ -65,7 +67,9 @@ export default function ReportsScreen() {
         report,
         month: monthLabels[selectedMonth - 1],
         year: selectedYear,
-        businessName: user?.businessName || 'KABRAK Exchange Pro',
+        businessName: settings?.businessName || user?.businessName || 'KABRAK Exchange Pro',
+        businessLogo: settings?.businessLogo || '',
+        brandColor: settings?.brandColor || '#0B6E4F',
       });
       await exportPDF(html, `rapport_${selectedYear}_${selectedMonth}`);
     } catch (e) {
