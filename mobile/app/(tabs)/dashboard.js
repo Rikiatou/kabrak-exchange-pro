@@ -132,8 +132,6 @@ export default function DashboardScreen() {
   const { settings, fetchSettings } = useSettingStore();
   const router = useRouter();
   const { t } = useLanguageStore();
-  const [ownerView, setOwnerView] = useState(true);
-
   const isOwner = user?.teamRole === 'owner';
 
   useEffect(() => { fetchDashboard(); fetchSettings(); }, []);
@@ -143,23 +141,7 @@ export default function DashboardScreen() {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? t.dashboard.goodMorning : hour < 18 ? t.dashboard.goodAfternoon : t.dashboard.goodEvening;
 
-  // Owner: show enriched owner dashboard with toggle to employee view
-  if (isOwner && ownerView) return <OwnerDashboardScreen onSwitchView={() => setOwnerView(false)} />;
-  if (isOwner && !ownerView) {
-    return (
-      <View style={{ flex: 1, backgroundColor: '#f1f5f9' }}>
-        <TouchableOpacity style={styles.viewToggleBtn} onPress={() => setOwnerView(true)}>
-          <Ionicons name="stats-chart" size={14} color={WHITE} />
-          <Text style={styles.viewToggleTxt}>Vue Propriétaire</Text>
-        </TouchableOpacity>
-        <EmployeeView
-          data={data} isLoading={isLoading} onRefresh={onRefresh}
-          settings={settings} user={user} router={router}
-          t={t} s={s} greeting={greeting}
-        />
-      </View>
-    );
-  }
+  if (isOwner) return <OwnerDashboardScreen />;
 
   return (
     <EmployeeView

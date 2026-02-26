@@ -52,6 +52,7 @@ const getPublicSettings = async (req, res) => {
       brandColor: settings.brandColor || DEFAULTS.brandColor,
       businessPhone: settings.businessPhone || '',
       businessAddress: settings.businessAddress || '',
+      businessLogo: settings.businessLogo || '',
     }});
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

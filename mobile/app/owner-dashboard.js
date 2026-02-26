@@ -108,7 +108,7 @@ function StockRow({ currency }) {
   );
 }
 
-export default function OwnerDashboardScreen({ onSwitchView }) {
+export default function OwnerDashboardScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { data: dashData, fetchDashboard, isLoading: dashLoading } = useDashboardStore();
@@ -170,7 +170,7 @@ export default function OwnerDashboardScreen({ onSwitchView }) {
                 <Ionicons name="swap-horizontal" size={18} color={GOLD} />
               </View>
             )}
-            <Text style={[s.logoText, { flex: 1 }]} numberOfLines={1}>
+            <Text style={[s.logoText, { flex: 1 }]} numberOfLines={2}>
               {settings?.businessName || 'KABRAK'}{!settings?.businessName && <Text style={{ color: GOLD }}> Exchange Pro</Text>}
             </Text>
             <View style={s.headerActions}>
@@ -178,11 +178,6 @@ export default function OwnerDashboardScreen({ onSwitchView }) {
                 <Ionicons name="notifications-outline" size={20} color="rgba(255,255,255,0.7)" />
                 {alerts.length > 0 && <View style={s.notifDot} />}
               </TouchableOpacity>
-              {onSwitchView && (
-                <TouchableOpacity style={[s.headerIconBtn, { backgroundColor: 'rgba(232,160,32,0.25)', borderWidth: 1, borderColor: 'rgba(232,160,32,0.4)' }]} onPress={onSwitchView}>
-                  <Ionicons name="people-outline" size={18} color={GOLD} />
-                </TouchableOpacity>
-              )}
               <TouchableOpacity style={s.avatarBtn} onPress={() => router.push('/(tabs)/more')}>
                 <Text style={s.avatarText}>{getInitials(user?.name)}</Text>
               </TouchableOpacity>
@@ -414,11 +409,11 @@ const s = StyleSheet.create({
   headerBlobTR: { position: 'absolute', width: 260, height: 260, borderRadius: 130, backgroundColor: 'rgba(11,110,79,0.18)', top: -70, right: -80 },
   headerBlobBL: { position: 'absolute', width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(11,110,79,0.10)', bottom: -40, left: -60 },
 
-  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingTop: 52, paddingBottom: 16 },
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingTop: 52, paddingBottom: 16, flexWrap: 'nowrap' },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 },
   logoIconWrap: { width: 34, height: 34, borderRadius: 9, backgroundColor: 'rgba(232,160,32,0.15)', borderWidth: 1, borderColor: 'rgba(232,160,32,0.3)', justifyContent: 'center', alignItems: 'center' },
   businessLogo: { width: 34, height: 34, borderRadius: 9 },
-  logoText: { fontSize: 17, fontWeight: '800', color: WHITE, letterSpacing: -0.3 },
+  logoText: { fontSize: 15, fontWeight: '800', color: WHITE, letterSpacing: -0.3, lineHeight: 20 },
   headerIconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)', justifyContent: 'center', alignItems: 'center', marginLeft: 6 },
   notifDot: { position: 'absolute', top: 6, right: 6, width: 8, height: 8, borderRadius: 4, backgroundColor: '#ef4444' },
   avatarBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: GREEN_MAIN, justifyContent: 'center', alignItems: 'center', marginLeft: 6 },
