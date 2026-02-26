@@ -1,43 +1,29 @@
-const IS_BOGO = process.env.APP_VARIANT === 'bogo';
-
-const appName = process.env.APP_NAME || 'KABRAK Exchange Pro';
-const slug = 'mobile';
-const bundleId = process.env.APP_BUNDLE_ID || 'com.kabrak.exchangepro';
-const packageName = process.env.APP_PACKAGE || 'com.kabrak.exchangepro';
-const scheme = process.env.APP_SCHEME || 'kabrak-exchange';
-const primaryColor = process.env.APP_PRIMARY_COLOR || '#0B6E4F';
-const splashBg = process.env.APP_SPLASH_BG || '#071a12';
-
-const icon = IS_BOGO ? './assets/bogo-icon.png' : './assets/icon.png';
-const adaptiveIcon = IS_BOGO ? './assets/bogo-adaptive-icon.png' : './assets/adaptive-icon.png';
-const splash = IS_BOGO ? './assets/bogo-splash.png' : './assets/splash.png';
-
 export default {
   expo: {
-    name: appName,
-    slug,
+    name: 'KABRAK Exchange Pro',
+    slug: 'kabrak-exchange-pro',
     version: '1.0.0',
     runtimeVersion: {
       policy: 'appVersion',
     },
     orientation: 'portrait',
-    icon,
+    icon: './assets/icon.png',
     userInterfaceStyle: 'light',
-    primaryColor,
+    primaryColor: '#0B6E4F',
     splash: {
-      image: splash,
+      image: './assets/splash.png',
       resizeMode: 'contain',
-      backgroundColor: splashBg,
+      backgroundColor: '#071a12',
     },
     assetBundlePatterns: ['**/*'],
     ios: {
       supportsTablet: false,
-      bundleIdentifier: bundleId,
+      bundleIdentifier: 'com.kabrak.exchangepro',
       buildNumber: '1',
       infoPlist: {
-        NSCameraUsageDescription: `${appName} utilise la caméra pour scanner les reçus.`,
-        NSPhotoLibraryUsageDescription: `${appName} accède à vos photos pour joindre des reçus.`,
-        NSPhotoLibraryAddUsageDescription: `${appName} sauvegarde les reçus dans votre galerie.`,
+        NSCameraUsageDescription: 'KABRAK Exchange Pro utilise la caméra pour scanner les reçus.',
+        NSPhotoLibraryUsageDescription: 'KABRAK Exchange Pro accède à vos photos pour joindre des reçus.',
+        NSPhotoLibraryAddUsageDescription: 'KABRAK Exchange Pro sauvegarde les reçus dans votre galerie.',
       },
       config: {
         usesNonExemptEncryption: false,
@@ -45,10 +31,10 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: adaptiveIcon,
-        backgroundColor: splashBg,
+        foregroundImage: './assets/adaptive-icon.png',
+        backgroundColor: '#071a12',
       },
-      package: packageName,
+      package: 'com.kabrak.exchangepro',
       versionCode: 1,
       permissions: [
         'android.permission.CAMERA',
@@ -70,19 +56,17 @@ export default {
       [
         'expo-notifications',
         {
-          icon,
-          color: primaryColor,
+          icon: './assets/icon.png',
+          color: '#0B6E4F',
           sounds: [],
         },
       ],
     ],
-    scheme,
+    scheme: 'kabrak-exchange',
     extra: {
       eas: {
         projectId: 'cbf6d54d-0207-4b4f-8429-5a7793458893',
       },
-      appName,
-      isBogo: IS_BOGO,
     },
     owner: 'kabrak',
   },

@@ -1,18 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, Image, StyleSheet, TouchableOpacity,
+  View, Text, StyleSheet, TouchableOpacity,
   Animated, Dimensions, StatusBar, Modal, ScrollView
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import useLanguageStore from '../../src/store/languageStore';
-import { IS_BOGO, APP_NAME_SHORT, APP_NAME_SUB, BRAND_DARK, BRAND_MID, BRAND_MAIN, BRAND_GOLD, LOGO_IMAGE } from '../../src/constants/whitelabel';
 
 const { width, height } = Dimensions.get('window');
-const GREEN_DARK  = BRAND_DARK;
-const GREEN_MID   = BRAND_MID;
-const GREEN_MAIN  = BRAND_MAIN;
-const GOLD        = BRAND_GOLD;
+const GREEN_DARK  = '#071a12';
+const GREEN_MID   = '#0a3d22';
+const GREEN_MAIN  = '#0B6E4F';
+const GOLD        = '#e8a020';
 const WHITE       = '#ffffff';
 
 export default function WelcomeScreen() {
@@ -69,19 +68,13 @@ export default function WelcomeScreen() {
       >
         {/* Logo row */}
         <Animated.View style={[styles.logoRow, { opacity: fade1, transform: [{ translateY: slide1 }] }]}>
-          {IS_BOGO ? (
-            <Image source={LOGO_IMAGE} style={styles.bogoLogo} resizeMode="contain" />
-          ) : (
-            <View style={styles.logoIconWrap}>
-              <Ionicons name="swap-horizontal" size={20} color={GOLD} />
-            </View>
-          )}
-          {!IS_BOGO && (
-            <Text style={styles.logoText}>
-              {APP_NAME_SHORT} <Text style={styles.logoTextGold}>{APP_NAME_SUB}</Text>
-            </Text>
-          )}
-          <TouchableOpacity style={[styles.langBtn, IS_BOGO && { marginLeft: 'auto' }]} onPress={toggleLanguage}>
+          <View style={styles.logoIconWrap}>
+            <Ionicons name="swap-horizontal" size={20} color={GOLD} />
+          </View>
+          <Text style={styles.logoText}>
+            KABRAK <Text style={styles.logoTextGold}>Exchange Pro</Text>
+          </Text>
+          <TouchableOpacity style={styles.langBtn} onPress={toggleLanguage}>
             <Text style={styles.langBtnText}>{language === 'fr' ? 'EN' : 'FR'}</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -117,16 +110,14 @@ export default function WelcomeScreen() {
             <Text style={styles.btnPrimaryText}>{t.welcome.getStarted}</Text>
           </TouchableOpacity>
 
-          {!IS_BOGO && (
-            <TouchableOpacity
-              style={styles.btnTrial}
-              onPress={() => router.push('/(auth)/register-trial')}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="gift-outline" size={18} color={GOLD} style={{ marginRight: 8 }} />
-              <Text style={styles.btnTrialText}>{language === 'fr' ? 'Essai gratuit — 14 jours' : 'Free trial — 14 days'}</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={styles.btnTrial}
+            onPress={() => router.push('/(auth)/register-trial')}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="gift-outline" size={18} color={GOLD} style={{ marginRight: 8 }} />
+            <Text style={styles.btnTrialText}>{language === 'fr' ? 'Essai gratuit — 14 jours' : 'Free trial — 14 days'}</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.btnSecondary}
@@ -239,10 +230,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 10,
     marginBottom: 52,
     alignSelf: 'center',
-    width: '100%',
-  },
-  bogoLogo: {
-    width: 120, height: 120, borderRadius: 16,
   },
   logoIconWrap: {
     width: 38, height: 38, borderRadius: 10,
