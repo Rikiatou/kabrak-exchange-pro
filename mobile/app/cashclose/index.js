@@ -15,7 +15,7 @@ export default function CashCloseScreen() {
   const router = useRouter();
   const { closes, todaySummary, loading, fetchAll, fetchToday, closeDay } = useCashCloseStore();
   const { user } = useAuthStore();
-  const isAdmin = user?.role === 'admin';
+  const isOwner = user?.teamRole === 'owner';
 
   const [showModal, setShowModal] = useState(false);
   const [openingBalance, setOpeningBalance] = useState('');
@@ -31,7 +31,7 @@ export default function CashCloseScreen() {
   }, []);
 
   const handleClose = async () => {
-    if (!isAdmin) { Alert.alert('Accès refusé', 'Seul un admin peut clôturer la caisse.'); return; }
+    if (!isOwner) { Alert.alert('Accès refusé', 'Seul le propriétaire peut clôturer la caisse.'); return; }
     if (todaySummary?.alreadyClosed) { Alert.alert('Déjà clôturée', 'La caisse de ce jour est déjà clôturée.'); return; }
     Alert.alert(
       'Clôturer la caisse',
@@ -146,7 +146,7 @@ export default function CashCloseScreen() {
             )}
 
             {/* Close button */}
-            {isAdmin && !todaySummary.alreadyClosed && (
+            {isOwner && !todaySummary.alreadyClosed && (
               <View style={styles.closeSection}>
                 <Text style={styles.closeLabel}>Solde d'ouverture (FCFA)</Text>
                 <TextInput

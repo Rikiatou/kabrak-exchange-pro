@@ -34,8 +34,8 @@ export default function MoreScreen() {
   const { user, logout } = useAuthStore();
   const { t } = useLanguageStore();
   const router = useRouter();
-  const isAdmin = user?.role === 'admin';
-  const isManager = user?.teamRole === 'owner' || user?.teamRole === 'manager' || isAdmin;
+  const isOwner = user?.teamRole === 'owner';
+  const isManager = user?.teamRole === 'owner' || user?.teamRole === 'manager';
 
   const handleLogout = () => {
     Alert.alert(t.more.logout, t.settings.logoutConfirm, [
@@ -61,15 +61,17 @@ export default function MoreScreen() {
         <View style={styles.profileInfo}>
           <Text style={styles.profileName}>{user?.name}</Text>
           <Text style={styles.profileEmail}>{user?.email}</Text>
-          <View style={[styles.roleBadge, { backgroundColor: isAdmin ? COLORS.infoLight : COLORS.successLight }]}>
-            <Text style={[styles.roleText, { color: isAdmin ? COLORS.info : COLORS.success }]}>
-              {isAdmin ? t.users.admin : t.users.operator}
+          <View style={[styles.roleBadge, { backgroundColor: isOwner ? COLORS.infoLight : COLORS.successLight }]}>
+            <Text style={[styles.roleText, { color: isOwner ? COLORS.info : COLORS.success }]}>
+              {isOwner ? 'Propriétaire' : user?.teamRole === 'manager' ? 'Manager' : 'Employé'}
             </Text>
           </View>
         </View>
-        <TouchableOpacity onPress={() => router.push('/settings/business')}>
-          <Ionicons name="pencil-outline" size={20} color={COLORS.primary} />
-        </TouchableOpacity>
+        {isOwner && (
+          <TouchableOpacity onPress={() => router.push('/settings/business')}>
+            <Ionicons name="pencil-outline" size={20} color={COLORS.primary} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <MenuSection title={t.more.title}>
@@ -77,23 +79,22 @@ export default function MoreScreen() {
         <MenuItem icon="notifications-outline" label={t.more.alerts} onPress={() => router.push('/alerts')} color={COLORS.danger} />
         {isManager && <MenuItem icon="book-outline" label={t.more.cashbook} onPress={() => router.push('/cashbook')} color={COLORS.warning} />}
         {isManager && <MenuItem icon="bar-chart-outline" label={t.more.reports} onPress={() => router.push('/reports')} color="#7b1fa2" />}
-        {isAdmin && <MenuItem icon="document-text-outline" label={t.more.audit} onPress={() => router.push('/audit')} color={COLORS.secondary} />}
+        {isOwner && <MenuItem icon="document-text-outline" label={t.more.audit} onPress={() => router.push('/audit')} color={COLORS.secondary} />}
       </MenuSection>
 
       {isManager && (
         <MenuSection title={t.users.title}>
-          {isAdmin && <MenuItem icon="people-outline" label={t.more.users} onPress={() => router.push('/users')} color={COLORS.primary} />}
           <MenuItem icon="people-circle-outline" label="Mon Équipe" subtitle="Gérer les membres du bureau" onPress={() => router.push('/settings/team')} color="#7c3aed" />
           <MenuItem icon="images-outline" label="Galerie des reçus" subtitle="Reçus uploadés par client" onPress={() => router.push('/receipts')} color="#0891b2" />
           <MenuItem icon="cash-outline" label={t.currencies.title} onPress={() => router.push('/(tabs)/currencies')} color={COLORS.success} />
-          {isAdmin && <MenuItem icon="lock-closed-outline" label="Clôture de caisse" subtitle="Bilan journalier" onPress={() => router.push('/cashclose')} color="#d97706" />}
-          {isAdmin && <MenuItem icon="cube-outline" label="Stock de devises" subtitle="Inventaire physique" onPress={() => router.push('/stock')} color="#0891b2" />}
+          {isOwner && <MenuItem icon="lock-closed-outline" label="Clôture de caisse" subtitle="Bilan journalier" onPress={() => router.push('/cashclose')} color="#d97706" />}
+          {isOwner && <MenuItem icon="cube-outline" label="Stock de devises" subtitle="Inventaire physique" onPress={() => router.push('/stock')} color="#0891b2" />}
         </MenuSection>
       )}
 
       <MenuSection title={t.settings.title}>
-        <MenuItem icon="shield-checkmark-outline" label="Ma Licence" subtitle="Plan, expiration, renouvellement" onPress={() => router.push('/settings/license')} color="#6366f1" />
-        {isAdmin && <MenuItem icon="business-outline" label="Mon entreprise" subtitle="Nom, téléphone, adresse" onPress={() => router.push('/settings/business')} color={COLORS.primary} />}
+        {isOwner && <MenuItem icon="shield-checkmark-outline" label="Ma Licence" subtitle="Plan, expiration, renouvellement" onPress={() => router.push('/settings/license')} color="#6366f1" />}
+        {isOwner && <MenuItem icon="business-outline" label="Mon entreprise" subtitle="Nom, téléphone, adresse" onPress={() => router.push('/settings/business')} color={COLORS.primary} />}
         <MenuItem icon="lock-closed-outline" label={t.settings.changePassword} onPress={() => router.push('/settings/change-password')} color={COLORS.primary} />
         <MenuItem icon="information-circle-outline" label={t.settings.about} onPress={() => router.push('/settings/about')} color={COLORS.textSecondary} />
         <MenuItem icon="log-out-outline" label={t.more.logout} danger onPress={handleLogout} />

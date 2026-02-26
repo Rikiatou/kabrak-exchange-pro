@@ -15,7 +15,7 @@ export default function StockScreen() {
   const router = useRouter();
   const { getStockSummary, adjustStock } = useCurrencyStore();
   const { user } = useAuthStore();
-  const isAdmin = user?.role === 'admin';
+  const isOwner = user?.teamRole === 'owner';
 
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +35,7 @@ export default function StockScreen() {
   }, []);
 
   const openAdjust = (currency) => {
-    if (!isAdmin) { Alert.alert('Accès refusé', 'Seul un admin peut ajuster le stock.'); return; }
+    if (!isOwner) { Alert.alert('Accès refusé', 'Seul le propriétaire peut ajuster le stock.'); return; }
     setSelected(currency);
     setAdjType('add');
     setAdjAmount('');
@@ -118,7 +118,7 @@ export default function StockScreen() {
                     <Text style={styles.stockMin}>min: {fmt(c.lowStockAlert)}</Text>
                   </View>
                 </View>
-                {isAdmin && (
+                {isOwner && (
                   <TouchableOpacity style={styles.adjBtn} onPress={() => openAdjust(c)}>
                     <Ionicons name="create-outline" size={18} color={COLORS.white} />
                   </TouchableOpacity>

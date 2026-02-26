@@ -134,8 +134,7 @@ export default function DashboardScreen() {
   const { t } = useLanguageStore();
   const [ownerView, setOwnerView] = useState(true);
 
-  const isAdmin = user?.role === 'admin';
-  const isOwner = user?.teamRole === 'owner' || (isAdmin && !user?.teamRole);
+  const isOwner = user?.teamRole === 'owner';
 
   useEffect(() => { fetchDashboard(); fetchSettings(); }, []);
   const onRefresh = useCallback(() => { fetchDashboard(); fetchSettings(); }, []);
@@ -156,7 +155,7 @@ export default function DashboardScreen() {
         <EmployeeView
           data={data} isLoading={isLoading} onRefresh={onRefresh}
           settings={settings} user={user} router={router}
-          isAdmin={false} t={t} s={s} greeting={greeting}
+          t={t} s={s} greeting={greeting}
         />
       </View>
     );
@@ -166,12 +165,12 @@ export default function DashboardScreen() {
     <EmployeeView
       data={data} isLoading={isLoading} onRefresh={onRefresh}
       settings={settings} user={user} router={router}
-      isAdmin={isAdmin} t={t} s={s} greeting={greeting}
+      t={t} s={s} greeting={greeting}
     />
   );
 }
 
-function EmployeeView({ data, isLoading, onRefresh, settings, user, router, isAdmin, t, s, greeting }) {
+function EmployeeView({ data, isLoading, onRefresh, settings, user, router, t, s, greeting }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={GREEN_DARK} />
