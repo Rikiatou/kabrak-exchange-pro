@@ -6,6 +6,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as SecureStore from 'expo-secure-store';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import useSettingStore from '../../src/store/settingStore';
 import useAuthStore from '../../src/store/authStore';
@@ -34,7 +35,7 @@ function Field({ label, value, onChangeText, placeholder, keyboardType = 'defaul
 export default function BusinessSettingsScreen() {
   const router = useRouter();
   const { settings, fetchSettings, updateSettings, isLoading } = useSettingStore();
-  const { token } = useAuthStore();
+  const { token: storeToken } = useAuthStore();
   const [form, setForm] = useState({
     businessName: '',
     businessPhone: '',
@@ -79,6 +80,7 @@ export default function BusinessSettingsScreen() {
     try {
       const formData = new FormData();
       formData.append('logo', { uri, name: 'logo.jpg', type: 'image/jpeg' });
+      const token = storeToken || await SecureStore.getItemAsync('auth_token');
       const res = await fetch(`${API_URL}/api/settings/upload-logo`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },

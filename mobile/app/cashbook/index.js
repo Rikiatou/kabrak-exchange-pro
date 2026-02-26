@@ -189,8 +189,9 @@ export default function CashbookScreen() {
   const { user } = useAuthStore();
   const { currencies, fetchCurrencies } = useCurrencyStore();
 
+  const isManager = user?.teamRole === 'owner' || user?.teamRole === 'manager' || user?.role === 'admin';
   useEffect(() => {
-    if (user && user.role !== 'admin') { router.back(); }
+    if (user && !isManager) { router.back(); }
   }, [user]);
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
