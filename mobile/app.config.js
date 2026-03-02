@@ -1,11 +1,8 @@
 export default {
   expo: {
     name: 'KABRAK Exchange Pro',
-    slug: 'kabrak-exchange-pro',
+    slug: 'mobile',
     version: '1.0.0',
-    runtimeVersion: {
-      policy: 'appVersion',
-    },
     orientation: 'portrait',
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
@@ -25,6 +22,7 @@ export default {
         NSPhotoLibraryUsageDescription: 'KABRAK Exchange Pro accède à vos photos pour joindre des reçus.',
         NSPhotoLibraryAddUsageDescription: 'KABRAK Exchange Pro sauvegarde les reçus dans votre galerie.',
       },
+      associatedDomains: ['applinks:exchange.kabrakeng.com'],
       config: {
         usesNonExemptEncryption: false,
       },
@@ -44,7 +42,25 @@ export default {
         'android.permission.VIBRATE',
         'android.permission.INTERNET',
       ],
-      googleServicesFile: './google-services.json',
+      intentFilters: [
+        {
+          action: 'VIEW',
+          autoVerify: true,
+          data: [
+            {
+              scheme: 'https',
+              host: 'exchange.kabrakeng.com',
+              pathPrefix: '/receipt',
+            },
+            {
+              scheme: 'https',
+              host: 'exchange.kabrakeng.com',
+              pathPrefix: '/client',
+            },
+          ],
+          category: ['BROWSABLE', 'DEFAULT'],
+        },
+      ],
     },
     web: {
       favicon: './assets/favicon.png',

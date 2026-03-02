@@ -44,6 +44,8 @@ const transactionConfirmation = async (req, res) => {
     };
     const statusLabel = (statusMap[lang] || statusMap.fr)[tx.status] || tx.status;
 
+    const receiptLink = `https://exchange.kabrakeng.com/receipt/${tx.id}`;
+
     let message;
     if (lang === 'en') {
       message = `📋 *${business.name}*\n` +
@@ -59,6 +61,7 @@ const transactionConfirmation = async (req, res) => {
         (parseFloat(tx.amountRemaining) > 0 ? `⚠️ Remaining: ${fmt(tx.amountRemaining, tx.currencyTo)}\n` : '') +
         `\n👨‍💼 Operator: ${tx.operator?.name || 'N/A'}\n` +
         (business.phone ? `📞 ${business.phone}\n` : '') +
+        `\n📱 View receipt: ${receiptLink}\n` +
         `\nThank you for your trust! 🙏`;
     } else {
       message = `📋 *${business.name}*\n` +
@@ -74,6 +77,7 @@ const transactionConfirmation = async (req, res) => {
         (parseFloat(tx.amountRemaining) > 0 ? `⚠️ Reste: ${fmt(tx.amountRemaining, tx.currencyTo)}\n` : '') +
         `\n👨‍💼 Opérateur: ${tx.operator?.name || 'N/A'}\n` +
         (business.phone ? `📞 ${business.phone}\n` : '') +
+        `\n📱 Voir le reçu: ${receiptLink}\n` +
         `\nMerci pour votre confiance ! 🙏`;
     }
 
@@ -84,6 +88,7 @@ const transactionConfirmation = async (req, res) => {
         clientPhone: tx.client?.phone || null,
         clientName: tx.client?.name || null,
         reference: tx.reference,
+        receiptLink,
       }
     });
   } catch (error) {
@@ -106,6 +111,7 @@ const paymentReminder = async (req, res) => {
 
     const business = await getBusinessInfo();
     const dueInfo = tx.dueDate ? moment(tx.dueDate).format('DD/MM/YYYY') : null;
+    const receiptLink = `https://exchange.kabrakeng.com/receipt/${tx.id}`;
 
     let message;
     if (lang === 'en') {
@@ -118,6 +124,7 @@ const paymentReminder = async (req, res) => {
         (dueInfo ? `📅 Due: ${dueInfo}\n` : '') +
         `\nPlease settle your balance at your earliest convenience.\n` +
         (business.phone ? `📞 Contact: ${business.phone}\n` : '') +
+        `\n📱 View receipt: ${receiptLink}\n` +
         `\nThank you! 🙏`;
     } else {
       message = `🔔 *Rappel de Paiement*\n` +
@@ -129,6 +136,7 @@ const paymentReminder = async (req, res) => {
         (dueInfo ? `📅 Échéance: ${dueInfo}\n` : '') +
         `\nMerci de bien vouloir régler votre solde dans les meilleurs délais.\n` +
         (business.phone ? `📞 Contact: ${business.phone}\n` : '') +
+        `\n📱 Voir le reçu: ${receiptLink}\n` +
         `\nMerci ! 🙏`;
     }
 
@@ -140,6 +148,7 @@ const paymentReminder = async (req, res) => {
         clientName: tx.client?.name || null,
         reference: tx.reference,
         amountRemaining: parseFloat(tx.amountRemaining),
+        receiptLink,
       }
     });
   } catch (error) {

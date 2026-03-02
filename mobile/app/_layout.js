@@ -3,7 +3,7 @@ import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import NetInfo from '@react-native-community/netinfo';
-import { Alert, View, Text, StyleSheet, Animated } from 'react-native';
+import { Alert, View, Text, StyleSheet, Animated, Linking } from 'react-native';
 import Constants from 'expo-constants';
 import useAuthStore from '../src/store/authStore';
 import useLanguageStore from '../src/store/languageStore';
@@ -36,6 +36,35 @@ export default function RootLayout() {
   useEffect(() => {
     loadUser();
     init();
+
+    // Deep linking handler - ouvre automatiquement les reçus via URL
+    const handleDeepLink = (event) => {
+      const url = event.url;
+      if (!url) return;
+
+      // Parse URL: https://exchange.kabrakeng.com/receipt/TRANSACTION_ID
+      // ou kabrak-exchange://receipt/TRANSACTION_ID
+      const receiptMatch = url.match(/\/receipt\/([a-zA-Z0-9-]+)/);
+      const clientMatch = url.match(/\/client\/([a-zA-Z0-9-]+)/);
+
+      if (receiptMatch && receiptMatch[1]) {
+        const transactionId = receiptMatch[1];
+        router.push(`/receipt/${transactionId}`);
+      } else if (clientMatch && clientMatch[1]) {
+        const clientCode = clientMatch[1];
+        router.push(`/clients/${clientCode}`);
+      }
+    };
+
+    // Écouter les deep links quand l'app est ouverte
+    const linkingSubscription = Linking.addEventListener('url', handleDeepLink);
+
+    // Vérifier si l'app a été ouverte via un deep link
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        handleDeepLink({ url });
+      }
+    });
 
     // NetInfo: offline banner + auto sync
     const unsubscribeNet = NetInfo.addEventListener(async (state) => {
@@ -88,6 +117,7 @@ export default function RootLayout() {
     return () => {
       unsubscribeNet();
       unsubscribeNotif();
+      linkingSubscription.remove();
     };
   }, []);
 
