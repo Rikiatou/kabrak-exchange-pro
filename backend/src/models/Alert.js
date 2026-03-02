@@ -9,7 +9,8 @@ const Alert = sequelize.define('Alert', {
   entityId: { type: DataTypes.STRING, allowNull: true },
   entityType: { type: DataTypes.STRING, allowNull: true },
   isRead: { type: DataTypes.BOOLEAN, defaultValue: false },
-  severity: { type: DataTypes.ENUM('info', 'warning', 'critical'), defaultValue: 'info' }
+  severity: { type: DataTypes.ENUM('info', 'warning', 'critical'), defaultValue: 'info' },
+  userId: { type: DataTypes.UUID, allowNull: true }
 }, {
   tableName: 'alerts',
   updatedAt: false

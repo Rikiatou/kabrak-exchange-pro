@@ -8,7 +8,7 @@ const auditLog = (action, entity) => {
         try {
           await AuditLog.create({
             userId: req.user ? req.user.id : null,
-            userName: req.user ? req.user.name : 'System',
+            userName: req.user ? (req.user.name || [req.user.firstName, req.user.lastName].filter(Boolean).join(' ') || req.user.email || 'Système') : 'System',
             action,
             entity,
             entityId: data.data ? (data.data.id || null) : null,

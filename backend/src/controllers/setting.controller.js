@@ -1,7 +1,7 @@
 const { Setting } = require('../models');
 
 const DEFAULTS = {
-  businessName: 'Mon Bureau de Change',
+  businessName: '',
   businessPhone: '',
   businessAddress: '',
   businessEmail: '',

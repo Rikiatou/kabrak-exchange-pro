@@ -10,8 +10,10 @@ const getMonthlyReport = async (req, res) => {
     const startDate = moment(`${y}-${m}-01`).startOf('month').toDate();
     const endDate = moment(`${y}-${m}-01`).endOf('month').toDate();
 
+    const ownerId = req.user.teamOwnerId || req.user.id;
+
     const transactions = await Transaction.findAll({
-      where: { createdAt: { [Op.between]: [startDate, endDate] } },
+      where: { userId: ownerId, createdAt: { [Op.between]: [startDate, endDate] } },
       include: [
         { model: Client, as: 'client', attributes: ['id', 'name'], required: false }
       ],
@@ -27,10 +29,12 @@ const getMonthlyReport = async (req, res) => {
     // Fetch operators separately to avoid JOIN issues
     const userIds = [...new Set(transactions.map(t => t.userId).filter(Boolean))];
     const operators = userIds.length > 0
-      ? await User.findAll({ where: { id: { [Op.in]: userIds } }, attributes: ['id', 'name'] })
+      ? await User.findAll({ where: { id: { [Op.in]: userIds } }, attributes: ['id', 'firstName', 'lastName', 'name'] }).catch(() => [])
       : [];
     const operatorMap = {};
-    operators.forEach(u => { operatorMap[u.id] = u.name; });
+    operators.forEach(u => {
+      operatorMap[u.id] = u.name || [u.firstName, u.lastName].filter(Boolean).join(' ') || 'Inconnu';
+    });
 
     const totalTransactionAmount = transactions.reduce((sum, t) => sum + parseFloat(t.amountTo), 0);
     const totalPaymentsReceived = payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);

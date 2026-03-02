@@ -7,7 +7,8 @@ const DEFAULT_KYC_THRESHOLD = 500000; // 500,000 FCFA
 const getAll = async (req, res) => {
   try {
     const { page = 1, limit = 20, status, clientId, currencyFrom, currencyTo, dateFrom, dateTo, amountMin, amountMax, search } = req.query;
-    const where = {};
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const where = { userId: ownerId };
     if (status) where.status = status;
     if (clientId) where.clientId = clientId;
     if (currencyFrom) where.currencyFrom = currencyFrom.toUpperCase();
@@ -52,7 +53,9 @@ const getAll = async (req, res) => {
 
 const getById = async (req, res) => {
   try {
-    const transaction = await Transaction.findByPk(req.params.id, {
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const transaction = await Transaction.findOne({
+      where: { id: req.params.id, userId: ownerId },
       include: [
         { model: Client, as: 'client' },
         { model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] },
@@ -136,10 +139,11 @@ const create = async (req, res) => {
       // For transfer, profit stays 0
     }
 
+    const ownerId = req.user.teamOwnerId || req.user.id;
     const transaction = await Transaction.create({
       reference,
       clientId,
-      userId: req.user.id,
+      userId: ownerId,
       currencyFrom,
       currencyTo,
       amountFrom: parseFloat(amountFrom),

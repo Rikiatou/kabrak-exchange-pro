@@ -6,9 +6,12 @@ const moment = require('moment');
 const GREEN = '0B6E4F';
 const LIGHT_GREEN = 'E6F4EF';
 
-const getBusinessName = async () => {
+const getBusinessName = async (req) => {
   try {
-    const row = await Setting.findOne({ where: { key: 'businessName' } });
+    const ownerId = req?.user ? (req.user.teamOwnerId || req.user.id) : null;
+    const where = { key: 'businessName' };
+    if (ownerId) where.userId = ownerId;
+    const row = await Setting.findOne({ where });
     return row?.value || 'KABRAK Exchange Pro';
   } catch (_) { return 'KABRAK Exchange Pro'; }
 };
@@ -46,9 +49,10 @@ const styleHeaderRow = (ws, colCount) => {
 const exportTransactions = async (req, res) => {
   try {
     const { startDate, endDate, currency, status } = req.query;
-    const businessName = await getBusinessName();
+    const businessName = await getBusinessName(req);
+    const ownerId = req.user.teamOwnerId || req.user.id;
 
-    const where = {};
+    const where = { userId: ownerId };
     if (startDate && endDate) where.createdAt = { [Op.between]: [new Date(startDate), new Date(endDate)] };
     else if (startDate) where.createdAt = { [Op.gte]: new Date(startDate) };
     else if (endDate) where.createdAt = { [Op.lte]: new Date(endDate) };
@@ -149,9 +153,10 @@ const exportTransactions = async (req, res) => {
 const exportDepositOrders = async (req, res) => {
   try {
     const { startDate, endDate, status } = req.query;
-    const businessName = await getBusinessName();
+    const businessName = await getBusinessName(req);
+    const ownerId = req.user.teamOwnerId || req.user.id;
 
-    const where = {};
+    const where = { userId: ownerId };
     if (startDate && endDate) where.createdAt = { [Op.between]: [new Date(startDate), new Date(endDate)] };
     if (status) where.status = status;
 
@@ -239,11 +244,12 @@ const exportDepositOrders = async (req, res) => {
 // GET /api/export/clients
 const exportClients = async (req, res) => {
   try {
-    const businessName = await getBusinessName();
+    const businessName = await getBusinessName(req);
+    const ownerId = req.user.teamOwnerId || req.user.id;
     const { Client: ClientModel } = require('../models');
 
     const clients = await ClientModel.findAll({
-      where: { isActive: true },
+      where: { isActive: true, userId: ownerId },
       order: [['name', 'ASC']],
     });
 

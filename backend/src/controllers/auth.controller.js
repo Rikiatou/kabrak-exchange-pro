@@ -132,6 +132,16 @@ const register = async (req, res) => {
       expiresAt
     });
     
+    // Créer le setting businessName pour que le nom s'affiche dans l'app
+    const { Setting } = require('../models');
+    if (businessName) {
+      await Setting.create({
+        key: 'businessName',
+        value: businessName,
+        userId: user.id
+      });
+    }
+    
     // Générer le token
     const token = generateAccessToken(user);
     const rt = generateRefreshToken(user);

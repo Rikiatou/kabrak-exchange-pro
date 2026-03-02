@@ -5,7 +5,8 @@ const moment = require('moment');
 const getAll = async (req, res) => {
   try {
     const { page = 1, limit = 20, currency, startDate, endDate } = req.query;
-    const where = {};
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const where = { userId: ownerId };
     if (currency) where.currency = currency;
     if (startDate && endDate) {
       where.date = { [Op.between]: [startDate, endDate] };
@@ -30,9 +31,10 @@ const getAll = async (req, res) => {
 
 const getToday = async (req, res) => {
   try {
+    const ownerId = req.user.teamOwnerId || req.user.id;
     const today = moment().format('YYYY-MM-DD');
     const entries = await CashBook.findAll({
-      where: { date: today },
+      where: { date: today, userId: ownerId },
       include: [{ model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] }]
     });
     return res.json({ success: true, data: entries });
@@ -45,13 +47,14 @@ const openDay = async (req, res) => {
   try {
     const { currency, openingBalance } = req.body;
     if (!currency) return res.status(400).json({ success: false, message: 'Currency is required.' });
+    const ownerId = req.user.teamOwnerId || req.user.id;
     const today = moment().format('YYYY-MM-DD');
-    const existing = await CashBook.findOne({ where: { date: today, currency } });
+    const existing = await CashBook.findOne({ where: { date: today, currency, userId: ownerId } });
     if (existing) {
       return res.status(400).json({ success: false, message: `Cashbook for ${currency} on ${today} already exists.` });
     }
     const entry = await CashBook.create({
-      userId: req.user.id,
+      userId: ownerId,
       date: today,
       currency,
       openingBalance: parseFloat(openingBalance) || 0,
@@ -67,7 +70,8 @@ const openDay = async (req, res) => {
 
 const closeDay = async (req, res) => {
   try {
-    const entry = await CashBook.findByPk(req.params.id);
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const entry = await CashBook.findOne({ where: { id: req.params.id, userId: ownerId } });
     if (!entry) return res.status(404).json({ success: false, message: 'Cashbook entry not found.' });
     const { physicalCount, notes } = req.body;
     const closingBalance = parseFloat(entry.openingBalance) + parseFloat(entry.totalIn) - parseFloat(entry.totalOut);

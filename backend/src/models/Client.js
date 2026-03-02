@@ -22,6 +22,7 @@ const Client = sequelize.define('Client', {
   isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
   totalDebt: { type: DataTypes.DECIMAL(20, 4), defaultValue: 0 },
   totalPaid: { type: DataTypes.DECIMAL(20, 4), defaultValue: 0 },
+  userId: { type: DataTypes.UUID, allowNull: true },
   idPhotoFront: { type: DataTypes.STRING, allowNull: true },
   idPhotoBack: { type: DataTypes.STRING, allowNull: true },
   idExpiryDate: { type: DataTypes.DATEONLY, allowNull: true },

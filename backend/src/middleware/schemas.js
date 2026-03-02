@@ -1,6 +1,15 @@
 const Joi = require('joi');
 
 // Auth
+exports.register = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).required(),
+  firstName: Joi.string().min(2).max(100).required(),
+  lastName: Joi.string().min(2).max(100).required(),
+  businessName: Joi.string().max(100).allow('', null),
+  phone: Joi.string().max(30).allow('', null),
+});
+
 exports.login = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(4).required(),

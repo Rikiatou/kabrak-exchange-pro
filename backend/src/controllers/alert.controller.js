@@ -4,7 +4,8 @@ const { Op } = require('sequelize');
 const getAll = async (req, res) => {
   try {
     const { isRead, severity } = req.query;
-    const where = {};
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const where = { userId: ownerId };
     if (isRead !== undefined) where.isRead = isRead === 'true';
     if (severity) where.severity = severity;
     const alerts = await Alert.findAll({ where, order: [['createdAt', 'DESC']], limit: 50 });
@@ -16,7 +17,8 @@ const getAll = async (req, res) => {
 
 const markRead = async (req, res) => {
   try {
-    const alert = await Alert.findByPk(req.params.id);
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const alert = await Alert.findOne({ where: { id: req.params.id, userId: ownerId } });
     if (!alert) return res.status(404).json({ success: false, message: 'Alert not found.' });
     await alert.update({ isRead: true });
     return res.json({ success: true, message: 'Alert marked as read.', data: alert });
@@ -27,7 +29,8 @@ const markRead = async (req, res) => {
 
 const markAllRead = async (req, res) => {
   try {
-    await Alert.update({ isRead: true }, { where: { isRead: false } });
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    await Alert.update({ isRead: true }, { where: { isRead: false, userId: ownerId } });
     return res.json({ success: true, message: 'All alerts marked as read.' });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

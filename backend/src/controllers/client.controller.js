@@ -4,7 +4,8 @@ const { Client, Transaction, Payment } = require('../models');
 const getAll = async (req, res) => {
   try {
     const { search, page = 1, limit = 20 } = req.query;
-    const where = { isActive: true };
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const where = { isActive: true, userId: ownerId };
     if (search) {
       where[Op.or] = [
         { name: { [Op.like]: `%${search}%` } },
@@ -32,7 +33,9 @@ const getAll = async (req, res) => {
 
 const getById = async (req, res) => {
   try {
-    const client = await Client.findByPk(req.params.id, {
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const client = await Client.findOne({
+      where: { id: req.params.id, userId: ownerId },
       include: [
         { model: Transaction, as: 'transactions', order: [['createdAt', 'DESC']], limit: 10 }
       ]
@@ -57,7 +60,8 @@ const create = async (req, res) => {
   try {
     const { name, phone, email, idNumber, idType, address, notes } = req.body;
     if (!name) return res.status(400).json({ success: false, message: 'Client name is required.' });
-    const client = await Client.create({ name, phone, email, idNumber, idType, address, notes });
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const client = await Client.create({ name, phone, email, idNumber, idType, address, notes, userId: ownerId });
     return res.status(201).json({ success: true, message: 'Client created successfully.', data: client });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -66,7 +70,8 @@ const create = async (req, res) => {
 
 const update = async (req, res) => {
   try {
-    const client = await Client.findByPk(req.params.id);
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const client = await Client.findOne({ where: { id: req.params.id, userId: ownerId } });
     if (!client) return res.status(404).json({ success: false, message: 'Client not found.' });
     const { name, phone, email, idNumber, idType, address, notes } = req.body;
     await client.update({ name, phone, email, idNumber, idType, address, notes });
@@ -78,7 +83,8 @@ const update = async (req, res) => {
 
 const remove = async (req, res) => {
   try {
-    const client = await Client.findByPk(req.params.id);
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const client = await Client.findOne({ where: { id: req.params.id, userId: ownerId } });
     if (!client) return res.status(404).json({ success: false, message: 'Client not found.' });
     await client.update({ isActive: false });
     return res.json({ success: true, message: 'Client deactivated successfully.' });
@@ -90,7 +96,8 @@ const remove = async (req, res) => {
 const getClientTransactions = async (req, res) => {
   try {
     const { page = 1, limit = 20, status } = req.query;
-    const where = { clientId: req.params.id };
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const where = { clientId: req.params.id, userId: ownerId };
     if (status) where.status = status;
     const offset = (parseInt(page) - 1) * parseInt(limit);
     const { count, rows } = await Transaction.findAndCountAll({
@@ -112,7 +119,8 @@ const getClientTransactions = async (req, res) => {
 
 const uploadIdPhoto = async (req, res) => {
   try {
-    const client = await Client.findByPk(req.params.id);
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const client = await Client.findOne({ where: { id: req.params.id, userId: ownerId } });
     if (!client) return res.status(404).json({ success: false, message: 'Client not found.' });
     const updates = {};
     if (req.files?.front?.[0]) updates.idPhotoFront = `/uploads/kyc/${req.files.front[0].filename}`;
@@ -131,7 +139,8 @@ const uploadIdPhoto = async (req, res) => {
 
 const verifyKyc = async (req, res) => {
   try {
-    const client = await Client.findByPk(req.params.id);
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const client = await Client.findOne({ where: { id: req.params.id, userId: ownerId } });
     if (!client) return res.status(404).json({ success: false, message: 'Client not found.' });
     const { status, notes } = req.body; // status: 'verified' | 'rejected'
     if (!['verified', 'rejected'].includes(status)) {

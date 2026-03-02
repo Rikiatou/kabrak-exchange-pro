@@ -3,7 +3,8 @@ const { Transaction, Client, Payment, User } = require('../models');
 const getAll = async (req, res) => {
   try {
     const { page = 1, limit = 20, clientId, transactionId } = req.query;
-    const where = {};
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const where = { userId: ownerId };
     if (clientId) where.clientId = clientId;
     if (transactionId) where.transactionId = transactionId;
     const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -35,7 +36,8 @@ const create = async (req, res) => {
       return res.status(400).json({ success: false, message: 'transactionId, amount and currency are required.' });
     }
 
-    const transaction = await Transaction.findByPk(transactionId);
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const transaction = await Transaction.findOne({ where: { id: transactionId, userId: ownerId } });
     if (!transaction) return res.status(404).json({ success: false, message: 'Transaction not found.' });
     if (transaction.status === 'paid') {
       return res.status(400).json({ success: false, message: 'Transaction is already fully paid.' });
@@ -54,7 +56,7 @@ const create = async (req, res) => {
     const payment = await Payment.create({
       transactionId,
       clientId: transaction.clientId,
-      userId: req.user.id,
+      userId: ownerId,
       amount: payAmount,
       currency,
       paymentMethod: paymentMethod || 'cash',

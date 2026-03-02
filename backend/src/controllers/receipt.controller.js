@@ -32,7 +32,7 @@ const getBusinessInfo = async (operatorId) => {
     const settings = {};
     rows.forEach(r => { settings[r.key] = r.value; });
     return {
-      name: settings.businessName || 'Mon Bureau de Change',
+      name: settings.businessName || 'KABRAK Exchange Pro',
       phone: settings.businessPhone || '',
       address: settings.businessAddress || '',
       email: settings.businessEmail || '',
@@ -40,7 +40,7 @@ const getBusinessInfo = async (operatorId) => {
       logo: settings.businessLogo || null,
     };
   } catch (_) {
-    return { name: 'Mon Bureau de Change', phone: '', address: '', email: '', brandColor: '#0B6E4F', logo: null };
+    return { name: 'KABRAK Exchange Pro', phone: '', address: '', email: '', brandColor: '#0B6E4F', logo: null };
   }
 };
 
