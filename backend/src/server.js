@@ -36,6 +36,7 @@ const teamRoutes = require('./routes/team.routes');
 const receiptRoutes = require('./routes/receipt.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const migrationRoutes = require('./routes/migration.routes');
+const debugMigrationRoutes = require('./routes/debug-migration.routes');
 const path = require('path');
 
 const app = express();
@@ -129,6 +130,7 @@ app.use('/api/team', teamRoutes);
 app.use('/api/receipts', receiptRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/migration', migrationRoutes);
+app.use('/api/debug-migration', debugMigrationRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/admin', express.static(path.join(__dirname, '../public')));
 app.use('/admin-pro', express.static(path.join(__dirname, '../public')));
