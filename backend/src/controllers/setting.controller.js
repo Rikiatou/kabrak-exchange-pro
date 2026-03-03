@@ -29,9 +29,13 @@ const updateSettings = async (req, res) => {
     const updates = req.body;
     
     for (const [key, value] of Object.entries(updates)) {
-      const existing = await Setting.findOne({ where: { key, userId: ownerId } });
+      // Chercher d'abord avec userId, puis avec NULL
+      let existing = await Setting.findOne({ where: { key, userId: ownerId } });
+      if (!existing) {
+        existing = await Setting.findOne({ where: { key, userId: null } });
+      }
       if (existing) {
-        await existing.update({ value: String(value) });
+        await existing.update({ value: String(value), userId: ownerId });
       } else {
         await Setting.create({ key, value: String(value), userId: ownerId });
       }
@@ -108,14 +112,19 @@ const uploadLogo = async (req, res) => {
     console.log('✅ Logo uploaded to Cloudinary:', logoUrl);
     console.log('🔍 Saving logo for userId:', ownerId);
     
-    // Utiliser findOne + update/create au lieu de upsert pour éviter l'erreur unique constraint
-    const existing = await Setting.findOne({ 
+    // Chercher d'abord avec userId, puis avec NULL userId (orphan rows)
+    let existing = await Setting.findOne({ 
       where: { key: 'businessLogo', userId: ownerId } 
     });
+    if (!existing) {
+      existing = await Setting.findOne({ 
+        where: { key: 'businessLogo', userId: null } 
+      });
+    }
     
     if (existing) {
-      await existing.update({ value: logoUrl });
-      console.log('✅ Logo updated in database');
+      await existing.update({ value: logoUrl, userId: ownerId });
+      console.log('✅ Logo updated in database (id:', existing.id, ')');
     } else {
       await Setting.create({ key: 'businessLogo', value: logoUrl, userId: ownerId });
       console.log('✅ Logo created in database');

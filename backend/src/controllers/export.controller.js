@@ -48,6 +48,7 @@ const styleHeaderRow = (ws, colCount) => {
 // GET /api/export/transactions
 const exportTransactions = async (req, res) => {
   try {
+    console.log('📊 Export transactions request:', req.query);
     const { startDate, endDate, currency, status } = req.query;
     const businessName = await getBusinessName(req);
     const ownerId = req.user.teamOwnerId || req.user.id;
@@ -64,6 +65,7 @@ const exportTransactions = async (req, res) => {
       include: [{ model: Client, as: 'client', attributes: ['name', 'phone'] }],
       order: [['createdAt', 'DESC']],
     });
+    console.log('📊 Export transactions found:', transactions.length);
 
     const wb = new ExcelJS.Workbook();
     wb.creator = 'KABRAK Exchange Pro';

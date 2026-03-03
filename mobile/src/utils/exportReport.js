@@ -23,12 +23,24 @@ export const exportExcel = async (type, params = {}) => {
   const filename = `${type}_${new Date().toISOString().split('T')[0]}.xlsx`;
   const fileUri = FileSystem.documentDirectory + filename;
 
+  console.log('📊 Export Excel:', { type, url });
+
   const result = await FileSystem.downloadAsync(url, fileUri, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
+  console.log('📊 Export result:', { status: result.status, uri: result.uri });
+
   if (result.status !== 200) {
-    throw new Error('Erreur lors du téléchargement');
+    // Try to read error body
+    try {
+      const errorContent = await FileSystem.readAsStringAsync(result.uri);
+      console.log('📊 Export error body:', errorContent);
+      const errorData = JSON.parse(errorContent);
+      throw new Error(errorData.message || `Erreur ${result.status}`);
+    } catch (parseErr) {
+      throw new Error(`Erreur ${result.status} lors du téléchargement`);
+    }
   }
 
   const canShare = await Sharing.isAvailableAsync();

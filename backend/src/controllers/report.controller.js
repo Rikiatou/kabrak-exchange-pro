@@ -7,8 +7,8 @@ const getMonthlyReport = async (req, res) => {
     const { year, month } = req.query;
     const y = parseInt(year) || moment().year();
     const m = parseInt(month) || moment().month() + 1;
-    const startDate = moment(`${y}-${m}-01`).startOf('month').toDate();
-    const endDate = moment(`${y}-${m}-01`).endOf('month').toDate();
+    const startDate = moment(`${y}-${String(m).padStart(2, '0')}-01`).startOf('month').toDate();
+    const endDate = moment(`${y}-${String(m).padStart(2, '0')}-01`).endOf('month').toDate();
 
     const ownerId = req.user.teamOwnerId || req.user.id;
 
