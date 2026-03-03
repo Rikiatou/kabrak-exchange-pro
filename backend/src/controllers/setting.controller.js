@@ -62,6 +62,17 @@ const getPublicSettings = async (req, res) => {
 // POST /api/settings/upload-logo — upload logo to Cloudinary
 const uploadLogo = async (req, res) => {
   try {
+    console.log('📸 Upload logo attempt:', {
+      hasFile: !!req.file,
+      userId: req.user?.id,
+      fileInfo: req.file ? {
+        fieldname: req.file.fieldname,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size
+      } : 'No file'
+    });
+
     if (!req.file) {
       return res.status(400).json({ 
         success: false, 
@@ -69,8 +80,18 @@ const uploadLogo = async (req, res) => {
       });
     }
     
+    if (!req.file.path) {
+      console.error('❌ Cloudinary upload failed - no path returned');
+      return res.status(500).json({
+        success: false,
+        message: 'Erreur Cloudinary: Vérifiez les variables CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET sur Railway.'
+      });
+    }
+    
     const ownerId = req.user.teamOwnerId || req.user.id;
     const logoUrl = req.file.path;
+    
+    console.log('✅ Logo uploaded to Cloudinary:', logoUrl);
     
     await Setting.upsert({ key: 'businessLogo', value: logoUrl, userId: ownerId });
     
@@ -80,10 +101,10 @@ const uploadLogo = async (req, res) => {
       data: { businessLogo: logoUrl } 
     });
   } catch (err) {
-    console.error('Upload logo error:', err);
+    console.error('❌ Upload logo error:', err);
     res.status(500).json({ 
       success: false, 
-      message: `Erreur lors de l'upload: ${err.message}. Vérifiez la configuration Cloudinary.` 
+      message: `Erreur lors de l'upload: ${err.message}` 
     });
   }
 };
