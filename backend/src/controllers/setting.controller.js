@@ -133,17 +133,49 @@ const uploadLogo = async (req, res) => {
     console.log('✅ Logo uploaded to Cloudinary:', logoUrl);
     console.log('🔍 Saving logo for userId:', ownerId);
     
-    // Delete ALL existing businessLogo rows for this user (and orphan NULL ones), then insert fresh
     const sequelize = Setting.sequelize;
-    await sequelize.query(
-      `DELETE FROM settings WHERE "key" = 'businessLogo' AND ("userId" = :userId OR "userId" IS NULL)`,
-      { replacements: { userId: ownerId }, type: sequelize.QueryTypes.DELETE }
+    
+    // Debug: see ALL businessLogo rows in the entire table
+    const [existing] = await sequelize.query(
+      `SELECT id, "key", "userId", length("value"::text) as val_len FROM settings WHERE "key" = 'businessLogo'`,
+      { type: sequelize.QueryTypes.SELECT }
     );
+    console.log('🔍 Existing businessLogo rows:', JSON.stringify(existing));
+    
+    // Delete ALL businessLogo rows from the entire table (any userId)
     await sequelize.query(
-      `INSERT INTO settings ("key", "value", "userId") VALUES ('businessLogo', :value, :userId)`,
-      { replacements: { value: logoUrl, userId: ownerId }, type: sequelize.QueryTypes.INSERT }
+      `DELETE FROM settings WHERE "key" = 'businessLogo'`,
+      { type: sequelize.QueryTypes.DELETE }
     );
-    console.log('✅ Logo saved in database via DELETE+INSERT');
+    console.log('🔍 Deleted all businessLogo rows');
+    
+    // Now insert fresh
+    try {
+      await sequelize.query(
+        `INSERT INTO settings ("key", "value", "userId") VALUES ('businessLogo', :value, :userId)`,
+        { replacements: { value: logoUrl, userId: ownerId }, type: sequelize.QueryTypes.INSERT }
+      );
+      console.log('✅ Logo saved via INSERT');
+    } catch (insertErr) {
+      console.error('❌ INSERT failed:', insertErr.message);
+      // Final fallback: direct UPDATE on any remaining row
+      await sequelize.query(
+        `UPDATE settings SET "value" = :value, "userId" = :userId WHERE "key" = 'businessLogo'`,
+        { replacements: { value: logoUrl, userId: ownerId }, type: sequelize.QueryTypes.UPDATE }
+      );
+      // If no rows to update, try insert without Sequelize
+      const [checkRows] = await sequelize.query(
+        `SELECT count(*) as cnt FROM settings WHERE "key" = 'businessLogo'`,
+        { type: sequelize.QueryTypes.SELECT }
+      );
+      if (!checkRows || parseInt(checkRows.cnt) === 0) {
+        await sequelize.query(
+          `INSERT INTO settings (id, "key", "value", "userId") VALUES (nextval('settings_id_seq'), 'businessLogo', :value, :userId)`,
+          { replacements: { value: logoUrl, userId: ownerId }, type: sequelize.QueryTypes.RAW }
+        );
+      }
+      console.log('✅ Logo saved via fallback UPDATE');
+    }
     
     res.json({ 
       success: true, 
