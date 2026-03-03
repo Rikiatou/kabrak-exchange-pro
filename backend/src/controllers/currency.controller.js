@@ -10,18 +10,32 @@ const DEFAULT_CURRENCIES = [
 const getAll = async (req, res) => {
   try {
     const ownerId = req.user.teamOwnerId || req.user.id;
+    console.log('💱 getAll currencies for ownerId:', ownerId);
+    
+    // Check ALL currencies for this user (including inactive)
+    const allForUser = await Currency.findAll({ where: { userId: ownerId } });
+    console.log('💱 Total currencies for user (all):', allForUser.length, allForUser.map(c => `${c.code}(active=${c.isActive})`));
+    
     let currencies = await Currency.findAll({ where: { isActive: true, userId: ownerId }, order: [['code', 'ASC']] });
     
-    // Auto-seed default currencies if user has none
-    if (currencies.length === 0) {
+    // Auto-seed default currencies if user has none at all
+    if (allForUser.length === 0) {
+      console.log('💱 No currencies found — seeding defaults...');
       for (const curr of DEFAULT_CURRENCIES) {
-        await Currency.create({ ...curr, userId: ownerId });
+        try {
+          await Currency.create({ ...curr, userId: ownerId });
+          console.log('💱 Created:', curr.code);
+        } catch (seedErr) {
+          console.error('💱 Seed error for', curr.code, ':', seedErr.message);
+        }
       }
       currencies = await Currency.findAll({ where: { isActive: true, userId: ownerId }, order: [['code', 'ASC']] });
     }
     
+    console.log('💱 Returning', currencies.length, 'currencies');
     return res.json({ success: true, data: currencies });
   } catch (error) {
+    console.error('💱 getAll error:', error.message);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
