@@ -107,7 +107,7 @@ export default function OTPVerificationScreen() {
     setResending(true);
     try {
       await api.post('/otp/resend', { userId, type: 'login' });
-      Alert.alert('✅ Code renvoyé', 'Un nouveau code a été envoyé par SMS');
+      Alert.alert('✅ Code renvoyé', 'Un nouveau code a été envoyé par WhatsApp');
       setTimer(300);
       setCode(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
@@ -141,7 +141,8 @@ export default function OTPVerificationScreen() {
 
         <Text style={styles.title}>Code de vérification</Text>
         <Text style={styles.subtitle}>
-          Un code à 6 chiffres a été envoyé au{'\n'}
+          Un code à 6 chiffres a été envoyé par{'\n'}
+          <Text style={styles.phone}>📱 WhatsApp</Text> au{'\n'}
           <Text style={styles.phone}>{phone || '***'}</Text>
         </Text>
 

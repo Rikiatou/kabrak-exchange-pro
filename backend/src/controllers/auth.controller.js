@@ -56,15 +56,16 @@ const login = async (req, res) => {
           expiresAt,
         });
         
-        // Envoyer SMS
+        // Envoyer WhatsApp
         if (user.phone) {
-          await sendOTP(user.phone, code, user.firstName || user.name);
+          const { sendWhatsAppOTP } = require('../services/whatsapp.service');
+          await sendWhatsAppOTP(user.phone, code, user.firstName || user.name);
         }
         
         return res.json({
           success: true,
           requiresOTP: true,
-          message: 'Code OTP envoyé par SMS',
+          message: 'Code OTP envoyé par WhatsApp',
           data: {
             userId: user.id,
             phone: user.phone ? user.phone.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2') : null,

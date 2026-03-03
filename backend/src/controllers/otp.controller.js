@@ -1,5 +1,5 @@
 const { OTP, User } = require('../models');
-const { sendOTP } = require('../services/sms.service');
+const { sendWhatsAppOTP } = require('../services/whatsapp.service');
 const { Op } = require('sequelize');
 
 /**
@@ -63,16 +63,16 @@ const sendOTPCode = async (req, res) => {
       expiresAt,
     });
 
-    // Envoyer le SMS
-    const smsResult = await sendOTP(user.phone, code, user.firstName || user.name);
+    // Envoyer le message WhatsApp
+    const whatsappResult = await sendWhatsAppOTP(user.phone, code, user.firstName || user.name);
 
-    if (!smsResult.success) {
-      console.error('Erreur envoi SMS OTP:', smsResult.error);
+    if (!whatsappResult.success) {
+      console.error('Erreur envoi WhatsApp OTP:', whatsappResult.error);
     }
 
     res.json({
       success: true,
-      message: 'Code OTP envoyé par SMS',
+      message: 'Code OTP envoyé par WhatsApp',
       data: {
         phone: user.phone.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2'), // Masquer le numéro
         expiresIn: 300, // 5 minutes en secondes
