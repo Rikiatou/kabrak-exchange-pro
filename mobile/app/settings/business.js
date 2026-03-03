@@ -85,7 +85,7 @@ export default function BusinessSettingsScreen() {
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaType.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -97,12 +97,30 @@ export default function BusinessSettingsScreen() {
       const formData = new FormData();
       formData.append('logo', { uri, name: 'logo.jpg', type: 'image/jpeg' });
       const token = storeToken || await SecureStore.getItemAsync('auth_token');
+      
+      console.log('🔍 Logo upload - Token check:', {
+        storeToken: !!storeToken,
+        secureToken: !!token,
+        tokenLength: token?.length,
+        API_URL
+      });
+      
+      if (!token) {
+        Alert.alert('Erreur', 'Token non trouvé. Veuillez vous reconnecter.');
+        return;
+      }
+      
       const res = await fetch(`${API_URL}/api/settings/upload-logo`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
+      
+      console.log('🔍 Logo upload - Response status:', res.status);
+      
       const data = await res.json();
+      console.log('🔍 Logo upload - Response data:', data);
+      
       if (data.success) {
         setLogoUri(data.data.businessLogo);
         await fetchSettings();
@@ -111,6 +129,7 @@ export default function BusinessSettingsScreen() {
         Alert.alert('Erreur', data.message);
       }
     } catch (e) {
+      console.error('🔍 Logo upload - Error:', e);
       Alert.alert('Erreur', 'Upload échoué. Vérifiez votre connexion.');
     } finally {
       setUploadingLogo(false);

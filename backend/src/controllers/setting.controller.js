@@ -69,11 +69,14 @@ const uploadLogo = async (req, res) => {
         fieldname: req.file.fieldname,
         originalname: req.file.originalname,
         mimetype: req.file.mimetype,
-        size: req.file.size
-      } : 'No file'
+        size: req.file.size,
+        path: req.file.path
+      } : 'No file',
+      headers: Object.keys(req.headers)
     });
 
     if (!req.file) {
+      console.error('❌ No file in request');
       return res.status(400).json({ 
         success: false, 
         message: 'Aucun fichier uploadé. Veuillez sélectionner une image.' 
@@ -82,6 +85,11 @@ const uploadLogo = async (req, res) => {
     
     if (!req.file.path) {
       console.error('❌ Cloudinary upload failed - no path returned');
+      console.log('🔍 Cloudinary env check:', {
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? '✅' : '❌',
+        api_key: process.env.CLOUDINARY_API_KEY ? '✅' : '❌',
+        api_secret: process.env.CLOUDINARY_API_SECRET ? '✅' : '❌'
+      });
       return res.status(500).json({
         success: false,
         message: 'Erreur Cloudinary: Vérifiez les variables CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET sur Railway.'
@@ -101,7 +109,11 @@ const uploadLogo = async (req, res) => {
       data: { businessLogo: logoUrl } 
     });
   } catch (err) {
-    console.error('❌ Upload logo error:', err);
+    console.error('❌ Upload logo error:', {
+      message: err.message,
+      stack: err.stack,
+      name: err.name
+    });
     res.status(500).json({ 
       success: false, 
       message: `Erreur lors de l'upload: ${err.message}` 
