@@ -48,18 +48,23 @@ const getAll = async (req, res) => {
     
     // Step 3: Seed missing defaults via raw SQL
     if (currencies.length === 0) {
-      console.log('💱 No currencies after orphan adoption — seeding defaults via raw SQL...');
+      // Dump ALL currencies in DB for diagnostic
+      const allInDB = await sequelize.query(`SELECT id, code, "userId", "isActive" FROM currencies ORDER BY code`);
+      console.log('💱 ALL currencies in DB:', JSON.stringify(allInDB[0]));
+      
+      console.log('💱 No currencies for user — seeding defaults...');
       for (const curr of DEFAULT_CURRENCIES) {
         try {
+          const { v4: uuidv4 } = require('uuid');
+          const newId = uuidv4();
           await sequelize.query(
             `INSERT INTO currencies (id, code, name, symbol, "currentRate", "buyRate", "sellRate", "stockAmount", "lowStockAlert", "isActive", "isBase", "userId", "createdAt", "updatedAt")
-             VALUES (gen_random_uuid(), :code, :name, :symbol, :currentRate, :buyRate, :sellRate, :stockAmount, 1000, true, :isBase, :userId, NOW(), NOW())
-             ON CONFLICT (code, "userId") DO NOTHING`,
-            { replacements: { ...curr, userId: ownerId }, type: sequelize.QueryTypes.INSERT }
+             VALUES (:id, :code, :name, :symbol, :currentRate, :buyRate, :sellRate, :stockAmount, 1000, true, :isBase, :userId, NOW(), NOW())`,
+            { replacements: { id: newId, ...curr, userId: ownerId } }
           );
           console.log('💱 Seeded:', curr.code);
         } catch (seedErr) {
-          console.error('💱 Raw seed error for', curr.code, ':', seedErr.message);
+          console.error('💱 Seed error for', curr.code, '— FULL:', seedErr.original?.message || seedErr.message, '| parent:', seedErr.parent?.detail || 'none');
         }
       }
       currencies = await Currency.findAll({ where: { isActive: true, userId: ownerId }, order: [['code', 'ASC']] });
