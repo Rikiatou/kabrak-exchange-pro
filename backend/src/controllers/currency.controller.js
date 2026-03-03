@@ -1,10 +1,25 @@
 const { Currency, RateHistory, RateAlert, Alert } = require('../models');
 const axios = require('axios');
 
+const DEFAULT_CURRENCIES = [
+  { code: 'XAF', name: 'Franc CFA (CEMAC)', symbol: 'FCFA', currentRate: 1, buyRate: 1, sellRate: 1, stockAmount: 0, isBase: true },
+  { code: 'EUR', name: 'Euro', symbol: '€', currentRate: 655.957, buyRate: 650, sellRate: 660, stockAmount: 0, isBase: false },
+  { code: 'USD', name: 'Dollar américain', symbol: '$', currentRate: 600, buyRate: 590, sellRate: 610, stockAmount: 0, isBase: false },
+];
+
 const getAll = async (req, res) => {
   try {
     const ownerId = req.user.teamOwnerId || req.user.id;
-    const currencies = await Currency.findAll({ where: { isActive: true, userId: ownerId }, order: [['code', 'ASC']] });
+    let currencies = await Currency.findAll({ where: { isActive: true, userId: ownerId }, order: [['code', 'ASC']] });
+    
+    // Auto-seed default currencies if user has none
+    if (currencies.length === 0) {
+      for (const curr of DEFAULT_CURRENCIES) {
+        await Currency.create({ ...curr, userId: ownerId });
+      }
+      currencies = await Currency.findAll({ where: { isActive: true, userId: ownerId }, order: [['code', 'ASC']] });
+    }
+    
     return res.json({ success: true, data: currencies });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

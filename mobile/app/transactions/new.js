@@ -173,20 +173,26 @@ export default function NewTransactionScreen() {
 
             {/* Currency From */}
             <View style={styles.field}>
-              <Text style={styles.label}>{t.transactions.currencyGiven} <Text style={{ color: COLORS.danger }}>*</Text></Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.currencyScroll}>
-                {currencies.map((c) => (
-                  <TouchableOpacity
-                    key={c.code}
-                    style={[styles.currencyChip, form.currencyFrom === c.code && styles.currencyChipActive]}
-                    onPress={() => set('currencyFrom', c.code)}
-                  >
-                    <Text style={[styles.currencyChipText, form.currencyFrom === c.code && styles.currencyChipTextActive]}>
-                      {c.code}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+              <Text style={styles.label}>💱 {t.transactions.currencyGiven} <Text style={{ color: COLORS.danger }}>*</Text></Text>
+              {currencies.length === 0 ? (
+                <Text style={{ color: COLORS.textMuted, fontSize: 13, fontStyle: 'italic', marginTop: 4 }}>
+                  Aucune devise configurée. Ajoutez des devises dans l'onglet Devises.
+                </Text>
+              ) : (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.currencyScroll}>
+                  {currencies.map((c) => (
+                    <TouchableOpacity
+                      key={c.code}
+                      style={[styles.currencyChip, form.currencyFrom === c.code && styles.currencyChipActive]}
+                      onPress={() => set('currencyFrom', c.code)}
+                    >
+                      <Text style={[styles.currencyChipText, form.currencyFrom === c.code && styles.currencyChipTextActive]}>
+                        {c.code}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
             </View>
 
             <View style={styles.field}>
@@ -201,22 +207,42 @@ export default function NewTransactionScreen() {
               />
             </View>
 
+            {/* Swap button */}
+            <View style={{ alignItems: 'center', marginVertical: 4 }}>
+              <TouchableOpacity
+                style={{
+                  width: 40, height: 40, borderRadius: 20,
+                  backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center',
+                  shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 4
+                }}
+                onPress={() => setForm(f => ({ ...f, currencyFrom: f.currencyTo, currencyTo: f.currencyFrom }))}
+              >
+                <Ionicons name="swap-vertical" size={20} color={COLORS.white} />
+              </TouchableOpacity>
+            </View>
+
             {/* Currency To */}
             <View style={styles.field}>
-              <Text style={styles.label}>{t.transactions.currencyReceived} <Text style={{ color: COLORS.danger }}>*</Text></Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.currencyScroll}>
-                {currencies.map((c) => (
-                  <TouchableOpacity
-                    key={c.code}
-                    style={[styles.currencyChip, form.currencyTo === c.code && styles.currencyChipActive]}
-                    onPress={() => set('currencyTo', c.code)}
-                  >
-                    <Text style={[styles.currencyChipText, form.currencyTo === c.code && styles.currencyChipTextActive]}>
-                      {c.code}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+              <Text style={styles.label}>🔄 {t.transactions.currencyReceived} <Text style={{ color: COLORS.danger }}>*</Text></Text>
+              {currencies.length === 0 ? (
+                <Text style={{ color: COLORS.textMuted, fontSize: 13, fontStyle: 'italic', marginTop: 4 }}>
+                  Aucune devise configurée.
+                </Text>
+              ) : (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.currencyScroll}>
+                  {currencies.map((c) => (
+                    <TouchableOpacity
+                      key={c.code}
+                      style={[styles.currencyChip, form.currencyTo === c.code && { backgroundColor: COLORS.success, borderColor: COLORS.success }]}
+                      onPress={() => set('currencyTo', c.code)}
+                    >
+                      <Text style={[styles.currencyChipText, form.currencyTo === c.code && styles.currencyChipTextActive]}>
+                        {c.code}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
             </View>
 
             <View style={styles.field}>
@@ -263,8 +289,7 @@ export default function NewTransactionScreen() {
             <Text style={styles.sectionTitle}>{t.transactions.operationType}</Text>
             <View style={styles.typeRow}>
               {[{ key: 'sell', label: t.transactions.sell, icon: 'arrow-up-circle-outline' },
-                { key: 'buy', label: t.transactions.buy, icon: 'arrow-down-circle-outline' },
-                { key: 'transfer', label: t.transactions.transfer, icon: 'swap-horizontal-outline' }
+                { key: 'buy', label: t.transactions.buy, icon: 'arrow-down-circle-outline' }
               ].map((op) => (
                 <TouchableOpacity
                   key={op.key}

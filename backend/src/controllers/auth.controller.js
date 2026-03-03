@@ -208,13 +208,24 @@ const register = async (req, res) => {
     });
     
     // Créer le setting businessName pour que le nom s'affiche dans l'app
-    const { Setting } = require('../models');
+    const { Setting, Currency } = require('../models');
     if (businessName) {
       await Setting.create({
         key: 'businessName',
         value: businessName,
         userId: user.id
       });
+    }
+    
+    // Créer les devises par défaut (XAF, EUR, USD)
+    const defaultCurrencies = [
+      { code: 'XAF', name: 'Franc CFA (CEMAC)', symbol: 'FCFA', currentRate: 1, buyRate: 1, sellRate: 1, stockAmount: 0, isBase: true, userId: user.id },
+      { code: 'EUR', name: 'Euro', symbol: '€', currentRate: 655.957, buyRate: 650, sellRate: 660, stockAmount: 0, isBase: false, userId: user.id },
+      { code: 'USD', name: 'Dollar américain', symbol: '$', currentRate: 600, buyRate: 590, sellRate: 610, stockAmount: 0, isBase: false, userId: user.id },
+    ];
+    for (const curr of defaultCurrencies) {
+      const exists = await Currency.findOne({ where: { code: curr.code, userId: user.id } });
+      if (!exists) await Currency.create(curr);
     }
     
     // Générer le token
