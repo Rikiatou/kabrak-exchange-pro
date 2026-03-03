@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, StyleSheet, Alert, Platform } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import api from '../../src/services/api';
+import useSettingStore from '../../src/store/settingStore';
 import { generateReceiptHTML } from '../../src/services/receiptService';
 
 export default function ReceiptScreen() {
   const { id } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
   const [transaction, setTransaction] = useState(null);
-  const [businessName, setBusinessName] = useState('KABRAK Exchange Pro');
   const [error, setError] = useState(null);
+  const { settings, fetchSettings } = useSettingStore();
 
   useEffect(() => {
     loadReceipt();
@@ -21,22 +22,12 @@ export default function ReceiptScreen() {
       setLoading(true);
       setError(null);
 
-      // Fetch transaction with payments
-      const { data } = await api.get(`/transactions/${id}`);
-      setTransaction(data.data);
-
-      // Fetch business name from settings
-      try {
-        const settingsRes = await api.get('/settings');
-        const settings = settingsRes.data.data;
-        const businessSetting = settings.find(s => s.key === 'businessName');
-        if (businessSetting?.value) {
-          setBusinessName(businessSetting.value);
-        }
-      } catch (err) {
-        console.log('Could not fetch business name, using default');
-      }
-
+      // Fetch transaction and settings in parallel
+      const [txRes] = await Promise.all([
+        api.get(`/transactions/${id}`),
+        fetchSettings(),
+      ]);
+      setTransaction(txRes.data.data);
       setLoading(false);
     } catch (err) {
       console.error('Error loading receipt:', err);
@@ -65,7 +56,7 @@ export default function ReceiptScreen() {
     );
   }
 
-  const html = generateReceiptHTML(transaction, businessName, 'fr');
+  const html = generateReceiptHTML(transaction, settings, 'fr');
 
   return (
     <View style={styles.fullContainer}>
@@ -79,8 +70,14 @@ export default function ReceiptScreen() {
         originWhitelist={['*']}
         source={{ html }}
         style={styles.webview}
-        scalesPageToFit={true}
+        scalesPageToFit={false}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={true}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        startInLoadingState={true}
+        mixedContentMode="compatibility"
+        allowsInlineMediaPlayback={true}
       />
     </View>
   );

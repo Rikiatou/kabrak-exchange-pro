@@ -64,11 +64,28 @@ const getStatusLabel = (status, lang = 'fr') => {
   }
 };
 
-export const generateReceiptHTML = (transaction, businessName = 'KABRAK Exchange Pro', lang = 'fr') => {
+export const generateReceiptHTML = (transaction, settings = {}, lang = 'fr') => {
+  // Support old signature: generateReceiptHTML(tx, 'businessName', lang)
+  const biz = typeof settings === 'string' ? { businessName: settings } : settings;
+  const businessName = biz.businessName || 'KABRAK Exchange Pro';
+  const brandColor = biz.brandColor || '#0B6E4F';
+  const logoUrl = biz.businessLogo || '';
+
   const L = RECEIPT_LABELS[lang] || RECEIPT_LABELS.fr;
   const status = getStatusLabel(transaction.status, lang);
   const date = format(new Date(transaction.createdAt), 'dd/MM/yyyy HH:mm');
   const payments = transaction.payments || [];
+
+  // Derive a lighter tint from brandColor for backgrounds
+  const hexToRgb = (hex) => {
+    const h = hex.replace('#', '');
+    return { r: parseInt(h.substring(0,2),16), g: parseInt(h.substring(2,4),16), b: parseInt(h.substring(4,6),16) };
+  };
+  const rgb = hexToRgb(brandColor);
+  const brandLight = `rgba(${rgb.r},${rgb.g},${rgb.b},0.08)`;
+  const brandMedium = `rgba(${rgb.r},${rgb.g},${rgb.b},0.15)`;
+
+  const logoHTML = logoUrl ? `<img src="${logoUrl}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 10px;display:block;border:2px solid rgba(255,255,255,0.4);" />` : '';
 
   const paymentsRows = payments.map((p) => `
     <tr>
@@ -80,55 +97,119 @@ export const generateReceiptHTML = (transaction, businessName = 'KABRAK Exchange
 
   return `
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="${lang}">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Reçu ${transaction.reference}</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; color: #1a1a2e; }
-    .receipt { max-width: 480px; margin: 0 auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-    .header { background: linear-gradient(135deg, #1a237e, #3949ab); color: #fff; padding: 28px 24px; text-align: center; }
-    .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
-    .header .kabrak-sub { font-size: 11px; opacity: 0.65; margin-bottom: 4px; letter-spacing: 0.5px; }
-    .header p { font-size: 13px; opacity: 0.85; }
-    .ref-badge { background: rgba(255,255,255,0.2); border-radius: 20px; padding: 6px 16px; display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 600; letter-spacing: 1px; }
-    .status-bar { padding: 10px 24px; text-align: center; background: ${status.bg}; }
-    .status-badge { display: inline-block; padding: 4px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; color: ${status.color}; border: 1.5px solid ${status.color}; }
-    .body { padding: 24px; }
-    .section { margin-bottom: 20px; }
-    .section-title { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #f0f0f0; }
-    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
-    .info-label { font-size: 13px; color: #6b7280; }
-    .info-value { font-size: 13px; font-weight: 600; color: #1a1a2e; text-align: right; max-width: 60%; }
-    .exchange-box { background: #f0f4ff; border-radius: 10px; padding: 16px; margin: 16px 0; text-align: center; }
-    .exchange-amount { font-size: 26px; font-weight: 700; color: #1a237e; }
-    .exchange-arrow { font-size: 20px; color: #9ca3af; margin: 6px 0; }
-    .exchange-result { font-size: 22px; font-weight: 700; color: #00897b; }
-    .exchange-rate { font-size: 12px; color: #9ca3af; margin-top: 6px; }
-    .balance-box { border-radius: 10px; padding: 14px 16px; margin-top: 12px; }
-    .balance-paid { background: #e8f5e9; }
-    .balance-remaining { background: #ffebee; }
-    .balance-label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
-    .balance-amount { font-size: 18px; font-weight: 700; }
-    .balance-paid .balance-amount { color: #2e7d32; }
-    .balance-remaining .balance-amount { color: #c62828; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th { text-align: left; padding: 8px 6px; font-size: 11px; color: #9ca3af; text-transform: uppercase; border-bottom: 1px solid #f0f0f0; }
-    td { padding: 8px 6px; border-bottom: 1px solid #f9f9f9; color: #374151; }
-    .footer { background: #f9f9f9; padding: 16px 24px; text-align: center; border-top: 1px solid #f0f0f0; }
-    .footer p { font-size: 12px; color: #9ca3af; }
-    .footer .operator { font-size: 13px; font-weight: 600; color: #1a237e; margin-bottom: 4px; }
-    .no-payments { text-align: center; color: #9ca3af; font-size: 13px; padding: 12px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f0f2f5; padding: 16px; color: #1f2937;
+      line-height: 1.5; font-size: 14px;
+    }
+    .receipt {
+      max-width: 500px; margin: 0 auto; background: #fff;
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    /* HEADER */
+    .header {
+      background: ${brandColor};
+      color: #fff; padding: 24px 20px; text-align: center;
+      position: relative;
+    }
+    .header::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      height: 4px; background: linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0.05));
+    }
+    .header h1 { font-size: 20px; font-weight: 800; letter-spacing: 0.3px; margin-bottom: 2px; }
+    .header .sub { font-size: 12px; opacity: 0.7; letter-spacing: 0.5px; }
+    .header .type { font-size: 13px; opacity: 0.9; margin-top: 2px; font-weight: 500; }
+    .ref-badge {
+      background: rgba(255,255,255,0.2); border-radius: 20px;
+      padding: 5px 16px; display: inline-block; margin-top: 10px;
+      font-size: 12px; font-weight: 700; letter-spacing: 1.2px;
+      backdrop-filter: blur(4px);
+    }
+
+    /* STATUS */
+    .status-bar { padding: 10px 20px; text-align: center; background: ${status.bg}; }
+    .status-badge {
+      display: inline-block; padding: 4px 20px; border-radius: 20px;
+      font-size: 12px; font-weight: 800; color: ${status.color};
+      border: 2px solid ${status.color}; letter-spacing: 0.5px;
+    }
+
+    /* BODY */
+    .body { padding: 20px; }
+    .section { margin-bottom: 18px; }
+    .section-title {
+      font-size: 11px; font-weight: 800; color: ${brandColor};
+      text-transform: uppercase; letter-spacing: 1.2px;
+      margin-bottom: 8px; padding-bottom: 6px;
+      border-bottom: 2px solid ${brandLight};
+    }
+
+    /* INFO ROWS */
+    .info-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 7px 0; border-bottom: 1px solid #f3f4f6;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { font-size: 13px; color: #6b7280; font-weight: 500; }
+    .info-value { font-size: 13px; font-weight: 700; color: #111827; text-align: right; max-width: 58%; }
+
+    /* EXCHANGE BOX */
+    .exchange-box {
+      background: ${brandLight}; border: 1px solid ${brandMedium};
+      border-radius: 12px; padding: 18px 16px; margin: 12px 0; text-align: center;
+    }
+    .exchange-amount { font-size: 24px; font-weight: 800; color: ${brandColor}; }
+    .exchange-arrow { font-size: 18px; color: #9ca3af; margin: 4px 0; }
+    .exchange-result { font-size: 22px; font-weight: 800; color: #059669; }
+    .exchange-rate { font-size: 12px; color: #6b7280; margin-top: 6px; font-weight: 500; }
+
+    /* BALANCE */
+    .balance-box { border-radius: 10px; padding: 12px 14px; margin-top: 10px; }
+    .balance-paid { background: #ecfdf5; border: 1px solid #a7f3d0; }
+    .balance-remaining { background: #fef2f2; border: 1px solid #fecaca; }
+    .balance-label { font-size: 12px; color: #6b7280; margin-bottom: 2px; font-weight: 500; }
+    .balance-amount { font-size: 18px; font-weight: 800; }
+    .balance-paid .balance-amount { color: #059669; }
+    .balance-remaining .balance-amount { color: #dc2626; }
+
+    /* TABLE */
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; padding: 8px 6px; font-size: 10px; font-weight: 800;
+      color: ${brandColor}; text-transform: uppercase; letter-spacing: 0.8px;
+      border-bottom: 2px solid ${brandMedium};
+    }
+    td { padding: 8px 6px; border-bottom: 1px solid #f3f4f6; color: #374151; font-size: 13px; font-weight: 500; }
+
+    /* FOOTER */
+    .footer {
+      background: ${brandLight}; padding: 16px 20px; text-align: center;
+      border-top: 2px solid ${brandMedium};
+    }
+    .footer .operator { font-size: 13px; font-weight: 700; color: ${brandColor}; margin-bottom: 4px; }
+    .footer p { font-size: 12px; color: #6b7280; font-weight: 500; }
+    .footer .powered { font-size: 10px; color: #9ca3af; margin-top: 6px; letter-spacing: 0.5px; }
+
+    .no-payments { text-align: center; color: #9ca3af; font-size: 13px; padding: 12px; font-weight: 500; }
   </style>
 </head>
 <body>
   <div class="receipt">
     <div class="header">
+      ${logoHTML}
       <h1>${businessName}</h1>
-      <div class="kabrak-sub">KABRAK Exchange Pro</div>
-      <p>${L.receipt}</p>
+      <div class="sub">KABRAK Exchange Pro</div>
+      <div class="type">${L.receipt}</div>
       <div class="ref-badge">${transaction.reference}</div>
     </div>
     <div class="status-bar">
@@ -197,6 +278,7 @@ export const generateReceiptHTML = (transaction, businessName = 'KABRAK Exchange
       <div class="operator">${transaction.operator?.name || ''}</div>
       <p>${L.thanks}</p>
       <p style="margin-top:4px; font-size:11px;">${L.generated} ${format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
+      <div class="powered">KABRAK Exchange Pro</div>
     </div>
   </div>
 </body>

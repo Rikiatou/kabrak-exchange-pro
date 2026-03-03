@@ -142,14 +142,14 @@ export default function TransactionDetailScreen() {
 
   const handleShare = async () => {
     setPdfLoading(true);
-    const result = await shareReceiptAsPDF(currentTransaction, settings.businessName || 'KABRAK Exchange Pro', language);
+    const result = await shareReceiptAsPDF(currentTransaction, settings, language);
     setPdfLoading(false);
     if (!result.success) Alert.alert(t.common.error, result.message);
   };
 
   const handlePrint = async () => {
     setPrintLoading(true);
-    const result = await printReceipt(currentTransaction, settings.businessName || 'KABRAK Exchange Pro', language);
+    const result = await printReceipt(currentTransaction, settings, language);
     setPrintLoading(false);
     if (!result.success) Alert.alert(t.common.error, result.message);
   };
