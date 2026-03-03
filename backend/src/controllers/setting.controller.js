@@ -1,4 +1,4 @@
-const { Setting } = require('../models');
+const { Setting, User } = require('../models');
 
 const DEFAULTS = {
   businessName: '',
@@ -16,6 +16,28 @@ const getSettings = async (req, res) => {
     const rows = await Setting.findAll({ where: { userId: ownerId } });
     const settings = { ...DEFAULTS };
     rows.forEach(r => { settings[r.key] = r.value; });
+    
+    // Si pas de businessName dans les settings, essayer de le récupérer depuis le User
+    if (!settings.businessName) {
+      const owner = await User.findByPk(ownerId, { attributes: ['businessName', 'phone'] });
+      if (owner?.businessName) {
+        settings.businessName = owner.businessName;
+        // Sauvegarder automatiquement pour la prochaine fois
+        const existing = await Setting.findOne({ where: { key: 'businessName', userId: ownerId } });
+        if (!existing) {
+          const nullRow = await Setting.findOne({ where: { key: 'businessName', userId: null } });
+          if (nullRow) {
+            await nullRow.update({ value: owner.businessName, userId: ownerId });
+          } else {
+            await Setting.create({ key: 'businessName', value: owner.businessName, userId: ownerId });
+          }
+        }
+      }
+      if (!settings.businessPhone && owner?.phone) {
+        settings.businessPhone = owner.phone;
+      }
+    }
+    
     res.json({ success: true, data: settings });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
