@@ -47,7 +47,8 @@ export default function WelcomeBackScreen() {
   }, []);
 
   const { businessName, businessLogo } = settings;
-  const name = businessName || 'votre espace';
+  // Si pas de businessName, afficher "KABRAK Exchange Pro" au lieu de "votre espace"
+  const name = businessName || 'KABRAK Exchange Pro';
   const greeting = language === 'fr'
     ? `Bon retour dans\n${name}`
     : `Welcome back to\n${name}`;

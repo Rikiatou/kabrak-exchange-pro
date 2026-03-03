@@ -62,13 +62,29 @@ const getPublicSettings = async (req, res) => {
 // POST /api/settings/upload-logo — upload logo to Cloudinary
 const uploadLogo = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Aucun fichier uploadé. Veuillez sélectionner une image.' 
+      });
+    }
+    
     const ownerId = req.user.teamOwnerId || req.user.id;
     const logoUrl = req.file.path;
+    
     await Setting.upsert({ key: 'businessLogo', value: logoUrl, userId: ownerId });
-    res.json({ success: true, data: { businessLogo: logoUrl } });
+    
+    res.json({ 
+      success: true, 
+      message: 'Logo mis à jour avec succès',
+      data: { businessLogo: logoUrl } 
+    });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('Upload logo error:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: `Erreur lors de l'upload: ${err.message}. Vérifiez la configuration Cloudinary.` 
+    });
   }
 };
 
