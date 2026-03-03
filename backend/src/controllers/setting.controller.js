@@ -22,13 +22,15 @@ const getSettings = async (req, res) => {
       const owner = await User.findByPk(ownerId, { attributes: ['businessName', 'phone'] });
       if (owner?.businessName) {
         settings.businessName = owner.businessName;
-        // Sauvegarder automatiquement via raw SQL
+        // Sauvegarder automatiquement via DELETE+INSERT
         const sequelize = Setting.sequelize;
         await sequelize.query(
-          `INSERT INTO settings ("key", "value", "userId")
-           VALUES (:key, :value, :userId)
-           ON CONFLICT ("key", "userId") DO UPDATE SET "value" = :value`,
-          { replacements: { key: 'businessName', value: owner.businessName, userId: ownerId }, type: sequelize.QueryTypes.INSERT }
+          `DELETE FROM settings WHERE "key" = 'businessName' AND ("userId" = :userId OR "userId" IS NULL)`,
+          { replacements: { userId: ownerId }, type: sequelize.QueryTypes.DELETE }
+        ).catch(() => {});
+        await sequelize.query(
+          `INSERT INTO settings ("key", "value", "userId") VALUES ('businessName', :value, :userId)`,
+          { replacements: { value: owner.businessName, userId: ownerId }, type: sequelize.QueryTypes.INSERT }
         ).catch(() => {});
       }
       if (!settings.businessPhone && owner?.phone) {
@@ -51,9 +53,11 @@ const updateSettings = async (req, res) => {
     const sequelize = Setting.sequelize;
     for (const [key, value] of Object.entries(updates)) {
       await sequelize.query(
-        `INSERT INTO settings ("key", "value", "userId")
-         VALUES (:key, :value, :userId)
-         ON CONFLICT ("key", "userId") DO UPDATE SET "value" = :value`,
+        `DELETE FROM settings WHERE "key" = :key AND ("userId" = :userId OR "userId" IS NULL)`,
+        { replacements: { key, userId: ownerId }, type: sequelize.QueryTypes.DELETE }
+      );
+      await sequelize.query(
+        `INSERT INTO settings ("key", "value", "userId") VALUES (:key, :value, :userId)`,
         { replacements: { key, value: String(value), userId: ownerId }, type: sequelize.QueryTypes.INSERT }
       );
     }
@@ -129,18 +133,17 @@ const uploadLogo = async (req, res) => {
     console.log('✅ Logo uploaded to Cloudinary:', logoUrl);
     console.log('🔍 Saving logo for userId:', ownerId);
     
-    // Use raw SQL to avoid all Sequelize unique constraint issues
+    // Delete ALL existing businessLogo rows for this user (and orphan NULL ones), then insert fresh
     const sequelize = Setting.sequelize;
     await sequelize.query(
-      `INSERT INTO settings ("key", "value", "userId")
-       VALUES (:key, :value, :userId)
-       ON CONFLICT ("key", "userId") DO UPDATE SET "value" = :value`,
-      {
-        replacements: { key: 'businessLogo', value: logoUrl, userId: ownerId },
-        type: sequelize.QueryTypes.INSERT
-      }
+      `DELETE FROM settings WHERE "key" = 'businessLogo' AND ("userId" = :userId OR "userId" IS NULL)`,
+      { replacements: { userId: ownerId }, type: sequelize.QueryTypes.DELETE }
     );
-    console.log('✅ Logo saved in database via raw SQL');
+    await sequelize.query(
+      `INSERT INTO settings ("key", "value", "userId") VALUES ('businessLogo', :value, :userId)`,
+      { replacements: { value: logoUrl, userId: ownerId }, type: sequelize.QueryTypes.INSERT }
+    );
+    console.log('✅ Logo saved in database via DELETE+INSERT');
     
     res.json({ 
       success: true, 
