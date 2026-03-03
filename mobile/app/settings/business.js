@@ -13,6 +13,22 @@ import useAuthStore from '../../src/store/authStore';
 
 const API_URL = 'https://kabrak-exchange-pro-production.up.railway.app';
 
+// Couleurs prédéfinies pour le color picker
+const PRESET_COLORS = [
+  { name: 'Vert Forêt', hex: '#0B6E4F' },
+  { name: 'Bleu Marine', hex: '#1e3a8a' },
+  { name: 'Violet', hex: '#7c3aed' },
+  { name: 'Orange', hex: '#ea580c' },
+  { name: 'Rouge', hex: '#dc2626' },
+  { name: 'Rose', hex: '#db2777' },
+  { name: 'Cyan', hex: '#0891b2' },
+  { name: 'Vert Émeraude', hex: '#059669' },
+  { name: 'Indigo', hex: '#4f46e5' },
+  { name: 'Jaune Or', hex: '#d97706' },
+  { name: 'Gris Ardoise', hex: '#475569' },
+  { name: 'Noir', hex: '#1f2937' },
+];
+
 function Field({ label, value, onChangeText, placeholder, keyboardType = 'default', icon }) {
   return (
     <View style={styles.field}>
@@ -198,13 +214,32 @@ export default function BusinessSettingsScreen() {
               keyboardType="email-address"
               icon="mail-outline"
             />
-            <Field
-              label="Couleur de marque (hex)"
-              value={form.brandColor}
-              onChangeText={v => setForm(f => ({ ...f, brandColor: v }))}
-              placeholder="Ex: #0B6E4F"
-              icon="color-palette-outline"
-            />
+            {/* Color Picker */}
+            <View style={{ marginBottom: SPACING.md }}>
+              <View style={styles.fieldLabel}>
+                <Ionicons name="color-palette-outline" size={18} color={COLORS.textMuted} />
+                <Text style={styles.labelText}>Couleur de marque</Text>
+              </View>
+              <View style={styles.colorGrid}>
+                {PRESET_COLORS.map((color) => (
+                  <TouchableOpacity
+                    key={color.hex}
+                    style={[
+                      styles.colorBox,
+                      { backgroundColor: color.hex },
+                      form.brandColor === color.hex && styles.colorBoxSelected
+                    ]}
+                    onPress={() => setForm(f => ({ ...f, brandColor: color.hex }))}
+                    activeOpacity={0.7}
+                  >
+                    {form.brandColor === color.hex && (
+                      <Ionicons name="checkmark" size={20} color="#fff" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Text style={styles.colorHint}>Sélectionnez la couleur principale de votre entreprise</Text>
+            </View>
           </View>
 
           {/* Preview */}
@@ -294,6 +329,31 @@ const styles = StyleSheet.create({
     paddingVertical: 8, paddingHorizontal: 12, alignSelf: 'flex-start',
   },
   uploadBtnText: { color: COLORS.white, fontSize: FONTS.sizes.sm, fontWeight: '700' },
+  colorGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 8,
+  },
+  colorBox: {
+    width: 52, height: 52, borderRadius: RADIUS.md,
+    justifyContent: 'center', alignItems: 'center',
+    borderWidth: 2, borderColor: 'transparent',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1, shadowRadius: 2, elevation: 2,
+  },
+  colorBoxSelected: {
+    borderColor: '#fff',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3, shadowRadius: 4, elevation: 5,
+    transform: [{ scale: 1.05 }],
+  },
+  colorHint: {
+    fontSize: FONTS.sizes.xs, color: COLORS.textMuted, marginTop: 8,
+  },
+  fieldLabel: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4,
+  },
+  labelText: {
+    fontSize: FONTS.sizes.sm, fontWeight: '600', color: COLORS.textPrimary,
+  },
   saveBtn: {
     backgroundColor: COLORS.primary, borderRadius: RADIUS.lg, padding: SPACING.md,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
