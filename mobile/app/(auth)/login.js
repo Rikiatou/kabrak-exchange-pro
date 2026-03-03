@@ -45,9 +45,7 @@ export default function LoginScreen() {
       Alert.alert(t.login.error, t.login.fillFields);
       return;
     }
-    setLoading(true);
     const result = await login(email, password);
-    setLoading(false);
     
     if (result.success) {
       // Si 2FA requis, rediriger vers l'écran OTP
