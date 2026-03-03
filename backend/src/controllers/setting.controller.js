@@ -22,16 +22,14 @@ const getSettings = async (req, res) => {
       const owner = await User.findByPk(ownerId, { attributes: ['businessName', 'phone'] });
       if (owner?.businessName) {
         settings.businessName = owner.businessName;
-        // Sauvegarder automatiquement pour la prochaine fois
-        const existing = await Setting.findOne({ where: { key: 'businessName', userId: ownerId } });
-        if (!existing) {
-          const nullRow = await Setting.findOne({ where: { key: 'businessName', userId: null } });
-          if (nullRow) {
-            await nullRow.update({ value: owner.businessName, userId: ownerId });
-          } else {
-            await Setting.create({ key: 'businessName', value: owner.businessName, userId: ownerId });
-          }
-        }
+        // Sauvegarder automatiquement via raw SQL
+        const sequelize = Setting.sequelize;
+        await sequelize.query(
+          `INSERT INTO settings ("key", "value", "userId")
+           VALUES (:key, :value, :userId)
+           ON CONFLICT ("key", "userId") DO UPDATE SET "value" = :value`,
+          { replacements: { key: 'businessName', value: owner.businessName, userId: ownerId }, type: sequelize.QueryTypes.INSERT }
+        ).catch(() => {});
       }
       if (!settings.businessPhone && owner?.phone) {
         settings.businessPhone = owner.phone;
@@ -50,17 +48,14 @@ const updateSettings = async (req, res) => {
     const ownerId = req.user.teamOwnerId || req.user.id;
     const updates = req.body;
     
+    const sequelize = Setting.sequelize;
     for (const [key, value] of Object.entries(updates)) {
-      // Chercher d'abord avec userId, puis avec NULL
-      let existing = await Setting.findOne({ where: { key, userId: ownerId } });
-      if (!existing) {
-        existing = await Setting.findOne({ where: { key, userId: null } });
-      }
-      if (existing) {
-        await existing.update({ value: String(value), userId: ownerId });
-      } else {
-        await Setting.create({ key, value: String(value), userId: ownerId });
-      }
+      await sequelize.query(
+        `INSERT INTO settings ("key", "value", "userId")
+         VALUES (:key, :value, :userId)
+         ON CONFLICT ("key", "userId") DO UPDATE SET "value" = :value`,
+        { replacements: { key, value: String(value), userId: ownerId }, type: sequelize.QueryTypes.INSERT }
+      );
     }
     const rows = await Setting.findAll({ where: { userId: ownerId } });
     const settings = { ...DEFAULTS };
@@ -134,23 +129,18 @@ const uploadLogo = async (req, res) => {
     console.log('✅ Logo uploaded to Cloudinary:', logoUrl);
     console.log('🔍 Saving logo for userId:', ownerId);
     
-    // Chercher d'abord avec userId, puis avec NULL userId (orphan rows)
-    let existing = await Setting.findOne({ 
-      where: { key: 'businessLogo', userId: ownerId } 
-    });
-    if (!existing) {
-      existing = await Setting.findOne({ 
-        where: { key: 'businessLogo', userId: null } 
-      });
-    }
-    
-    if (existing) {
-      await existing.update({ value: logoUrl, userId: ownerId });
-      console.log('✅ Logo updated in database (id:', existing.id, ')');
-    } else {
-      await Setting.create({ key: 'businessLogo', value: logoUrl, userId: ownerId });
-      console.log('✅ Logo created in database');
-    }
+    // Use raw SQL to avoid all Sequelize unique constraint issues
+    const sequelize = Setting.sequelize;
+    await sequelize.query(
+      `INSERT INTO settings ("key", "value", "userId")
+       VALUES (:key, :value, :userId)
+       ON CONFLICT ("key", "userId") DO UPDATE SET "value" = :value`,
+      {
+        replacements: { key: 'businessLogo', value: logoUrl, userId: ownerId },
+        type: sequelize.QueryTypes.INSERT
+      }
+    );
+    console.log('✅ Logo saved in database via raw SQL');
     
     res.json({ 
       success: true, 
