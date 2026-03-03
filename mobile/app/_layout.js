@@ -104,7 +104,12 @@ export default function RootLayout() {
       const sub = Notifications.addNotificationResponseReceivedListener((response) => {
         const data = response.notification.request.content.data || {};
         if (data.type === 'transaction' && data.id) {
-          router.push(`/transactions/${data.id}`);
+          // Si openReceipt est true, ouvrir directement le reçu, sinon la transaction
+          if (data.openReceipt) {
+            router.push(`/receipt/${data.id}`);
+          } else {
+            router.push(`/transactions/${data.id}`);
+          }
         } else if (data.type === 'deposit' && data.id) {
           router.push('/deposits');
         } else if (data.type === 'alert') {

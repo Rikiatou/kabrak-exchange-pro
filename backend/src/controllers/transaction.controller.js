@@ -221,6 +221,31 @@ const create = async (req, res) => {
       ]
     });
 
+    // Send push notification to operator and owner
+    try {
+      const { notifyNewTransaction } = require('../utils/pushNotifications');
+      const tokens = new Set();
+      
+      // Add operator token
+      if (req.user.expoPushToken) {
+        tokens.add(req.user.expoPushToken);
+      }
+      
+      // Add owner token if operator is a team member
+      if (req.user.teamOwnerId) {
+        const owner = await User.findByPk(req.user.teamOwnerId, { attributes: ['id', 'expoPushToken'] });
+        if (owner?.expoPushToken) {
+          tokens.add(owner.expoPushToken);
+        }
+      }
+      
+      if (tokens.size > 0) {
+        await notifyNewTransaction(fullTransaction, client, [...tokens]);
+      }
+    } catch (pushErr) {
+      console.error('Push notification error (non-blocking):', pushErr.message);
+    }
+
     return res.status(201).json({ success: true, message: 'Transaction created successfully.', data: fullTransaction, kycWarning });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
