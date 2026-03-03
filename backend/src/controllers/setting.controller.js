@@ -27,8 +27,14 @@ const updateSettings = async (req, res) => {
   try {
     const ownerId = req.user.teamOwnerId || req.user.id;
     const updates = req.body;
+    
     for (const [key, value] of Object.entries(updates)) {
-      await Setting.upsert({ key, value: String(value), userId: ownerId });
+      const existing = await Setting.findOne({ where: { key, userId: ownerId } });
+      if (existing) {
+        await existing.update({ value: String(value) });
+      } else {
+        await Setting.create({ key, value: String(value), userId: ownerId });
+      }
     }
     const rows = await Setting.findAll({ where: { userId: ownerId } });
     const settings = { ...DEFAULTS };
@@ -100,12 +106,20 @@ const uploadLogo = async (req, res) => {
     const logoUrl = req.file.path;
     
     console.log('✅ Logo uploaded to Cloudinary:', logoUrl);
-    console.log('🔍 Upserting with:', { key: 'businessLogo', userId: ownerId, value: logoUrl });
+    console.log('🔍 Saving logo for userId:', ownerId);
     
-    await Setting.upsert(
-      { key: 'businessLogo', value: logoUrl, userId: ownerId },
-      { conflictFields: ['key', 'userId'] }
-    );
+    // Utiliser findOne + update/create au lieu de upsert pour éviter l'erreur unique constraint
+    const existing = await Setting.findOne({ 
+      where: { key: 'businessLogo', userId: ownerId } 
+    });
+    
+    if (existing) {
+      await existing.update({ value: logoUrl });
+      console.log('✅ Logo updated in database');
+    } else {
+      await Setting.create({ key: 'businessLogo', value: logoUrl, userId: ownerId });
+      console.log('✅ Logo created in database');
+    }
     
     res.json({ 
       success: true, 
