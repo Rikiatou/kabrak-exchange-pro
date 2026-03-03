@@ -106,11 +106,11 @@ export const generateReceiptHTML = (transaction, settings = {}, lang = 'fr') => 
 html{-webkit-text-size-adjust:100%}
 body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:#f0f2f5;padding:8px;color:#1f2937;font-size:13px;line-height:1.4}
 .r{max-width:420px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 8px rgba(0,0,0,0.06)}
-.hd{background:${brandColor};color:#fff;padding:16px 14px 14px;text-align:center}
-.hd h1{font-size:17px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.2);letter-spacing:0.3px;margin-bottom:1px}
-.hd .sub{font-size:10px;color:rgba(255,255,255,0.85);font-weight:600;letter-spacing:0.5px}
-.hd .tp{font-size:11px;color:rgba(255,255,255,0.95);font-weight:700;margin-top:2px}
-.ref{background:rgba(255,255,255,0.22);border-radius:14px;padding:3px 12px;display:inline-block;margin-top:6px;font-size:10px;font-weight:800;letter-spacing:1px;color:#fff}
+.hd{background:${brandLight};padding:16px 14px 14px;text-align:center;border-bottom:3px solid ${brandColor}}
+.hd h1{font-size:17px;font-weight:900;color:#0a1128;letter-spacing:0.3px;margin-bottom:1px}
+.hd .sub{font-size:10px;color:#374151;font-weight:600;letter-spacing:0.5px}
+.hd .tp{font-size:11px;color:#1f2937;font-weight:700;margin-top:2px}
+.ref{background:${brandColor};border-radius:14px;padding:3px 12px;display:inline-block;margin-top:6px;font-size:10px;font-weight:800;letter-spacing:1px;color:#fff}
 .sb{padding:6px 14px;text-align:center;background:${status.bg}}
 .sb span{display:inline-block;padding:2px 14px;border-radius:14px;font-size:11px;font-weight:800;color:${status.color};border:2px solid ${status.color};letter-spacing:0.4px}
 .bd{padding:12px 14px 8px}
