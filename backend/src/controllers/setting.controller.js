@@ -52,9 +52,10 @@ const updateSettings = async (req, res) => {
     
     const sequelize = Setting.sequelize;
     for (const [key, value] of Object.entries(updates)) {
+      // Delete ALL rows for this key (any userId) to avoid unique constraint conflicts
       await sequelize.query(
-        `DELETE FROM settings WHERE "key" = :key AND ("userId" = :userId OR "userId" IS NULL)`,
-        { replacements: { key, userId: ownerId }, type: sequelize.QueryTypes.DELETE }
+        `DELETE FROM settings WHERE "key" = :key`,
+        { replacements: { key }, type: sequelize.QueryTypes.DELETE }
       );
       await sequelize.query(
         `INSERT INTO settings ("key", "value", "userId") VALUES (:key, :value, :userId)`,
