@@ -7,14 +7,39 @@ const axios = require('axios');
 
 const sendWhatsAppMessage = async (phoneNumber, message) => {
   try {
-    // TODO: Intégrer Meta WhatsApp Business API
-    // Pour l'instant, on log le code pour le développement
-    console.log('📱 WhatsApp envoyé à', phoneNumber);
-    console.log('📝 Message:');
-    console.log(message);
-    
-    // Simulation d'envoi réussi
-    return { success: true, message: 'Message WhatsApp envoyé avec succès' };
+    // Intégration avec Meta WhatsApp Business API
+    if (process.env.META_APP_ID && process.env.WHATSAPP_ACCESS_TOKEN) {
+      
+      // Envoyer le message via l'API Meta
+      const response = await axios.post(
+        `https://graph.facebook.com/v18.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+        {
+          messaging_product: 'whatsapp',
+          to: phoneNumber.replace('+', ''), // Format international sans +
+          type: 'text',
+          text: {
+            body: message
+          }
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      console.log('✅ Message WhatsApp envoyé avec succès:', response.data);
+      return { success: true, messageId: response.data.messages[0].id };
+      
+    } else {
+      // Mode développement: log le message
+      console.log('📱 WhatsApp envoyé à', phoneNumber);
+      console.log('📝 Message:');
+      console.log(message);
+      
+      return { success: true, message: 'Message WhatsApp envoyé avec succès (mode dev)' };
+    }
     
     /* EXEMPLE AVEC META WHATSAPP BUSINESS API (à décommenter et configurer):
     

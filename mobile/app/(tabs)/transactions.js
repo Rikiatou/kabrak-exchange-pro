@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, FlatList, StyleSheet, TouchableOpacity,
-  TextInput, RefreshControl, Modal, ScrollView
+  TextInput, RefreshControl, Modal, ScrollView, Alert
 } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import useTransactionStore from '../../src/store/transactionStore';
 import useLanguageStore from '../../src/store/languageStore';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import { formatCurrency, formatDate, getStatusConfig } from '../../src/utils/helpers';
+import { exportExcel } from '../../src/utils/exportReport';
 
 
 function TransactionCard({ tx, onPress, remainingLabel }) {
@@ -115,14 +116,31 @@ export default function TransactionsScreen() {
     fetchTransactions(buildParams(activeFilter || undefined, empty));
   };
 
+  const handleExportTransactions = async () => {
+    try {
+      // Construire les params avec les filtres actuels
+      const exportParams = buildParams(activeFilter || undefined, adv);
+      await exportExcel('transactions', exportParams);
+    } catch (error) {
+      console.error('Export error:', error);
+      Alert.alert('Erreur', 'Impossible d\'exporter les transactions');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{t.transactions.title}</Text>
-        <TouchableOpacity style={styles.addBtn} onPress={() => router.push('/transactions/new')}>
-          <Ionicons name="add" size={22} color={COLORS.white} />
-          <Text style={styles.addBtnText}>{t.transactions.new}</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.exportBtn} onPress={handleExportTransactions}>
+            <Ionicons name="download-outline" size={20} color={COLORS.white} />
+            <Text style={styles.exportBtnText}>Export</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addBtn} onPress={() => router.push('/transactions/new')}>
+            <Ionicons name="add" size={22} color={COLORS.white} />
+            <Text style={styles.addBtnText}>{t.transactions.new}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.filterRow}>
@@ -291,6 +309,13 @@ const styles = StyleSheet.create({
     paddingTop: 56, paddingBottom: SPACING.lg
   },
   title: { fontSize: FONTS.sizes.xxl, fontWeight: '700', color: COLORS.white },
+  headerActions: { flexDirection: 'row', gap: SPACING.sm },
+  exportBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: RADIUS.full,
+    paddingHorizontal: SPACING.sm, paddingVertical: 8
+  },
+  exportBtnText: { color: COLORS.white, fontWeight: '600', fontSize: FONTS.sizes.sm },
   addBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: RADIUS.full,

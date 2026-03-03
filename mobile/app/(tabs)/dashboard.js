@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  RefreshControl, StatusBar, Dimensions, Image
+  RefreshControl, StatusBar, Dimensions, Image, Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ import useLanguageStore from '../../src/store/languageStore';
 import useAuthStore from '../../src/store/authStore';
 import useSettingStore from '../../src/store/settingStore';
 import { formatCurrency, getInitials } from '../../src/utils/helpers';
+import { exportExcel } from '../../src/utils/exportReport';
 import OwnerDashboardScreen from '../owner-dashboard';
 
 const { width } = Dimensions.get('window');
@@ -154,6 +155,15 @@ export default function DashboardScreen() {
 
 function EmployeeView({ data, isLoading, onRefresh, settings, user, router, t, s, greeting }) {
   const isManager = user?.teamRole === 'owner' || user?.teamRole === 'manager';
+
+  const handleExportTransactions = async () => {
+    try {
+      await exportExcel('transactions');
+    } catch (error) {
+      console.error('Export error:', error);
+      Alert.alert('Erreur', 'Impossible d\'exporter les transactions');
+    }
+  };
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={GREEN_DARK} />
@@ -243,8 +253,9 @@ function EmployeeView({ data, isLoading, onRefresh, settings, user, router, t, s
             { icon: 'wallet-outline', label: t.more.deposits, color: '#0369a1', route: '/deposits' },
             isManager && { icon: 'images-outline', label: 'Galerie reçus', color: '#0891b2', route: '/receipts' },
             isManager && { icon: 'bar-chart-outline', label: t.more.reports, color: '#7c3aed', route: '/reports' },
+            isManager && { icon: 'download-outline', label: 'Export Excel', color: '#059669', onPress: handleExportTransactions },
           ].filter(Boolean).map((q) => (
-            <TouchableOpacity key={q.label} style={styles.quickBtn} onPress={() => router.push(q.route)} activeOpacity={0.7}>
+            <TouchableOpacity key={q.label} style={styles.quickBtn} onPress={q.onPress || (() => router.push(q.route))} activeOpacity={0.7}>
               <View style={[styles.quickIcon, { backgroundColor: `${q.color}12` }]}>
                 <Ionicons name={q.icon} size={22} color={q.color} />
               </View>
