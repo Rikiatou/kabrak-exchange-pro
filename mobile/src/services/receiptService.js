@@ -76,218 +76,129 @@ export const generateReceiptHTML = (transaction, settings = {}, lang = 'fr') => 
   const date = format(new Date(transaction.createdAt), 'dd/MM/yyyy HH:mm');
   const payments = transaction.payments || [];
 
-  // Derive a lighter tint from brandColor for backgrounds
   const hexToRgb = (hex) => {
-    const h = hex.replace('#', '');
+    const h = (hex || '#0B6E4F').replace('#', '');
     return { r: parseInt(h.substring(0,2),16), g: parseInt(h.substring(2,4),16), b: parseInt(h.substring(4,6),16) };
   };
   const rgb = hexToRgb(brandColor);
-  const brandLight = `rgba(${rgb.r},${rgb.g},${rgb.b},0.08)`;
+  const brandLight = `rgba(${rgb.r},${rgb.g},${rgb.b},0.07)`;
   const brandMedium = `rgba(${rgb.r},${rgb.g},${rgb.b},0.15)`;
 
-  const logoHTML = logoUrl ? `<img src="${logoUrl}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 10px;display:block;border:2px solid rgba(255,255,255,0.4);" />` : '';
+  const logoHTML = logoUrl
+    ? `<img src="${logoUrl}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;margin:0 auto 6px;display:block;border:2px solid rgba(255,255,255,0.5);" crossorigin="anonymous" />`
+    : '';
 
-  const paymentsRows = payments.map((p) => `
+  const paymentsRows = payments.slice(0, 5).map((p) => `
     <tr>
       <td>${format(new Date(p.createdAt), 'dd/MM/yyyy HH:mm')}</td>
       <td>${p.paymentMethod?.replace('_', ' ').toUpperCase() || 'CASH'}</td>
-      <td style="text-align:right; font-weight:600; color:#2e7d32;">${formatAmount(p.amount, p.currency)}</td>
+      <td style="text-align:right;font-weight:700;color:#059669;">${formatAmount(p.amount, p.currency)}</td>
     </tr>
   `).join('');
 
-  return `
-<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Reçu ${transaction.reference}</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: #f0f2f5; padding: 16px; color: #1f2937;
-      line-height: 1.5; font-size: 14px;
-    }
-    .receipt {
-      max-width: 500px; margin: 0 auto; background: #fff;
-      border-radius: 16px; overflow: hidden;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    }
-
-    /* HEADER */
-    .header {
-      background: ${brandColor};
-      color: #fff; padding: 24px 20px; text-align: center;
-      position: relative;
-    }
-    .header::after {
-      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
-      height: 4px; background: linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0.05));
-    }
-    .header h1 { font-size: 20px; font-weight: 800; letter-spacing: 0.3px; margin-bottom: 2px; }
-    .header .sub { font-size: 12px; opacity: 0.7; letter-spacing: 0.5px; }
-    .header .type { font-size: 13px; opacity: 0.9; margin-top: 2px; font-weight: 500; }
-    .ref-badge {
-      background: rgba(255,255,255,0.2); border-radius: 20px;
-      padding: 5px 16px; display: inline-block; margin-top: 10px;
-      font-size: 12px; font-weight: 700; letter-spacing: 1.2px;
-      backdrop-filter: blur(4px);
-    }
-
-    /* STATUS */
-    .status-bar { padding: 10px 20px; text-align: center; background: ${status.bg}; }
-    .status-badge {
-      display: inline-block; padding: 4px 20px; border-radius: 20px;
-      font-size: 12px; font-weight: 800; color: ${status.color};
-      border: 2px solid ${status.color}; letter-spacing: 0.5px;
-    }
-
-    /* BODY */
-    .body { padding: 20px; }
-    .section { margin-bottom: 18px; }
-    .section-title {
-      font-size: 11px; font-weight: 800; color: ${brandColor};
-      text-transform: uppercase; letter-spacing: 1.2px;
-      margin-bottom: 8px; padding-bottom: 6px;
-      border-bottom: 2px solid ${brandLight};
-    }
-
-    /* INFO ROWS */
-    .info-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 7px 0; border-bottom: 1px solid #f3f4f6;
-    }
-    .info-row:last-child { border-bottom: none; }
-    .info-label { font-size: 13px; color: #6b7280; font-weight: 500; }
-    .info-value { font-size: 13px; font-weight: 700; color: #111827; text-align: right; max-width: 58%; }
-
-    /* EXCHANGE BOX */
-    .exchange-box {
-      background: ${brandLight}; border: 1px solid ${brandMedium};
-      border-radius: 12px; padding: 18px 16px; margin: 12px 0; text-align: center;
-    }
-    .exchange-amount { font-size: 24px; font-weight: 800; color: ${brandColor}; }
-    .exchange-arrow { font-size: 18px; color: #9ca3af; margin: 4px 0; }
-    .exchange-result { font-size: 22px; font-weight: 800; color: #059669; }
-    .exchange-rate { font-size: 12px; color: #6b7280; margin-top: 6px; font-weight: 500; }
-
-    /* BALANCE */
-    .balance-box { border-radius: 10px; padding: 12px 14px; margin-top: 10px; }
-    .balance-paid { background: #ecfdf5; border: 1px solid #a7f3d0; }
-    .balance-remaining { background: #fef2f2; border: 1px solid #fecaca; }
-    .balance-label { font-size: 12px; color: #6b7280; margin-bottom: 2px; font-weight: 500; }
-    .balance-amount { font-size: 18px; font-weight: 800; }
-    .balance-paid .balance-amount { color: #059669; }
-    .balance-remaining .balance-amount { color: #dc2626; }
-
-    /* TABLE */
-    table { width: 100%; border-collapse: collapse; }
-    th {
-      text-align: left; padding: 8px 6px; font-size: 10px; font-weight: 800;
-      color: ${brandColor}; text-transform: uppercase; letter-spacing: 0.8px;
-      border-bottom: 2px solid ${brandMedium};
-    }
-    td { padding: 8px 6px; border-bottom: 1px solid #f3f4f6; color: #374151; font-size: 13px; font-weight: 500; }
-
-    /* FOOTER */
-    .footer {
-      background: ${brandLight}; padding: 16px 20px; text-align: center;
-      border-top: 2px solid ${brandMedium};
-    }
-    .footer .operator { font-size: 13px; font-weight: 700; color: ${brandColor}; margin-bottom: 4px; }
-    .footer p { font-size: 12px; color: #6b7280; font-weight: 500; }
-    .footer .powered { font-size: 10px; color: #9ca3af; margin-top: 6px; letter-spacing: 0.5px; }
-
-    .no-payments { text-align: center; color: #9ca3af; font-size: 13px; padding: 12px; font-weight: 500; }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:#f0f2f5;padding:8px;color:#1f2937;font-size:13px;line-height:1.4}
+.r{max-width:420px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 8px rgba(0,0,0,0.06)}
+.hd{background:${brandColor};color:#fff;padding:16px 14px 14px;text-align:center}
+.hd h1{font-size:17px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.2);letter-spacing:0.3px;margin-bottom:1px}
+.hd .sub{font-size:10px;color:rgba(255,255,255,0.85);font-weight:600;letter-spacing:0.5px}
+.hd .tp{font-size:11px;color:rgba(255,255,255,0.95);font-weight:700;margin-top:2px}
+.ref{background:rgba(255,255,255,0.22);border-radius:14px;padding:3px 12px;display:inline-block;margin-top:6px;font-size:10px;font-weight:800;letter-spacing:1px;color:#fff}
+.sb{padding:6px 14px;text-align:center;background:${status.bg}}
+.sb span{display:inline-block;padding:2px 14px;border-radius:14px;font-size:11px;font-weight:800;color:${status.color};border:2px solid ${status.color};letter-spacing:0.4px}
+.bd{padding:12px 14px 8px}
+.sec{margin-bottom:10px}
+.st{font-size:10px;font-weight:800;color:${brandColor};text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;padding-bottom:4px;border-bottom:1.5px solid ${brandLight}}
+.ir{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f3f4f6}
+.ir:last-child{border-bottom:none}
+.il{font-size:12px;color:#6b7280;font-weight:500}
+.iv{font-size:12px;font-weight:700;color:#111827;text-align:right;max-width:58%}
+.eb{background:${brandLight};border:1px solid ${brandMedium};border-radius:10px;padding:12px 10px;margin:6px 0;text-align:center}
+.ea{font-size:20px;font-weight:900;color:${brandColor}}
+.ew{font-size:14px;color:#9ca3af;margin:2px 0}
+.er{font-size:18px;font-weight:900;color:#059669}
+.et{font-size:10px;color:#6b7280;margin-top:3px;font-weight:500}
+.bb{border-radius:8px;padding:8px 10px;margin-top:6px}
+.bp{background:#ecfdf5;border:1px solid #a7f3d0}
+.br{background:#fef2f2;border:1px solid #fecaca}
+.bl{font-size:10px;color:#6b7280;margin-bottom:1px;font-weight:500}
+.ba{font-size:15px;font-weight:800}
+.bp .ba{color:#059669}
+.br .ba{color:#dc2626}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:5px 4px;font-size:9px;font-weight:800;color:${brandColor};text-transform:uppercase;letter-spacing:0.6px;border-bottom:1.5px solid ${brandMedium}}
+td{padding:5px 4px;border-bottom:1px solid #f3f4f6;color:#374151;font-size:11px;font-weight:500}
+.ft{background:${brandLight};padding:10px 14px;text-align:center;border-top:1.5px solid ${brandMedium}}
+.ft .op{font-size:11px;font-weight:700;color:${brandColor};margin-bottom:2px}
+.ft p{font-size:11px;color:#374151;font-weight:600}
+.ft .dt{font-size:9px;color:#6b7280;margin-top:2px;font-weight:500}
+.ft .pw{font-size:8px;color:#9ca3af;margin-top:4px;letter-spacing:0.5px}
+.np{text-align:center;color:#9ca3af;font-size:11px;padding:8px;font-weight:500}
+</style>
 </head>
 <body>
-  <div class="receipt">
-    <div class="header">
-      ${logoHTML}
-      <h1>${businessName}</h1>
-      <div class="sub">KABRAK Exchange Pro</div>
-      <div class="type">${L.receipt}</div>
-      <div class="ref-badge">${transaction.reference}</div>
-    </div>
-    <div class="status-bar">
-      <span class="status-badge">${status.label}</span>
-    </div>
-    <div class="body">
-      <div class="section">
-        <div class="section-title">${L.clientInfo}</div>
-        <div class="info-row">
-          <span class="info-label">${L.client}</span>
-          <span class="info-value">${transaction.client?.name || 'N/A'}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">${L.phone}</span>
-          <span class="info-value">${transaction.client?.phone || '-'}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">${L.date}</span>
-          <span class="info-value">${date}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">${L.operator}</span>
-          <span class="info-value">${transaction.operator?.name || 'N/A'}</span>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">${L.exchangeDetail}</div>
-        <div class="exchange-box">
-          <div class="exchange-amount">${formatAmount(transaction.amountFrom, transaction.currencyFrom)}</div>
-          <div class="exchange-arrow">↓</div>
-          <div class="exchange-result">${formatAmount(transaction.amountTo, transaction.currencyTo)}</div>
-          <div class="exchange-rate">${L.rate}: 1 ${transaction.currencyFrom} = ${parseFloat(transaction.exchangeRate).toFixed(4)} ${transaction.currencyTo}</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">${L.paymentStatus}</div>
-        <div class="balance-box balance-paid">
-          <div class="balance-label">${L.amountPaid}</div>
-          <div class="balance-amount">${formatAmount(transaction.amountPaid, transaction.currencyTo)}</div>
-        </div>
-        ${parseFloat(transaction.amountRemaining) > 0 ? `
-        <div class="balance-box balance-remaining" style="margin-top:8px;">
-          <div class="balance-label">${L.remaining}</div>
-          <div class="balance-amount">${formatAmount(transaction.amountRemaining, transaction.currencyTo)}</div>
-        </div>` : ''}
-      </div>
-
-      ${payments.length > 0 ? `
-      <div class="section">
-        <div class="section-title">${L.paymentHistory}</div>
-        <table>
-          <thead>
-            <tr><th>${L.dateCol}</th><th>${L.method}</th><th style="text-align:right;">${L.amount}</th></tr>
-          </thead>
-          <tbody>${paymentsRows}</tbody>
-        </table>
-      </div>` : `
-      <div class="section">
-        <div class="section-title">${L.paymentHistory}</div>
-        <div class="no-payments">${L.noPayments}</div>
-      </div>`}
-    </div>
-    <div class="footer">
-      <div class="operator">${transaction.operator?.name || ''}</div>
-      <p>${L.thanks}</p>
-      <p style="margin-top:4px; font-size:11px;">${L.generated} ${format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
-      <div class="powered">KABRAK Exchange Pro</div>
-    </div>
+<div class="r">
+  <div class="hd">
+    ${logoHTML}
+    <h1>${businessName}</h1>
+    <div class="sub">KABRAK Exchange Pro</div>
+    <div class="tp">${L.receipt}</div>
+    <div class="ref">${transaction.reference}</div>
   </div>
+  <div class="sb"><span>${status.label}</span></div>
+  <div class="bd">
+    <div class="sec">
+      <div class="st">${L.clientInfo}</div>
+      <div class="ir"><span class="il">${L.client}</span><span class="iv">${transaction.client?.name || 'N/A'}</span></div>
+      <div class="ir"><span class="il">${L.phone}</span><span class="iv">${transaction.client?.phone || '-'}</span></div>
+      <div class="ir"><span class="il">${L.date}</span><span class="iv">${date}</span></div>
+      <div class="ir"><span class="il">${L.operator}</span><span class="iv">${transaction.operator?.name || 'N/A'}</span></div>
+    </div>
+    <div class="sec">
+      <div class="st">${L.exchangeDetail}</div>
+      <div class="eb">
+        <div class="ea">${formatAmount(transaction.amountFrom, transaction.currencyFrom)}</div>
+        <div class="ew">↓</div>
+        <div class="er">${formatAmount(transaction.amountTo, transaction.currencyTo)}</div>
+        <div class="et">${L.rate}: 1 ${transaction.currencyFrom} = ${parseFloat(transaction.exchangeRate).toFixed(4)} ${transaction.currencyTo}</div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="st">${L.paymentStatus}</div>
+      <div class="bb bp"><div class="bl">${L.amountPaid}</div><div class="ba">${formatAmount(transaction.amountPaid, transaction.currencyTo)}</div></div>
+      ${parseFloat(transaction.amountRemaining) > 0 ? `<div class="bb br" style="margin-top:4px"><div class="bl">${L.remaining}</div><div class="ba">${formatAmount(transaction.amountRemaining, transaction.currencyTo)}</div></div>` : ''}
+    </div>
+    ${payments.length > 0 ? `
+    <div class="sec">
+      <div class="st">${L.paymentHistory}</div>
+      <table><thead><tr><th>${L.dateCol}</th><th>${L.method}</th><th style="text-align:right">${L.amount}</th></tr></thead><tbody>${paymentsRows}</tbody></table>
+    </div>` : `
+    <div class="sec">
+      <div class="st">${L.paymentHistory}</div>
+      <div class="np">${L.noPayments}</div>
+    </div>`}
+  </div>
+  <div class="ft">
+    <div class="op">${transaction.operator?.name || ''}</div>
+    <p>${L.thanks}</p>
+    <div class="dt">${L.generated} ${format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+    <div class="pw">KABRAK Exchange Pro</div>
+  </div>
+</div>
 </body>
 </html>`;
 };
 
-export const printReceipt = async (transaction, businessName, lang = 'fr') => {
+export const printReceipt = async (transaction, settings, lang = 'fr') => {
   try {
-    const html = generateReceiptHTML(transaction, businessName, lang);
+    const html = generateReceiptHTML(transaction, settings, lang);
     await Print.printAsync({ html });
     return { success: true };
   } catch (error) {
@@ -295,9 +206,9 @@ export const printReceipt = async (transaction, businessName, lang = 'fr') => {
   }
 };
 
-export const shareReceiptAsPDF = async (transaction, businessName, lang = 'fr') => {
+export const shareReceiptAsPDF = async (transaction, settings, lang = 'fr') => {
   try {
-    const html = generateReceiptHTML(transaction, businessName, lang);
+    const html = generateReceiptHTML(transaction, settings, lang);
     const { uri } = await Print.printToFileAsync({ html, base64: false });
     const isAvailable = await Sharing.isAvailableAsync();
     if (!isAvailable) return { success: false, message: 'Sharing not available on this device.' };
