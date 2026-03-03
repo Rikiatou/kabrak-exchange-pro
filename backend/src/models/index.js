@@ -17,6 +17,7 @@ const CashClose = require('./CashClose')(sequelize);
 const PaymentProof = require('./paymentProof.model')(sequelize);
 const RateAlert = require('./RateAlert')(sequelize);
 const TrialRequest = require('./TrialRequest')(sequelize);
+const OTP = require('./OTP')(sequelize);
 
 // User associations
 User.hasMany(Transaction, { foreignKey: 'userId', as: 'transactions' });
@@ -30,6 +31,10 @@ User.hasMany(PaymentProof, { foreignKey: 'userId', as: 'paymentProofs' });
 PaymentProof.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 DepositOrder.belongsTo(User, { foreignKey: 'userId', as: 'operator' });
 Deposit.belongsTo(User, { foreignKey: 'userId', as: 'operator' });
+
+// OTP associations
+User.hasMany(OTP, { foreignKey: 'userId', as: 'otps' });
+OTP.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 // DepositOrder <-> Deposit associations
 DepositOrder.hasMany(Deposit, { foreignKey: 'orderId', as: 'payments' });
@@ -75,4 +80,5 @@ module.exports = {
   PaymentProof,
   RateAlert,
   TrialRequest,
+  OTP,
 };

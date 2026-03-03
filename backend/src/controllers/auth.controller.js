@@ -19,7 +19,7 @@ const generateRefreshToken = (user) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, otpCode } = req.body;
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Email and password are required.' });
     }
@@ -31,6 +31,80 @@ const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid credentials.' });
     }
+
+    // Si 2FA est activé
+    if (user.twoFactorEnabled) {
+      // Si pas de code OTP fourni, envoyer le code
+      if (!otpCode) {
+        const { OTP } = require('../models');
+        const { sendOTP } = require('../services/sms.service');
+        
+        // Invalider les anciens codes
+        await OTP.update(
+          { verified: true },
+          { where: { userId: user.id, type: 'login', verified: false } }
+        );
+        
+        // Générer nouveau code
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+        
+        await OTP.create({
+          userId: user.id,
+          code,
+          type: 'login',
+          expiresAt,
+        });
+        
+        // Envoyer SMS
+        if (user.phone) {
+          await sendOTP(user.phone, code, user.firstName || user.name);
+        }
+        
+        return res.json({
+          success: true,
+          requiresOTP: true,
+          message: 'Code OTP envoyé par SMS',
+          data: {
+            userId: user.id,
+            phone: user.phone ? user.phone.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2') : null,
+          },
+        });
+      }
+      
+      // Si code OTP fourni, vérifier
+      const { OTP } = require('../models');
+      const { Op } = require('sequelize');
+      
+      const otp = await OTP.findOne({
+        where: {
+          userId: user.id,
+          code: otpCode,
+          type: 'login',
+          verified: false,
+          expiresAt: { [Op.gt]: new Date() },
+        },
+        order: [['createdAt', 'DESC']],
+      });
+      
+      if (!otp) {
+        return res.status(401).json({
+          success: false,
+          message: 'Code OTP invalide ou expiré',
+        });
+      }
+      
+      if (otp.attempts >= 3) {
+        return res.status(401).json({
+          success: false,
+          message: 'Trop de tentatives. Demandez un nouveau code.',
+        });
+      }
+      
+      // Marquer comme vérifié
+      await otp.update({ verified: true });
+    }
+
     await user.update({ lastLogin: new Date() });
     const token = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);

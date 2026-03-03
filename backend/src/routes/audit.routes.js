@@ -3,11 +3,13 @@ const router = express.Router();
 const { AuditLog } = require('../models');
 const { authenticate, authorize } = require('../middleware/auth.middleware');
 
-router.get('/', authenticate, authorize('admin'), async (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
     const { page = 1, limit = 30 } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
+    const ownerId = req.user.teamOwnerId || req.user.id;
     const { count, rows } = await AuditLog.findAndCountAll({
+      where: { userId: ownerId },
       limit: parseInt(limit),
       offset,
       order: [['createdAt', 'DESC']]

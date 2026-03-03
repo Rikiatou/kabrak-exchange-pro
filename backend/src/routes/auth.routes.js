@@ -5,7 +5,7 @@ const { authenticate } = require('../middleware/auth.middleware');
 const validate = require('../middleware/validate.middleware');
 const schemas = require('../middleware/schemas');
 
-router.post('/register', require('../controllers/auth.controller').register);
+router.post('/register', validate(schemas.register), require('../controllers/auth.controller').register);
 router.post('/login', validate(schemas.login), login);
 router.post('/refresh', refreshToken);
 router.post('/forgot-password', forgotPassword);

@@ -58,6 +58,10 @@ module.exports = (sequelize) => {
     expoPushToken: {
       type: DataTypes.STRING,
       allowNull: true
+    },
+    twoFactorEnabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
   }, {
     tableName: 'users',

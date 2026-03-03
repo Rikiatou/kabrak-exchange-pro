@@ -42,21 +42,31 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
       shake();
-      Alert.alert('Missing fields', 'Please enter your email and password.');
+      Alert.alert(t.login.error, t.login.fillFields);
       return;
     }
-    const result = await login(email.trim().toLowerCase(), password);
+    setLoading(true);
+    const result = await login(email, password);
+    setLoading(false);
+    
     if (result.success) {
-      const user = useAuthStore.getState().user;
-      // Team members share owner's license — go directly to welcome-back
-      if (user?.teamOwnerId) {
-        router.replace('/(auth)/welcome-back');
+      // Si 2FA requis, rediriger vers l'écran OTP
+      if (result.requiresOTP) {
+        router.push({
+          pathname: '/(auth)/otp-verification',
+          params: {
+            userId: result.data.userId,
+            phone: result.data.phone,
+            email,
+            password,
+          },
+        });
         return;
       }
-      // Owner: fetch license from backend, then check
-      const { fetchMyLicense, loadStoredLicense } = useLicenseStore.getState();
-      await fetchMyLicense();
-      const { isValid } = useLicenseStore.getState();
+      
+      // Sinon, continuer normalement
+      const { verifyLicense, loadStoredLicense } = useLicenseStore.getState();
+      const isValid = await verifyLicense();
       if (!isValid) {
         // Fallback: check local storage
         await loadStoredLicense();

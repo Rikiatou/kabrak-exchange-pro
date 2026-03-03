@@ -31,7 +31,7 @@ export default function AboutScreen() {
           <View style={styles.logoBox}>
             <Ionicons name="swap-horizontal" size={52} color={COLORS.white} />
           </View>
-          <Text style={styles.appName}>Exchange Manager</Text>
+          <Text style={styles.appName}>KABRAK Exchange Pro</Text>
           <Text style={styles.appTagline}>Gestion de Bureau de Change</Text>
           <View style={styles.versionBadge}>
             <Text style={styles.versionText}>Version 1.0.0</Text>
@@ -81,7 +81,7 @@ export default function AboutScreen() {
           </Text>
         </View>
 
-        <Text style={styles.footer}>© 2025 Exchange Manager — Tous droits réservés</Text>
+        <Text style={styles.footer}>© 2025 KABRAK Exchange Pro — Tous droits réservés</Text>
 
         <View style={{ height: SPACING.xl }} />
       </ScrollView>
