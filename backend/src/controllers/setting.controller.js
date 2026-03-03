@@ -100,8 +100,12 @@ const uploadLogo = async (req, res) => {
     const logoUrl = req.file.path;
     
     console.log('✅ Logo uploaded to Cloudinary:', logoUrl);
+    console.log('🔍 Upserting with:', { key: 'businessLogo', userId: ownerId, value: logoUrl });
     
-    await Setting.upsert({ key: 'businessLogo', value: logoUrl, userId: ownerId });
+    await Setting.upsert(
+      { key: 'businessLogo', value: logoUrl, userId: ownerId },
+      { conflictFields: ['key', 'userId'] }
+    );
     
     res.json({ 
       success: true, 
