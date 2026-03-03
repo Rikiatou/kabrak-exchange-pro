@@ -311,7 +311,7 @@ const deleteRateAlert = async (req, res) => {
 // ─── Auto-sync market rates into Currency records ───────────────────────────
 const syncMarketRates = async (triggeredBy = 'auto') => {
   try {
-    const currencies = await Currency.findAll({ where: { isActive: true } });
+    const currencies = await Currency.findAll({ where: { isActive: true, userId: { [require('sequelize').Op.ne]: null } } });
     if (!currencies.length) return { updated: 0, skipped: 0 };
 
     // Fetch all rates based on EUR as pivot

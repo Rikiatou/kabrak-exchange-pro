@@ -39,14 +39,15 @@ const markAllRead = async (req, res) => {
 
 const checkAndGenerateAlerts = async (req, res) => {
   try {
+    const ownerId = req.user.teamOwnerId || req.user.id;
     const generated = [];
 
     const debtorClients = await Client.findAll({
-      where: { totalDebt: { [Op.gt]: 5000000 }, isActive: true }
+      where: { totalDebt: { [Op.gt]: 5000000 }, isActive: true, userId: ownerId }
     });
     for (const client of debtorClients) {
       const existing = await Alert.findOne({
-        where: { entityId: client.id, type: 'debt_threshold', isRead: false }
+        where: { entityId: client.id, type: 'debt_threshold', isRead: false, userId: ownerId }
       });
       if (!existing) {
         const alert = await Alert.create({
@@ -55,18 +56,19 @@ const checkAndGenerateAlerts = async (req, res) => {
           message: `Client ${client.name} has an outstanding debt of ${parseFloat(client.totalDebt).toLocaleString()}`,
           entityId: client.id,
           entityType: 'client',
-          severity: 'warning'
+          severity: 'warning',
+          userId: ownerId
         });
         generated.push(alert);
       }
     }
 
     const lowStockCurrencies = await Currency.findAll({
-      where: { stockAmount: { [Op.lte]: Currency.sequelize.col('lowStockAlert') }, isActive: true }
+      where: { stockAmount: { [Op.lte]: Currency.sequelize.col('lowStockAlert') }, isActive: true, userId: ownerId }
     });
     for (const currency of lowStockCurrencies) {
       const existing = await Alert.findOne({
-        where: { entityId: currency.id, type: 'low_stock', isRead: false }
+        where: { entityId: currency.id, type: 'low_stock', isRead: false, userId: ownerId }
       });
       if (!existing) {
         const alert = await Alert.create({
@@ -75,7 +77,8 @@ const checkAndGenerateAlerts = async (req, res) => {
           message: `${currency.code} stock is low: ${parseFloat(currency.stockAmount).toLocaleString()} ${currency.symbol}`,
           entityId: currency.id,
           entityType: 'currency',
-          severity: 'warning'
+          severity: 'warning',
+          userId: ownerId
         });
         generated.push(alert);
       }
