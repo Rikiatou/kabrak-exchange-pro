@@ -259,6 +259,10 @@ const runMigrations = async () => {
     `ALTER TABLE transactions ADD COLUMN IF NOT EXISTS "paymentMethod" VARCHAR(100)`,
     `ALTER TABLE deposit_orders ALTER COLUMN reference SET DEFAULT ''`,
     `ALTER TABLE deposits ALTER COLUMN code SET DEFAULT ''`,
+    // Drop ALL legacy unique constraints on currencies.code (code-only) — we want (code, userId) composite instead
+    `DO $$ DECLARE r RECORD; BEGIN FOR r IN (SELECT conname FROM pg_constraint WHERE conrelid = 'currencies'::regclass AND contype = 'u' AND array_length(conkey, 1) = 1 AND conkey[1] = (SELECT attnum FROM pg_attribute WHERE attrelid = 'currencies'::regclass AND attname = 'code')) LOOP EXECUTE 'ALTER TABLE currencies DROP CONSTRAINT ' || quote_ident(r.conname); RAISE NOTICE 'Dropped legacy constraint: %', r.conname; END LOOP; END $$`,
+    // Drop legacy unique constraint on settings.key (key-only) — we want (key, userId) composite instead
+    `DO $$ DECLARE r RECORD; BEGIN FOR r IN (SELECT conname FROM pg_constraint WHERE conrelid = 'settings'::regclass AND contype = 'u' AND array_length(conkey, 1) = 1 AND conkey[1] = (SELECT attnum FROM pg_attribute WHERE attrelid = 'settings'::regclass AND attname = 'key')) LOOP EXECUTE 'ALTER TABLE settings DROP CONSTRAINT ' || quote_ident(r.conname); RAISE NOTICE 'Dropped legacy settings constraint: %', r.conname; END LOOP; END $$`,
   ];
   for (const q of queries) {
     try {

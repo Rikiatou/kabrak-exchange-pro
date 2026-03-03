@@ -10,61 +10,21 @@ const DEFAULT_CURRENCIES = [
 const getAll = async (req, res) => {
   try {
     const ownerId = req.user.teamOwnerId || req.user.id;
-    const sequelize = Currency.sequelize;
     
-    // Step 1: Clean up ALL orphan currencies with NULL userId
-    const orphanResult = await sequelize.query(
-      `SELECT id, code FROM currencies WHERE "userId" IS NULL`,
-    );
-    const orphans = orphanResult[0] || [];
-    console.log('💱 Orphan currencies (NULL userId):', orphans.length, JSON.stringify(orphans.map(o => o.code)));
-    
-    if (orphans.length > 0) {
-      for (const orphan of orphans) {
-        // Check if owner already has this code
-        const existResult = await sequelize.query(
-          `SELECT id FROM currencies WHERE code = :code AND "userId" = :userId LIMIT 1`,
-          { replacements: { code: orphan.code, userId: ownerId } }
-        );
-        const hasIt = (existResult[0] || []).length > 0;
-        if (!hasIt) {
-          await sequelize.query(
-            `UPDATE currencies SET "userId" = :userId WHERE id = :id`,
-            { replacements: { userId: ownerId, id: orphan.id } }
-          );
-          console.log('💱 Adopted orphan:', orphan.code);
-        } else {
-          await sequelize.query(
-            `DELETE FROM currencies WHERE id = :id`,
-            { replacements: { id: orphan.id } }
-          );
-          console.log('💱 Deleted duplicate orphan:', orphan.code);
-        }
-      }
-    }
-    
-    // Step 2: Check if user has currencies now
     let currencies = await Currency.findAll({ where: { isActive: true, userId: ownerId }, order: [['code', 'ASC']] });
     
-    // Step 3: Seed missing defaults via raw SQL
+    // Auto-seed default currencies if user has none
     if (currencies.length === 0) {
-      // Dump ALL currencies in DB for diagnostic
-      const allInDB = await sequelize.query(`SELECT id, code, "userId", "isActive" FROM currencies ORDER BY code`);
-      console.log('💱 ALL currencies in DB:', JSON.stringify(allInDB[0]));
-      
-      console.log('💱 No currencies for user — seeding defaults...');
+      console.log('💱 No currencies for user', ownerId, '— seeding defaults...');
       for (const curr of DEFAULT_CURRENCIES) {
         try {
-          const { v4: uuidv4 } = require('uuid');
-          const newId = uuidv4();
-          await sequelize.query(
-            `INSERT INTO currencies (id, code, name, symbol, "currentRate", "buyRate", "sellRate", "stockAmount", "lowStockAlert", "isActive", "isBase", "userId", "createdAt", "updatedAt")
-             VALUES (:id, :code, :name, :symbol, :currentRate, :buyRate, :sellRate, :stockAmount, 1000, true, :isBase, :userId, NOW(), NOW())`,
-            { replacements: { id: newId, ...curr, userId: ownerId } }
-          );
-          console.log('💱 Seeded:', curr.code);
+          const existing = await Currency.findOne({ where: { code: curr.code, userId: ownerId } });
+          if (!existing) {
+            await Currency.create({ ...curr, userId: ownerId });
+            console.log('💱 Created:', curr.code);
+          }
         } catch (seedErr) {
-          console.error('💱 Seed error for', curr.code, '— FULL:', seedErr.original?.message || seedErr.message, '| parent:', seedErr.parent?.detail || 'none');
+          console.error('💱 Seed error for', curr.code, ':', seedErr.original?.message || seedErr.message);
         }
       }
       currencies = await Currency.findAll({ where: { isActive: true, userId: ownerId }, order: [['code', 'ASC']] });
