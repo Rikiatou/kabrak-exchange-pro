@@ -122,21 +122,33 @@ const uploadReceipt = async (req, res) => {
         deposit.expoPushToken,
         '📸 Reçu reçu / Receipt received',
         `${deposit.clientName} — ${deposit.amount} ${deposit.currency} — Code: ${deposit.code}`,
-        { depositId: deposit.id, code: deposit.code }
+        { type: 'deposit', id: deposit.id, depositId: deposit.id, orderId: deposit.orderId, code: deposit.code }
       );
     }
 
     // Also notify the User owner via their account push token
     if (deposit.userId) {
       try {
-        const owner = await User.findByPk(deposit.userId, { attributes: ['id', 'expoPushToken'] });
-        if (owner?.expoPushToken && owner.expoPushToken !== deposit.expoPushToken) {
+        const operator = await User.findByPk(deposit.userId, { attributes: ['id', 'expoPushToken', 'teamOwnerId'] });
+        if (operator?.expoPushToken && operator.expoPushToken !== deposit.expoPushToken) {
           await sendPushNotification(
-            owner.expoPushToken,
+            operator.expoPushToken,
             '📸 Nouveau reçu uploadé',
             `${deposit.clientName} a uploadé un reçu — ${deposit.amount} ${deposit.currency}`,
-            { depositId: deposit.id, code: deposit.code }
+            { type: 'deposit', id: deposit.id, depositId: deposit.id, orderId: deposit.orderId, code: deposit.code }
           );
+        }
+        // Notify the team owner too
+        if (operator?.teamOwnerId) {
+          const owner = await User.findByPk(operator.teamOwnerId, { attributes: ['id', 'expoPushToken'] });
+          if (owner?.expoPushToken && owner.expoPushToken !== deposit.expoPushToken && owner.expoPushToken !== operator.expoPushToken) {
+            await sendPushNotification(
+              owner.expoPushToken,
+              '📸 Nouveau reçu uploadé',
+              `${deposit.clientName} a uploadé un reçu — ${deposit.amount} ${deposit.currency}`,
+              { type: 'deposit', id: deposit.id, depositId: deposit.id, orderId: deposit.orderId, code: deposit.code }
+            );
+          }
         }
       } catch (_) {}
     }
@@ -167,7 +179,7 @@ const confirmDeposit = async (req, res) => {
           if (owner?.expoPushToken) tokens.add(owner.expoPushToken);
         }
         const msg = `${deposit.clientName} — ${deposit.amount} ${deposit.currency}${order ? ` — Restant: ${order.remainingAmount}` : ''}`;
-        await Promise.all([...tokens].map(t => sendPushNotification(t, '✅ Versement confirmé', msg, { depositId: deposit.id })));
+        await Promise.all([...tokens].map(t => sendPushNotification(t, '✅ Versement confirmé', msg, { type: 'deposit', id: deposit.id, depositId: deposit.id, orderId: deposit.orderId })));
       } catch (_) {}
     }
     res.json({ success: true, data: deposit });
@@ -195,7 +207,7 @@ const rejectDeposit = async (req, res) => {
           if (owner?.expoPushToken) tokens.add(owner.expoPushToken);
         }
         const msg = `${deposit.clientName} — ${deposit.amount} ${deposit.currency} — Code: ${deposit.code}`;
-        await Promise.all([...tokens].map(t => sendPushNotification(t, '❌ Versement rejeté', msg, { depositId: deposit.id, orderId: deposit.orderId })));
+        await Promise.all([...tokens].map(t => sendPushNotification(t, '❌ Versement rejeté', msg, { type: 'deposit', id: deposit.id, depositId: deposit.id, orderId: deposit.orderId })));
       } catch (_) {}
     }
     res.json({ success: true, data: deposit });

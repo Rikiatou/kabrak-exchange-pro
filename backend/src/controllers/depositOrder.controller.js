@@ -138,27 +138,19 @@ const addPayment = async (req, res) => {
       expoPushToken: order.expoPushToken,
     });
 
-    // Notify operator that a new payment was added to their order
-    if (order.expoPushToken) {
-      await sendPush(
-        order.expoPushToken,
-        '💰 Nouveau versement',
-        `${order.clientName} — ${parseFloat(amount).toLocaleString('fr-FR')} ${order.currency} — Commande ${order.reference}`,
-        { orderId: order.id, depositCode: deposit.code }
-      );
-    }
-    // Also notify user account push token
+    // Notify all relevant users: operator token, user account, team owner
+    const tokens = new Set();
+    if (order.expoPushToken) tokens.add(order.expoPushToken);
     try {
-      const owner = await User.findByPk(req.user.id, { attributes: ['id', 'expoPushToken'] });
-      if (owner?.expoPushToken && owner.expoPushToken !== order.expoPushToken) {
-        await sendPush(
-          owner.expoPushToken,
-          '💰 Versement ajouté',
-          `${order.clientName} — ${parseFloat(amount).toLocaleString('fr-FR')} ${order.currency}`,
-          { orderId: order.id }
-        );
+      const currentUser = await User.findByPk(req.user.id, { attributes: ['id', 'expoPushToken', 'teamOwnerId'] });
+      if (currentUser?.expoPushToken) tokens.add(currentUser.expoPushToken);
+      if (currentUser?.teamOwnerId) {
+        const owner = await User.findByPk(currentUser.teamOwnerId, { attributes: ['id', 'expoPushToken'] });
+        if (owner?.expoPushToken) tokens.add(owner.expoPushToken);
       }
     } catch (_) {}
+    const pushMsg = `${order.clientName} — ${parseFloat(amount).toLocaleString('fr-FR')} ${order.currency} — ${order.reference}`;
+    await Promise.all([...tokens].map(t => sendPush(t, '💰 Nouveau versement', pushMsg, { type: 'deposit', id: deposit.id, depositId: deposit.id, orderId: order.id })));
 
     res.status(201).json({ success: true, data: deposit });
   } catch (err) {

@@ -589,6 +589,11 @@ export default function DepositsScreen() {
                           {/* Actions for this payment */}
                           {p.status === 'pending' && (
                             <View style={styles.payLinkBtns}>
+                              {p.receiptImageUrl && (
+                                <TouchableOpacity onPress={() => { setReceiptUrl(p.receiptImageUrl?.startsWith('http') ? p.receiptImageUrl : `${BACKEND_URL}${p.receiptImageUrl}`); setShowReceipt(true); }} style={[styles.payIconBtn, { backgroundColor: '#e0f2fe' }]}>
+                                  <Ionicons name="eye-outline" size={16} color={COLORS.info} />
+                                </TouchableOpacity>
+                              )}
                               <TouchableOpacity onPress={() => copyLink(p.code)} style={styles.payIconBtn}>
                                 <Ionicons name="copy-outline" size={16} color={COLORS.primary} />
                               </TouchableOpacity>
@@ -605,8 +610,8 @@ export default function DepositsScreen() {
                           )}
                           {p.status === 'receipt_uploaded' && (
                             <View style={styles.payLinkBtns}>
-                              <TouchableOpacity onPress={() => { setReceiptUrl(p.receiptImageUrl?.startsWith('http') ? p.receiptImageUrl : `${BACKEND_URL}${p.receiptImageUrl}`); setShowReceipt(true); }} style={[styles.payIconBtn, { backgroundColor: '#e0f2fe' }]}>
-                                <Ionicons name="eye-outline" size={16} color={COLORS.info} />
+                              <TouchableOpacity onPress={() => { setReceiptUrl(p.receiptImageUrl?.startsWith('http') ? p.receiptImageUrl : `${BACKEND_URL}${p.receiptImageUrl}`); setShowReceipt(true); }} style={[styles.payIconBtn, { backgroundColor: '#dbeafe', borderWidth: 1, borderColor: '#3b82f6' }]}>
+                                <Ionicons name="eye-outline" size={18} color="#2563eb" />
                               </TouchableOpacity>
                               <TouchableOpacity onPress={() => handleConfirmPayment(p)} style={[styles.payIconBtn, { backgroundColor: COLORS.successLight }]}>
                                 <Ionicons name="checkmark" size={16} color={COLORS.primary} />

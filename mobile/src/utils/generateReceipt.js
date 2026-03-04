@@ -18,80 +18,87 @@ export const shareDepositReceipt = async ({ order, payment, settings }) => {
   const biz = settings?.businessName || 'KABRAK Exchange Pro';
   const phone = settings?.businessPhone || '';
   const address = settings?.businessAddress || '';
+  const brandColor = settings?.brandColor || GREEN;
+  const logoUrl = settings?.businessLogo || '';
 
-  const html = `
-<!DOCTYPE html>
+  const logoHTML = logoUrl
+    ? `<img src="${logoUrl}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin:0 auto 6px;display:block;" crossorigin="anonymous" />`
+    : '';
+
+  const html = `<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: Arial, sans-serif; background:#fff; color:#1a1a1a; padding: 32px; }
-  .header { text-align:center; border-bottom: 3px solid ${GREEN}; padding-bottom: 20px; margin-bottom: 24px; }
-  .biz-name { font-size: 22px; font-weight: 800; color: ${GREEN}; }
-  .biz-sub { font-size: 11px; color: #888; margin-top: 2px; }
-  .biz-detail { font-size: 12px; color: #555; margin-top: 4px; }
-  .receipt-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 16px; text-align:center; text-transform: uppercase; letter-spacing: 1px; }
-  .badge { display: inline-block; background: #e6f4ef; color: ${GREEN}; font-weight: 800; font-size: 13px; padding: 4px 14px; border-radius: 20px; margin-bottom: 20px; }
-  .section { background: #f8fffe; border-radius: 10px; padding: 16px; margin-bottom: 16px; border-left: 4px solid ${GREEN}; }
-  .section-title { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
-  .row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #eee; }
-  .row:last-child { border-bottom: none; }
-  .row-label { font-size: 13px; color: #666; }
-  .row-value { font-size: 13px; font-weight: 700; color: #1a1a1a; }
-  .row-value.gold { color: ${GOLD}; font-size: 15px; }
-  .row-value.green { color: ${GREEN}; }
-  .amount-box { background: ${GREEN}; border-radius: 12px; padding: 20px; text-align: center; margin: 20px 0; }
-  .amount-label { color: rgba(255,255,255,0.7); font-size: 12px; margin-bottom: 4px; }
-  .amount-value { color: #fff; font-size: 28px; font-weight: 800; }
-  .amount-currency { color: rgba(255,255,255,0.8); font-size: 14px; }
-  .footer { text-align: center; margin-top: 32px; padding-top: 16px; border-top: 1px solid #eee; }
-  .footer-text { font-size: 11px; color: #aaa; }
-  .confirmed-stamp { text-align:center; margin: 16px 0; }
-  .confirmed-stamp span { border: 3px solid ${GREEN}; color: ${GREEN}; font-weight: 800; font-size: 18px; padding: 6px 24px; border-radius: 8px; letter-spacing: 2px; transform: rotate(-5deg); display: inline-block; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:#fff;color:#0f0f0f;padding:12px;font-size:13px;line-height:1.4}
+.r{max-width:420px;margin:0 auto;background:#fff}
+.hd{text-align:center;border-bottom:3px solid ${brandColor};padding-bottom:12px;margin-bottom:10px}
+.bn{font-size:18px;font-weight:900;color:#0a0a0a;letter-spacing:0.2px}
+.bs{font-size:10px;color:#555;font-weight:600;margin-top:1px}
+.bd{font-size:11px;color:#333;margin-top:3px;font-weight:500}
+.rt{font-size:14px;font-weight:800;color:#0a0a0a;margin:10px 0 6px;text-align:center;text-transform:uppercase;letter-spacing:1px}
+.bg{display:inline-block;background:#e6f4ef;color:${brandColor};font-weight:800;font-size:11px;padding:3px 12px;border-radius:14px;margin-bottom:10px}
+.ab{background:${brandColor};border-radius:10px;padding:14px;text-align:center;margin:8px 0}
+.al{color:rgba(255,255,255,0.85);font-size:11px;margin-bottom:2px;font-weight:500}
+.av{color:#fff;font-size:24px;font-weight:900}
+.ac{color:rgba(255,255,255,0.9);font-size:12px;font-weight:600}
+.sc{background:#f8f9fa;border-radius:8px;padding:12px;margin-bottom:10px;border-left:3px solid ${brandColor}}
+.st{font-size:10px;font-weight:800;color:#0a0a0a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px}
+.rw{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #eee}
+.rw:last-child{border-bottom:none}
+.rl{font-size:12px;color:#333;font-weight:500}
+.rv{font-size:12px;font-weight:800;color:#0a0a0a}
+.rv.gd{color:${GOLD};font-size:13px}
+.rv.gn{color:${brandColor}}
+.cs{text-align:center;margin:10px 0}
+.cs span{border:2px solid ${brandColor};color:${brandColor};font-weight:900;font-size:14px;padding:4px 18px;border-radius:6px;letter-spacing:2px;display:inline-block}
+.ft{text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid #eee}
+.ft p{font-size:10px;color:#555;font-weight:600}
+.ft .pw{font-size:8px;color:#999;margin-top:3px}
 </style>
 </head>
 <body>
-  <div class="header">
-    <div class="biz-name">${biz}</div>
-    <div class="biz-sub">KABRAK Exchange Pro</div>
-    ${phone ? `<div class="biz-detail">📞 ${phone}</div>` : ''}
-    ${address ? `<div class="biz-detail">📍 ${address}</div>` : ''}
+<div class="r">
+  <div class="hd">
+    ${logoHTML}
+    <div class="bn">${biz}</div>
+    <div class="bs">KABRAK Exchange Pro</div>
+    ${phone ? `<div class="bd">Tel: ${phone}</div>` : ''}
+    ${address ? `<div class="bd">${address}</div>` : ''}
   </div>
-
   <div style="text-align:center">
-    <div class="receipt-title">Reçu de Versement</div>
-    <div class="badge">✅ CONFIRMÉ</div>
+    <div class="rt">Recu de Versement</div>
+    <div class="bg">CONFIRME</div>
   </div>
-
-  <div class="amount-box">
-    <div class="amount-label">Montant versé</div>
-    <div class="amount-value">${fmt(payment.amount)}</div>
-    <div class="amount-currency">${payment.currency || order.currency}</div>
+  <div class="ab">
+    <div class="al">Montant verse</div>
+    <div class="av">${fmt(payment.amount)}</div>
+    <div class="ac">${payment.currency || order.currency}</div>
   </div>
-
-  <div class="section">
-    <div class="section-title">Détails du versement</div>
-    <div class="row"><span class="row-label">Référence versement</span><span class="row-value gold">${payment.code || '—'}</span></div>
-    <div class="row"><span class="row-label">Date versement</span><span class="row-value">${fmtDate(payment.createdAt)}</span></div>
-    ${payment.confirmedAt ? `<div class="row"><span class="row-label">Date confirmation</span><span class="row-value green">${fmtDate(payment.confirmedAt)}</span></div>` : ''}
-    ${payment.bank || order.bank ? `<div class="row"><span class="row-label">Banque</span><span class="row-value">${payment.bank || order.bank}</span></div>` : ''}
+  <div class="sc">
+    <div class="st">Details du versement</div>
+    <div class="rw"><span class="rl">Reference versement</span><span class="rv gd">${payment.code || '—'}</span></div>
+    <div class="rw"><span class="rl">Date versement</span><span class="rv">${fmtDate(payment.createdAt)}</span></div>
+    ${payment.confirmedAt ? `<div class="rw"><span class="rl">Date confirmation</span><span class="rv gn">${fmtDate(payment.confirmedAt)}</span></div>` : ''}
+    ${payment.bank || order.bank ? `<div class="rw"><span class="rl">Banque</span><span class="rv">${payment.bank || order.bank}</span></div>` : ''}
   </div>
-
-  <div class="section">
-    <div class="section-title">Commande liée</div>
-    <div class="row"><span class="row-label">Référence commande</span><span class="row-value gold">${order.reference}</span></div>
-    <div class="row"><span class="row-label">Client</span><span class="row-value">${order.clientName}</span></div>
-    <div class="row"><span class="row-label">Total commande</span><span class="row-value">${fmt(order.totalAmount)} ${order.currency}</span></div>
-    <div class="row"><span class="row-label">Total reçu</span><span class="row-value green">${fmt(order.receivedAmount)} ${order.currency}</span></div>
-    <div class="row"><span class="row-label">Reste à payer</span><span class="row-value" style="color:${parseFloat(order.remainingAmount) <= 0 ? GREEN : GOLD}">${fmt(order.remainingAmount)} ${order.currency}</span></div>
+  <div class="sc">
+    <div class="st">Commande liee</div>
+    <div class="rw"><span class="rl">Reference commande</span><span class="rv gd">${order.reference}</span></div>
+    <div class="rw"><span class="rl">Client</span><span class="rv">${order.clientName}</span></div>
+    <div class="rw"><span class="rl">Total commande</span><span class="rv">${fmt(order.totalAmount)} ${order.currency}</span></div>
+    <div class="rw"><span class="rl">Total recu</span><span class="rv gn">${fmt(order.receivedAmount)} ${order.currency}</span></div>
+    <div class="rw"><span class="rl">Reste a payer</span><span class="rv" style="color:${parseFloat(order.remainingAmount) <= 0 ? brandColor : GOLD}">${fmt(order.remainingAmount)} ${order.currency}</span></div>
   </div>
-
-  <div class="confirmed-stamp"><span>CONFIRMÉ</span></div>
-
-  <div class="footer">
-    <div class="footer-text">${biz} — KABRAK Exchange Pro — ${new Date().toLocaleDateString('fr-FR')}</div>
+  <div class="cs"><span>CONFIRME</span></div>
+  <div class="ft">
+    <p>${biz} — ${new Date().toLocaleDateString('fr-FR')}</p>
+    <div class="pw">KABRAK Exchange Pro</div>
   </div>
+</div>
 </body>
 </html>`;
 
@@ -118,95 +125,97 @@ export const shareTransactionReceipt = async ({ transaction, settings }) => {
   const biz = settings?.businessName || 'KABRAK Exchange Pro';
   const phone = settings?.businessPhone || '';
   const address = settings?.businessAddress || '';
+  const brandColor = settings?.brandColor || GREEN;
+  const logoUrl = settings?.businessLogo || '';
   const tx = transaction;
 
+  const logoHTML = logoUrl
+    ? `<img src="${logoUrl}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin:0 auto 6px;display:block;" crossorigin="anonymous" />`
+    : '';
+
   const statusLabel = {
-    paid: 'PAYÉ',
+    paid: 'PAYE',
     partial: 'PARTIEL',
-    unpaid: 'NON PAYÉ',
-    cancelled: 'ANNULÉ',
+    unpaid: 'NON PAYE',
+    cancelled: 'ANNULE',
   }[tx.status] || tx.status;
 
   const statusColor = {
-    paid: GREEN,
+    paid: brandColor,
     partial: GOLD,
     unpaid: '#dc2626',
     cancelled: '#6b7280',
   }[tx.status] || '#333';
 
-  const html = `
-<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: Arial, sans-serif; background:#fff; color:#1a1a1a; padding: 32px; }
-  .header { text-align:center; border-bottom: 3px solid ${GREEN}; padding-bottom: 20px; margin-bottom: 24px; }
-  .biz-name { font-size: 22px; font-weight: 800; color: ${GREEN}; }
-  .biz-sub { font-size: 11px; color: #888; margin-top: 2px; }
-  .biz-detail { font-size: 12px; color: #555; margin-top: 4px; }
-  .receipt-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 16px; text-align:center; text-transform: uppercase; letter-spacing: 1px; }
-  .section { background: #f8fffe; border-radius: 10px; padding: 16px; margin-bottom: 16px; border-left: 4px solid ${GREEN}; }
-  .section-title { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
-  .row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #eee; }
-  .row:last-child { border-bottom: none; }
-  .row-label { font-size: 13px; color: #666; }
-  .row-value { font-size: 13px; font-weight: 700; color: #1a1a1a; }
-  .exchange-box { display: flex; align-items: center; justify-content: center; gap: 16px; background: #f0faf5; border-radius: 12px; padding: 20px; margin: 20px 0; }
-  .ex-side { text-align: center; }
-  .ex-amount { font-size: 22px; font-weight: 800; color: ${GREEN}; }
-  .ex-currency { font-size: 13px; color: #888; margin-top: 2px; }
-  .ex-arrow { font-size: 28px; color: ${GOLD}; }
-  .status-badge { display: inline-block; font-weight: 800; font-size: 14px; padding: 5px 18px; border-radius: 20px; margin: 8px 0; }
-  .footer { text-align: center; margin-top: 32px; padding-top: 16px; border-top: 1px solid #eee; }
-  .footer-text { font-size: 11px; color: #aaa; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;background:#fff;color:#0f0f0f;padding:12px;font-size:13px;line-height:1.4}
+.r{max-width:420px;margin:0 auto;background:#fff}
+.hd{text-align:center;border-bottom:3px solid ${brandColor};padding-bottom:12px;margin-bottom:10px}
+.bn{font-size:18px;font-weight:900;color:#0a0a0a;letter-spacing:0.2px}
+.bs{font-size:10px;color:#555;font-weight:600;margin-top:1px}
+.bd{font-size:11px;color:#333;margin-top:3px;font-weight:500}
+.rt{font-size:14px;font-weight:800;color:#0a0a0a;margin:10px 0 6px;text-align:center;text-transform:uppercase;letter-spacing:1px}
+.sb{display:inline-block;font-weight:800;font-size:12px;padding:3px 14px;border-radius:14px;margin:4px 0 10px}
+.sc{background:#f8f9fa;border-radius:8px;padding:12px;margin-bottom:10px;border-left:3px solid ${brandColor}}
+.st{font-size:10px;font-weight:800;color:#0a0a0a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px}
+.rw{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #eee}
+.rw:last-child{border-bottom:none}
+.rl{font-size:12px;color:#333;font-weight:500}
+.rv{font-size:12px;font-weight:800;color:#0a0a0a}
+.eb{display:flex;align-items:center;justify-content:center;gap:12px;background:#f8f9fa;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin:8px 0}
+.es{text-align:center}
+.ea{font-size:20px;font-weight:900;color:${brandColor}}
+.ec{font-size:11px;color:#555;margin-top:1px;font-weight:600}
+.ew{font-size:22px;color:${GOLD};font-weight:700}
+.ft{text-align:center;margin-top:14px;padding-top:10px;border-top:1px solid #eee}
+.ft p{font-size:10px;color:#555;font-weight:600}
+.ft .pw{font-size:8px;color:#999;margin-top:3px}
 </style>
 </head>
 <body>
-  <div class="header">
-    <div class="biz-name">${biz}</div>
-    <div class="biz-sub">KABRAK Exchange Pro</div>
-    ${phone ? `<div class="biz-detail">📞 ${phone}</div>` : ''}
-    ${address ? `<div class="biz-detail">📍 ${address}</div>` : ''}
+<div class="r">
+  <div class="hd">
+    ${logoHTML}
+    <div class="bn">${biz}</div>
+    <div class="bs">KABRAK Exchange Pro</div>
+    ${phone ? `<div class="bd">Tel: ${phone}</div>` : ''}
+    ${address ? `<div class="bd">${address}</div>` : ''}
   </div>
-
   <div style="text-align:center">
-    <div class="receipt-title">Reçu de Transaction</div>
-    <div class="status-badge" style="background:${statusColor}22; color:${statusColor}">${statusLabel}</div>
+    <div class="rt">Recu de Transaction</div>
+    <div class="sb" style="background:${statusColor}18;color:${statusColor}">${statusLabel}</div>
   </div>
-
-  <div class="exchange-box">
-    <div class="ex-side">
-      <div class="ex-amount">${fmt(tx.amountFrom)}</div>
-      <div class="ex-currency">${tx.currencyFrom}</div>
-    </div>
-    <div class="ex-arrow">→</div>
-    <div class="ex-side">
-      <div class="ex-amount">${fmt(tx.amountTo)}</div>
-      <div class="ex-currency">${tx.currencyTo}</div>
-    </div>
+  <div class="eb">
+    <div class="es"><div class="ea">${fmt(tx.amountFrom)}</div><div class="ec">${tx.currencyFrom}</div></div>
+    <div class="ew">→</div>
+    <div class="es"><div class="ea">${fmt(tx.amountTo)}</div><div class="ec">${tx.currencyTo}</div></div>
   </div>
-
-  <div class="section">
-    <div class="section-title">Détails</div>
-    <div class="row"><span class="row-label">Référence</span><span class="row-value" style="color:${GOLD}">${tx.reference}</span></div>
-    <div class="row"><span class="row-label">Client</span><span class="row-value">${tx.client?.name || tx.clientName || '—'}</span></div>
-    <div class="row"><span class="row-label">Date</span><span class="row-value">${fmtDate(tx.createdAt)}</span></div>
-    <div class="row"><span class="row-label">Taux</span><span class="row-value">${tx.rate || '—'}</span></div>
-    ${tx.notes ? `<div class="row"><span class="row-label">Notes</span><span class="row-value">${tx.notes}</span></div>` : ''}
+  <div class="sc">
+    <div class="st">Details</div>
+    <div class="rw"><span class="rl">Reference</span><span class="rv" style="color:${GOLD}">${tx.reference}</span></div>
+    <div class="rw"><span class="rl">Client</span><span class="rv">${tx.client?.name || tx.clientName || '—'}</span></div>
+    <div class="rw"><span class="rl">Date</span><span class="rv">${fmtDate(tx.createdAt)}</span></div>
+    <div class="rw"><span class="rl">Taux</span><span class="rv">${tx.rate || '—'}</span></div>
+    ${tx.notes ? `<div class="rw"><span class="rl">Notes</span><span class="rv">${tx.notes}</span></div>` : ''}
   </div>
-
-  <div class="section">
-    <div class="section-title">Paiement</div>
-    <div class="row"><span class="row-label">Total dû</span><span class="row-value">${fmt(tx.amountTo)} ${tx.currencyTo}</span></div>
-    <div class="row"><span class="row-label">Montant payé</span><span class="row-value" style="color:${GREEN}">${fmt(tx.paidAmount || 0)} ${tx.currencyTo}</span></div>
-    <div class="row"><span class="row-label">Reste</span><span class="row-value" style="color:${GOLD}">${fmt((parseFloat(tx.amountTo || 0) - parseFloat(tx.paidAmount || 0)).toFixed(0))} ${tx.currencyTo}</span></div>
+  <div class="sc">
+    <div class="st">Paiement</div>
+    <div class="rw"><span class="rl">Total du</span><span class="rv">${fmt(tx.amountTo)} ${tx.currencyTo}</span></div>
+    <div class="rw"><span class="rl">Montant paye</span><span class="rv" style="color:${brandColor}">${fmt(tx.paidAmount || 0)} ${tx.currencyTo}</span></div>
+    <div class="rw"><span class="rl">Reste</span><span class="rv" style="color:${GOLD}">${fmt((parseFloat(tx.amountTo || 0) - parseFloat(tx.paidAmount || 0)).toFixed(0))} ${tx.currencyTo}</span></div>
   </div>
-
-  <div class="footer">
-    <div class="footer-text">${biz} — KABRAK Exchange Pro — ${new Date().toLocaleDateString('fr-FR')}</div>
+  <div class="ft">
+    <p>${biz} — ${new Date().toLocaleDateString('fr-FR')}</p>
+    <div class="pw">KABRAK Exchange Pro</div>
   </div>
+</div>
 </body>
 </html>`;
 
