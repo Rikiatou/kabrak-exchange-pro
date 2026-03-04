@@ -12,6 +12,9 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import useLanguageStore from '../../src/store/languageStore';
 import { formatCurrency, formatDate, getStatusConfig, getInitials } from '../../src/utils/helpers';
 
+const BACKEND_URL = 'https://kabrak-exchange-pro-production.up.railway.app';
+const getFullUrl = (url) => url?.startsWith('http') ? url : `${BACKEND_URL}${url}`;
+
 const DEP_STATUS = {
   pending:          { label: 'En attente',  color: '#0369a1', bg: '#e0f2fe' },
   receipt_uploaded: { label: 'Reçu reçu',   color: '#7c3aed', bg: '#ede9fe' },
@@ -290,7 +293,7 @@ export default function ClientDetailScreen() {
                              <Text style={{ fontSize: 10, fontWeight: '700', color: depSt.color }}>{depSt.label}</Text>
                            </View>
                            {dep.receiptImageUrl ? (
-                             <TouchableOpacity onPress={() => setReceiptModal(dep.receiptImageUrl)} style={styles.receiptBtn}>
+                             <TouchableOpacity onPress={() => setReceiptModal(getFullUrl(dep.receiptImageUrl))} style={styles.receiptBtn}>
                                <Ionicons name="image-outline" size={13} color="#7c3aed" />
                                <Text style={{ fontSize: 10, color: '#7c3aed', fontWeight: '700' }}>Voir reçu</Text>
                              </TouchableOpacity>
