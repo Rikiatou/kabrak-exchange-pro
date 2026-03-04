@@ -187,7 +187,7 @@ export default function GuideScreen() {
           <Ionicons name="chatbubble-ellipses-outline" size={24} color={GREEN} />
           <View style={{ flex: 1, marginLeft: 12 }}>
             <Text style={st.supportTitle}>{lang === 'fr' ? 'Besoin d\'aide ?' : 'Need help?'}</Text>
-            <Text style={st.supportSub}>support@kabrakeng.com</Text>
+            <Text style={st.supportSub}>kabrakeng@gmail.com</Text>
           </View>
         </View>
 

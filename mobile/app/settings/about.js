@@ -89,7 +89,7 @@ export default function AboutScreen() {
           <Text style={styles.sectionTitle}>Développeur</Text>
           <InfoRow icon="business-outline" label="Entreprise" value="KABRAK ENG" />
           <InfoRow icon="globe-outline" label="Site web" value="kabrakeng.com" onPress={() => Linking.openURL('https://kabrakeng.com')} />
-          <InfoRow icon="mail-outline" label="Support" value="support@kabrakeng.com" onPress={() => Linking.openURL('mailto:support@kabrakeng.com')} />
+          <InfoRow icon="mail-outline" label="Support" value="kabrakeng@gmail.com" onPress={() => Linking.openURL('mailto:kabrakeng@gmail.com')} />
         </View>
 
         {/* Legal */}
