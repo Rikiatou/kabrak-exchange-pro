@@ -111,6 +111,7 @@ export default function DepositsScreen() {
   const [saving, setSaving] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState(null);
+  const [receiptError, setReceiptError] = useState(false);
   const [clientSearch, setClientSearch] = useState('');
   const [showClientPicker, setShowClientPicker] = useState(false);
   const [showNewClient, setShowNewClient] = useState(false);
@@ -681,23 +682,24 @@ export default function DepositsScreen() {
       {/* ── RECEIPT IMAGE MODAL ── */}
       <Modal visible={showReceipt} animationType="fade" transparent statusBarTranslucent>
         <View style={styles.receiptOverlay}>
-          <TouchableOpacity style={styles.receiptClose} onPress={() => setShowReceipt(false)}>
+          <TouchableOpacity style={styles.receiptClose} onPress={() => { setShowReceipt(false); setReceiptError(false); }}>
             <Ionicons name="close-circle" size={36} color={COLORS.white} />
           </TouchableOpacity>
-          {receiptUrl ? (
+          {receiptUrl && !receiptError ? (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
               <ActivityIndicator color={COLORS.white} style={{ position: 'absolute', zIndex: 1 }} />
               <Image
                 source={{ uri: receiptUrl }}
                 style={styles.receiptImage}
                 resizeMode="contain"
-                onError={(e) => console.log('Image load error:', e.nativeEvent.error, 'URL:', receiptUrl)}
+                onError={() => setReceiptError(true)}
               />
             </View>
           ) : (
-            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-              <Ionicons name="image-outline" size={60} color="rgba(255,255,255,0.3)" />
-              <Text style={{ color: 'rgba(255,255,255,0.5)', marginTop: 8, fontSize: 13 }}>Aucune image</Text>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <Ionicons name="cloud-offline-outline" size={60} color="rgba(255,255,255,0.4)" />
+              <Text style={{ color: '#fff', marginTop: 12, fontSize: 15, fontWeight: '700' }}>{lang === 'fr' ? 'Image indisponible' : 'Image unavailable'}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', marginTop: 6, fontSize: 12, textAlign: 'center', paddingHorizontal: 40 }}>{lang === 'fr' ? 'Le re\u00e7u a \u00e9t\u00e9 perdu lors d\'une mise \u00e0 jour du serveur. Le client doit re-uploader.' : 'Receipt was lost during a server update. Client must re-upload.'}</Text>
             </View>
           )}
         </View>

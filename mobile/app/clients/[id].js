@@ -102,6 +102,7 @@ export default function ClientDetailScreen() {
   const [payNotes, setPayNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [receiptModal, setReceiptModal] = useState(null);
+  const [receiptImgError, setReceiptImgError] = useState(false);
 
   useEffect(() => {
     fetchClientById(id);
@@ -384,12 +385,21 @@ export default function ClientDetailScreen() {
       {/* Receipt viewer modal */}
       <Modal visible={!!receiptModal} animationType="fade" transparent>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', alignItems: 'center' }}>
-          <TouchableOpacity style={{ position: 'absolute', top: 56, right: 20, zIndex: 10 }} onPress={() => setReceiptModal(null)}>
+          <TouchableOpacity style={{ position: 'absolute', top: 56, right: 20, zIndex: 10 }} onPress={() => { setReceiptModal(null); setReceiptImgError(false); }}>
             <Ionicons name="close-circle" size={36} color={COLORS.white} />
           </TouchableOpacity>
-          {receiptModal && (
-            <Image source={{ uri: receiptModal }} style={{ width: '90%', height: '70%', borderRadius: 12 }} resizeMode="contain" />
-          )}
+          {receiptModal && !receiptImgError ? (
+            <>
+              <ActivityIndicator color={COLORS.white} style={{ position: 'absolute', zIndex: 1 }} />
+              <Image source={{ uri: receiptModal }} style={{ width: '90%', height: '70%', borderRadius: 12 }} resizeMode="contain" onError={() => setReceiptImgError(true)} />
+            </>
+          ) : receiptImgError ? (
+            <View style={{ alignItems: 'center' }}>
+              <Ionicons name="cloud-offline-outline" size={60} color="rgba(255,255,255,0.4)" />
+              <Text style={{ color: '#fff', marginTop: 12, fontSize: 15, fontWeight: '700' }}>Image indisponible</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', marginTop: 6, fontSize: 12, textAlign: 'center', paddingHorizontal: 40 }}>Le reçu a été perdu lors d'une mise à jour. Le client doit re-uploader.</Text>
+            </View>
+          ) : null}
         </View>
       </Modal>
     </ScrollView>

@@ -30,6 +30,7 @@ export default function ReceiptsGalleryScreen() {
   const [showImage, setShowImage] = useState(false);
   const [imageUrl, setImageUrl] = useState(null);
   const [imageInfo, setImageInfo] = useState(null);
+  const [imageError, setImageError] = useState(false);
 
   const fetchReceipts = useCallback(async () => {
     try {
@@ -61,6 +62,7 @@ export default function ReceiptsGalleryScreen() {
   const openImage = (receipt) => {
     setImageUrl(getImageUrl(receipt.receiptImageUrl));
     setImageInfo(receipt);
+    setImageError(false);
     setShowImage(true);
   };
 
@@ -188,15 +190,21 @@ export default function ReceiptsGalleryScreen() {
               </Text>
             </View>
           )}
-          {imageUrl ? (
+          {imageUrl && !imageError ? (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
               <ActivityIndicator color={COLORS.white} style={{ position: 'absolute', zIndex: 1 }} />
               <Image
                 source={{ uri: imageUrl }}
                 style={styles.fullImage}
                 resizeMode="contain"
-                onError={(e) => console.log('Gallery image error:', e.nativeEvent.error, 'URL:', imageUrl)}
+                onError={() => setImageError(true)}
               />
+            </View>
+          ) : imageError ? (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <Ionicons name="cloud-offline-outline" size={60} color="rgba(255,255,255,0.4)" />
+              <Text style={{ color: '#fff', marginTop: 12, fontSize: 15, fontWeight: '700' }}>Image indisponible</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', marginTop: 6, fontSize: 12, textAlign: 'center', paddingHorizontal: 40 }}>Le re\u00e7u a \u00e9t\u00e9 perdu lors d'une mise \u00e0 jour du serveur. Le client doit re-uploader.</Text>
             </View>
           ) : null}
         </View>
