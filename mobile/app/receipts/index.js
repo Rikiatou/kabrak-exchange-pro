@@ -188,13 +188,17 @@ export default function ReceiptsGalleryScreen() {
               </Text>
             </View>
           )}
-          {imageUrl && (
-            <Image
-              source={{ uri: imageUrl }}
-              style={styles.fullImage}
-              resizeMode="contain"
-            />
-          )}
+          {imageUrl ? (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+              <ActivityIndicator color={COLORS.white} style={{ position: 'absolute', zIndex: 1 }} />
+              <Image
+                source={{ uri: imageUrl }}
+                style={styles.fullImage}
+                resizeMode="contain"
+                onError={(e) => console.log('Gallery image error:', e.nativeEvent.error, 'URL:', imageUrl)}
+              />
+            </View>
+          ) : null}
         </View>
       </Modal>
     </View>

@@ -684,12 +684,21 @@ export default function DepositsScreen() {
           <TouchableOpacity style={styles.receiptClose} onPress={() => setShowReceipt(false)}>
             <Ionicons name="close-circle" size={36} color={COLORS.white} />
           </TouchableOpacity>
-          {receiptUrl && (
-            <Image
-              source={{ uri: receiptUrl }}
-              style={styles.receiptImage}
-              resizeMode="contain"
-            />
+          {receiptUrl ? (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+              <ActivityIndicator color={COLORS.white} style={{ position: 'absolute', zIndex: 1 }} />
+              <Image
+                source={{ uri: receiptUrl }}
+                style={styles.receiptImage}
+                resizeMode="contain"
+                onError={(e) => console.log('Image load error:', e.nativeEvent.error, 'URL:', receiptUrl)}
+              />
+            </View>
+          ) : (
+            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+              <Ionicons name="image-outline" size={60} color="rgba(255,255,255,0.3)" />
+              <Text style={{ color: 'rgba(255,255,255,0.5)', marginTop: 8, fontSize: 13 }}>Aucune image</Text>
+            </View>
           )}
         </View>
       </Modal>

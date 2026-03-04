@@ -73,15 +73,17 @@ const getOrders = async (req, res) => {
         { clientPhone: { [Op.like]: `%${search}%` } },
       ];
     }
-    // Filter by owner (team members see their owner's orders)
+    // Filter by owner + all team members
     const ownerId = req.user.teamOwnerId || req.user.id;
-    where.userId = ownerId;
+    const teamUsers = await User.findAll({ where: { [Op.or]: [{ id: ownerId }, { teamOwnerId: ownerId }] }, attributes: ['id'] });
+    const teamIds = teamUsers.map(u => u.id);
+    where.userId = { [Op.in]: teamIds };
     const orders = await DepositOrder.findAll({
       where,
       order: [['createdAt', 'DESC']],
       include: [
         { model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'], required: false },
-        { model: Deposit, as: 'payments', attributes: ['id', 'code', 'amount', 'status', 'receiptImageUrl', 'receiptUploadedAt', 'confirmedAt', 'createdAt'] }
+        { model: Deposit, as: 'payments', attributes: ['id', 'code', 'amount', 'currency', 'status', 'receiptImageUrl', 'receiptUploadedAt', 'confirmedAt', 'createdAt'] }
       ],
     });
     res.json({ success: true, data: orders });
