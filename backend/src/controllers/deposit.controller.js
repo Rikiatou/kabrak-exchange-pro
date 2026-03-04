@@ -37,11 +37,12 @@ const createDeposit = async (req, res) => {
   }
 };
 
-// GET /api/deposits — list all deposits (operator, auth required)
+// GET /api/deposits — list all deposits (operator, auth required, filtered by owner)
 const getDeposits = async (req, res) => {
   try {
     const { status, search } = req.query;
-    const where = {};
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const where = { userId: ownerId };
     if (status) where.status = status;
     if (search) {
       where[Op.or] = [
@@ -229,14 +230,16 @@ const savePushToken = async (req, res) => {
   }
 };
 
-// GET /api/deposits/client-receipts/:clientName — get all receipts for a client
+// GET /api/deposits/client-receipts/:clientName — get all receipts for a client (filtered by owner)
 const getClientReceipts = async (req, res) => {
   try {
     const { clientName } = req.params;
+    const ownerId = req.user.teamOwnerId || req.user.id;
     const deposits = await Deposit.findAll({
       where: {
         clientName: { [Op.like]: `%${clientName}%` },
         receiptImageUrl: { [Op.ne]: null },
+        userId: ownerId,
       },
       attributes: ['id', 'code', 'clientName', 'amount', 'currency', 'status', 'receiptImageUrl', 'receiptUploadedAt', 'createdAt'],
       order: [['receiptUploadedAt', 'DESC']],
@@ -247,11 +250,12 @@ const getClientReceipts = async (req, res) => {
   }
 };
 
-// GET /api/deposits/all-receipts — get all receipts grouped by client
+// GET /api/deposits/all-receipts — get all receipts grouped by client (filtered by owner)
 const getAllReceipts = async (req, res) => {
   try {
+    const ownerId = req.user.teamOwnerId || req.user.id;
     const deposits = await Deposit.findAll({
-      where: { receiptImageUrl: { [Op.ne]: null } },
+      where: { receiptImageUrl: { [Op.ne]: null }, userId: ownerId },
       attributes: ['id', 'code', 'clientName', 'amount', 'currency', 'status', 'receiptImageUrl', 'receiptUploadedAt', 'createdAt'],
       order: [['receiptUploadedAt', 'DESC']],
     });
