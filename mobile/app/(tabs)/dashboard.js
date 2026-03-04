@@ -128,6 +128,78 @@ function TxRow({ tx, onPress }) {
   );
 }
 
+function ProfitCard({ s, formatCurrency }) {
+  const [tab, setTab] = useState('today');
+  const tabs = [
+    { key: 'today', label: "Aujourd'hui", profit: s.profitToday || 0, txCount: s.todayTxCount || 0 },
+    { key: 'week', label: 'Semaine', profit: s.profitWeek || 0, txCount: s.weekTxCount || 0 },
+    { key: 'month', label: 'Ce mois', profit: s.profitMonth || 0, txCount: s.monthTxCount || 0 },
+  ];
+  const active = tabs.find(t => t.key === tab) || tabs[0];
+  const isPositive = active.profit >= 0;
+
+  return (
+    <View style={profitStyles.wrap}>
+      <View style={profitStyles.head}>
+        <View style={profitStyles.headLeft}>
+          <View style={profitStyles.iconBox}>
+            <Ionicons name="trending-up" size={18} color={GOLD} />
+          </View>
+          <Text style={profitStyles.headTitle}>Profit réel</Text>
+        </View>
+      </View>
+      <View style={profitStyles.tabs}>
+        {tabs.map(t => (
+          <TouchableOpacity
+            key={t.key}
+            style={[profitStyles.tab, tab === t.key && profitStyles.tabActive]}
+            onPress={() => setTab(t.key)}
+          >
+            <Text style={[profitStyles.tabText, tab === t.key && profitStyles.tabTextActive]}>{t.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <View style={profitStyles.body}>
+        <Text style={[profitStyles.amount, { color: isPositive ? GREEN_MAIN : '#dc2626' }]}>
+          {isPositive ? '+' : ''}{formatCurrency(active.profit)}
+        </Text>
+        <Text style={profitStyles.sub}>
+          {active.txCount} transaction{active.txCount !== 1 ? 's' : ''} · Marge sur taux
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+const profitStyles = StyleSheet.create({
+  wrap: {
+    marginHorizontal: 16, marginTop: 12, backgroundColor: '#fff',
+    borderRadius: 16, overflow: 'hidden',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 10, elevation: 4,
+  },
+  head: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6,
+  },
+  headLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  iconBox: {
+    width: 32, height: 32, borderRadius: 10,
+    backgroundColor: `${GOLD}18`, justifyContent: 'center', alignItems: 'center',
+  },
+  headTitle: { fontSize: 14, fontWeight: '800', color: '#0f172a' },
+  tabs: {
+    flexDirection: 'row', marginHorizontal: 12, marginBottom: 4,
+    backgroundColor: '#f1f5f9', borderRadius: 10, padding: 3,
+  },
+  tab: { flex: 1, paddingVertical: 7, borderRadius: 8, alignItems: 'center' },
+  tabActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 },
+  tabText: { fontSize: 12, fontWeight: '600', color: '#94a3b8' },
+  tabTextActive: { color: '#0f172a', fontWeight: '700' },
+  body: { paddingHorizontal: 16, paddingBottom: 16, paddingTop: 8, alignItems: 'center' },
+  amount: { fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
+  sub: { fontSize: 11, color: '#94a3b8', fontWeight: '600', marginTop: 4 },
+});
+
 export default function DashboardScreen() {
   const { data, isLoading, fetchDashboard } = useDashboardStore();
   const { user } = useAuthStore();
@@ -280,6 +352,11 @@ function EmployeeView({ data, isLoading, onRefresh, settings, user, router, t, s
           <MetricCard label={t.dashboard.todayTx} value={s.todayTransactions || 0} icon="today-outline" accent="#0369a1" onPress={() => { const today = new Date().toISOString().split('T')[0]; router.push(`/(tabs)/transactions?dateFrom=${today}&dateTo=${today}`); }} />
           <MetricCard label={t.tabs.clients} value={s.totalClients || 0} icon="people-outline" accent="#7c3aed" onPress={() => router.push('/(tabs)/clients')} />
         </View>
+
+        {/* ── Profit Section ── */}
+        {isManager && (
+          <ProfitCard s={s} formatCurrency={formatCurrency} />
+        )}
 
         {/* Top debtors */}
         {data?.debtorClients?.length > 0 && (

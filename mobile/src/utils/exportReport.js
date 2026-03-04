@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import { downloadAsync, documentDirectory, readAsStringAsync } from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
 import * as SecureStore from 'expo-secure-store';
@@ -21,20 +21,19 @@ export const exportExcel = async (type, params = {}) => {
 
   const url = `${API_BASE}/export/${type}${query ? '?' + query : ''}`;
   const filename = `${type}_${new Date().toISOString().split('T')[0]}.xlsx`;
-  const fileUri = FileSystem.documentDirectory + filename;
+  const fileUri = documentDirectory + filename;
 
   console.log('📊 Export Excel:', { type, url });
 
-  const result = await FileSystem.downloadAsync(url, fileUri, {
+  const result = await downloadAsync(url, fileUri, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
   console.log('📊 Export result:', { status: result.status, uri: result.uri });
 
   if (result.status !== 200) {
-    // Try to read error body
     try {
-      const errorContent = await FileSystem.readAsStringAsync(result.uri);
+      const errorContent = await readAsStringAsync(result.uri);
       console.log('📊 Export error body:', errorContent);
       const errorData = JSON.parse(errorContent);
       throw new Error(errorData.message || `Erreur ${result.status}`);
