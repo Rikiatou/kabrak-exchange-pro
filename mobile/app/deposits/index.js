@@ -112,6 +112,19 @@ export default function DepositsScreen() {
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState(null);
   const [receiptError, setReceiptError] = useState(false);
+
+  const openReceiptImage = (url) => {
+    const fullUrl = url?.startsWith('http') ? url : `${BACKEND_URL}${url}`;
+    setReceiptUrl(fullUrl);
+    setReceiptError(false);
+    setShowDetail(false);
+    setTimeout(() => setShowReceipt(true), 300);
+  };
+  const closeReceiptImage = () => {
+    setShowReceipt(false);
+    setReceiptError(false);
+    setTimeout(() => setShowDetail(true), 300);
+  };
   const [clientSearch, setClientSearch] = useState('');
   const [showClientPicker, setShowClientPicker] = useState(false);
   const [showNewClient, setShowNewClient] = useState(false);
@@ -601,7 +614,7 @@ export default function DepositsScreen() {
                           {p.status === 'pending' && (
                             <View style={styles.payLinkBtns}>
                               {p.receiptImageUrl && (
-                                <TouchableOpacity onPress={() => { setReceiptUrl(p.receiptImageUrl?.startsWith('http') ? p.receiptImageUrl : `${BACKEND_URL}${p.receiptImageUrl}`); setShowReceipt(true); }} style={[styles.payIconBtn, { backgroundColor: '#e0f2fe' }]}>
+                                <TouchableOpacity onPress={() => openReceiptImage(p.receiptImageUrl)} style={[styles.payIconBtn, { backgroundColor: '#e0f2fe' }]}>
                                   <Ionicons name="eye-outline" size={16} color={COLORS.info} />
                                 </TouchableOpacity>
                               )}
@@ -621,7 +634,7 @@ export default function DepositsScreen() {
                           )}
                           {p.status === 'receipt_uploaded' && (
                             <View style={styles.payLinkBtns}>
-                              <TouchableOpacity onPress={() => { setReceiptUrl(p.receiptImageUrl?.startsWith('http') ? p.receiptImageUrl : `${BACKEND_URL}${p.receiptImageUrl}`); setShowReceipt(true); }} style={[styles.payIconBtn, { backgroundColor: '#dbeafe', borderWidth: 1, borderColor: '#3b82f6' }]}>
+                              <TouchableOpacity onPress={() => openReceiptImage(p.receiptImageUrl)} style={[styles.payIconBtn, { backgroundColor: '#dbeafe', borderWidth: 1, borderColor: '#3b82f6' }]}>
                                 <Ionicons name="eye-outline" size={18} color="#2563eb" />
                               </TouchableOpacity>
                               <TouchableOpacity onPress={() => handleConfirmPayment(p)} style={[styles.payIconBtn, { backgroundColor: COLORS.successLight }]}>
@@ -635,7 +648,7 @@ export default function DepositsScreen() {
                           {p.status === 'confirmed' && (
                             <View style={styles.payLinkBtns}>
                               {p.receiptImageUrl && (
-                                <TouchableOpacity onPress={() => { setReceiptUrl(p.receiptImageUrl?.startsWith('http') ? p.receiptImageUrl : `${BACKEND_URL}${p.receiptImageUrl}`); setShowReceipt(true); }} style={[styles.payIconBtn, { backgroundColor: COLORS.successLight }]}>
+                                <TouchableOpacity onPress={() => openReceiptImage(p.receiptImageUrl)} style={[styles.payIconBtn, { backgroundColor: COLORS.successLight }]}>
                                   <Ionicons name="image-outline" size={16} color={COLORS.primary} />
                                 </TouchableOpacity>
                               )}
@@ -648,7 +661,7 @@ export default function DepositsScreen() {
                             </View>
                           )}
                           {p.status === 'rejected' && p.receiptImageUrl && (
-                            <TouchableOpacity onPress={() => { setReceiptUrl(p.receiptImageUrl?.startsWith('http') ? p.receiptImageUrl : `${BACKEND_URL}${p.receiptImageUrl}`); setShowReceipt(true); }} style={[styles.payIconBtn, { backgroundColor: COLORS.dangerLight }]}>
+                            <TouchableOpacity onPress={() => openReceiptImage(p.receiptImageUrl)} style={[styles.payIconBtn, { backgroundColor: COLORS.dangerLight }]}>
                               <Ionicons name="image-outline" size={16} color={COLORS.danger} />
                             </TouchableOpacity>
                           )}
@@ -682,7 +695,7 @@ export default function DepositsScreen() {
       {/* ── RECEIPT IMAGE MODAL ── */}
       <Modal visible={showReceipt} animationType="fade" transparent statusBarTranslucent>
         <View style={styles.receiptOverlay}>
-          <TouchableOpacity style={styles.receiptClose} onPress={() => { setShowReceipt(false); setReceiptError(false); }}>
+          <TouchableOpacity style={styles.receiptClose} onPress={closeReceiptImage}>
             <Ionicons name="close-circle" size={36} color={COLORS.white} />
           </TouchableOpacity>
           {receiptUrl && !receiptError ? (
