@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import useSettingStore from '../../src/store/settingStore';
 import useLanguageStore from '../../src/store/languageStore';
+import useOnboardingStore from '../../src/store/onboardingStore';
 
 const { width, height } = Dimensions.get('window');
 const GREEN_DARK = '#071a12';
@@ -19,6 +20,7 @@ export default function WelcomeBackScreen() {
   const router = useRouter();
   const { settings, fetchSettings } = useSettingStore();
   const { language } = useLanguageStore();
+  const { load: loadOnboarding, onboardingDone } = useOnboardingStore();
 
   const scaleAnim  = useRef(new Animated.Value(0.7)).current;
   const fadeAnim   = useRef(new Animated.Value(0)).current;
@@ -39,11 +41,18 @@ export default function WelcomeBackScreen() {
       ]).start();
     });
 
-    const timer = setTimeout(() => {
-      router.replace('/(tabs)/dashboard');
-    }, 5000);
-
-    return () => clearTimeout(timer);
+    // Load onboarding state then redirect
+    loadOnboarding().then(() => {
+      const { onboardingDone: done } = useOnboardingStore.getState();
+      const timer = setTimeout(() => {
+        if (!done) {
+          router.replace('/(auth)/onboarding');
+        } else {
+          router.replace('/(tabs)/dashboard');
+        }
+      }, 3000);
+      return () => clearTimeout(timer);
+    });
   }, []);
 
   const { businessName, businessLogo } = settings;

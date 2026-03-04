@@ -14,6 +14,7 @@ import useClientStore from '../../src/store/clientStore';
 import useSettingStore from '../../src/store/settingStore';
 import { shareDepositReceipt } from '../../src/utils/generateReceipt';
 import useAuthStore from '../../src/store/authStore';
+import TooltipGuide from '../../src/components/TooltipGuide';
 
 const UPLOAD_BASE = 'https://exchange.kabrakeng.com/upload';
 const BACKEND_URL = 'https://kabrak-exchange-pro-production.up.railway.app';
@@ -309,6 +310,15 @@ export default function DepositsScreen() {
 
   return (
     <View style={styles.container}>
+      <TooltipGuide
+        screenKey="deposits"
+        steps={[
+          { icon: 'wallet', text: 'Ici vous gérez les commandes de dépôt. Créez une commande, ajoutez des versements et suivez le solde.', textEn: 'Here you manage deposit orders. Create an order, add payments and track the balance.', position: 'top' },
+          { icon: 'add-circle', text: 'Appuyez sur + pour créer une nouvelle commande. Envoyez ensuite le code au client par WhatsApp.', textEn: 'Tap + to create a new order. Then send the code to the client via WhatsApp.', position: 'bottom' },
+          { icon: 'eye', text: 'Quand le client upload son re\u00e7u, appuyez sur l\'\u0153il \ud83d\udc41 pour voir l\'image AVANT de confirmer.', textEn: 'When the client uploads a receipt, tap the eye \ud83d\udc41 to view the image BEFORE confirming.', position: 'center' },
+          { icon: 'checkmark-circle', text: 'Apr\u00e8s v\u00e9rification du re\u00e7u, appuyez \u2705 pour confirmer ou \u274c pour rejeter le versement.', textEn: 'After verifying the receipt, tap \u2705 to confirm or \u274c to reject the payment.', position: 'center' },
+        ]}
+      />
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>

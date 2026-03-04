@@ -9,6 +9,7 @@ import useClientStore from '../../src/store/clientStore';
 import useLanguageStore from '../../src/store/languageStore';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import { formatCurrency, getInitials } from '../../src/utils/helpers';
+import TooltipGuide from '../../src/components/TooltipGuide';
 
 function ClientCard({ client, onPress, owesLabel, paidLabel }) {
   const hasDebt = parseFloat(client.totalDebt) > 0;
@@ -61,6 +62,14 @@ export default function ClientsScreen() {
 
   return (
     <View style={styles.container}>
+      <TooltipGuide
+        screenKey="clients"
+        steps={[
+          { icon: 'people', text: 'Ici vous gérez tous vos clients. Recherchez par nom ou téléphone.', textEn: 'Here you manage all your clients. Search by name or phone.', position: 'top' },
+          { icon: 'person-add', text: 'Appuyez sur + pour ajouter un nouveau client. Il sera disponible partout dans l\'app.', textEn: 'Tap + to add a new client. They will be available everywhere in the app.', position: 'bottom' },
+          { icon: 'card', text: 'Appuyez sur un client pour voir son historique, ses transactions et son solde.', textEn: 'Tap a client to view their history, transactions and balance.', position: 'center' },
+        ]}
+      />
       <View style={styles.header}>
         <Text style={styles.title}>{t.clients.title}</Text>
         <TouchableOpacity style={styles.addBtn} onPress={() => router.push('/clients/new')}>

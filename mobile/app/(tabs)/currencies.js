@@ -10,6 +10,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import useLanguageStore from '../../src/store/languageStore';
 import { formatCurrency } from '../../src/utils/helpers';
 import api from '../../src/services/api';
+import TooltipGuide from '../../src/components/TooltipGuide';
 
 function CurrencyCard({ currency, onPress, isAdmin, buyLabel, sellLabel, baseCurrency }) {
   const stock = parseFloat(currency.stockAmount || 0);
@@ -84,6 +85,13 @@ export default function CurrenciesScreen() {
 
   return (
     <View style={styles.container}>
+      <TooltipGuide
+        screenKey="currencies"
+        steps={[
+          { icon: 'cash', text: 'Gérez vos devises ici. Ajoutez, modifiez les taux d\'achat et de vente.', textEn: 'Manage your currencies here. Add, edit buy and sell rates.', position: 'top' },
+          { icon: 'trending-up', text: 'Les taux se synchronisent automatiquement avec le marché. Vous pouvez aussi les ajuster manuellement.', textEn: 'Rates sync automatically with the market. You can also adjust them manually.', position: 'center' },
+        ]}
+      />
       <View style={styles.header}>
         <Text style={styles.title}>{t.currencies.title}</Text>
         <View style={{ flexDirection: 'row', gap: 8 }}>

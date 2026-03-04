@@ -10,6 +10,7 @@ import useLanguageStore from '../../src/store/languageStore';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import { formatCurrency, formatDate, getStatusConfig } from '../../src/utils/helpers';
 import { exportExcel } from '../../src/utils/exportReport';
+import TooltipGuide from '../../src/components/TooltipGuide';
 
 
 function TransactionCard({ tx, onPress, remainingLabel }) {
@@ -129,6 +130,14 @@ export default function TransactionsScreen() {
 
   return (
     <View style={styles.container}>
+      <TooltipGuide
+        screenKey="transactions"
+        steps={[
+          { icon: 'swap-horizontal', text: 'Ici vous voyez toutes vos transactions. Filtrez par statut (Payé, Partiel, Non payé).', textEn: 'Here you see all your transactions. Filter by status (Paid, Partial, Unpaid).', position: 'top' },
+          { icon: 'add-circle', text: 'Appuyez sur + en bas à droite pour créer une nouvelle transaction d\'achat ou vente de devises.', textEn: 'Tap + at the bottom right to create a new buy or sell transaction.', position: 'bottom' },
+          { icon: 'document-text', text: 'Appuyez sur une transaction pour voir les détails, le reçu et enregistrer les paiements.', textEn: 'Tap a transaction to view details, receipt and record payments.', position: 'center' },
+        ]}
+      />
       <View style={styles.header}>
         <Text style={styles.title}>{t.transactions.title}</Text>
         <View style={styles.headerActions}>

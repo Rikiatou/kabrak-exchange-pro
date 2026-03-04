@@ -13,6 +13,7 @@ import useSettingStore from '../../src/store/settingStore';
 import { formatCurrency, getInitials } from '../../src/utils/helpers';
 import { exportExcel } from '../../src/utils/exportReport';
 import OwnerDashboardScreen from '../owner-dashboard';
+import TooltipGuide from '../../src/components/TooltipGuide';
 
 const { width } = Dimensions.get('window');
 const GREEN_DARK = '#071a12';
@@ -167,6 +168,14 @@ function EmployeeView({ data, isLoading, onRefresh, settings, user, router, t, s
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={GREEN_DARK} />
+      <TooltipGuide
+        screenKey="dashboard"
+        steps={[
+          { icon: 'home', text: 'Bienvenue sur votre tableau de bord ! Ici vous voyez un résumé de votre activité du jour.', textEn: 'Welcome to your dashboard! Here you see a summary of your daily activity.', position: 'center' },
+          { icon: 'stats-chart', text: 'Les cartes en haut montrent vos chiffres clés : transactions, volume, clients actifs.', textEn: 'The cards at the top show your key metrics: transactions, volume, active clients.', position: 'top' },
+          { icon: 'swap-horizontal', text: 'Tirez vers le bas pour rafraîchir les données en temps réel.', textEn: 'Pull down to refresh data in real-time.', position: 'center' },
+        ]}
+      />
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={onRefresh} tintColor={GREEN_MAIN} colors={[GREEN_MAIN]} />}
