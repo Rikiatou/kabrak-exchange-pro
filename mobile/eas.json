@@ -15,8 +15,13 @@
     },
     "preview": {
       "distribution": "internal",
+      "node": "20.20.0",
+      "env": {
+        "NODE_ENV": "production"
+      },
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "image": "latest"
       },
       "ios": {
         "simulator": false
