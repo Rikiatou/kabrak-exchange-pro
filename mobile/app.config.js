@@ -34,6 +34,7 @@ export default {
       },
       package: 'com.kabrak.exchangepro',
       versionCode: 1,
+      googleServicesFile: process.env.GOOGLE_SERVICES_JSON || './google-services.json',
       permissions: [
         'android.permission.CAMERA',
         'android.permission.READ_EXTERNAL_STORAGE',
