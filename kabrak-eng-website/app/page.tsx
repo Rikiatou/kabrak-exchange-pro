@@ -60,10 +60,8 @@ export default function Home() {
       <nav className="nav-blur fixed top-0 left-0 right-0 z-50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl font-bold" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)', color: 'white' }}>
-              K
-            </div>
-            <span className="font-bold text-white text-lg">KABRAK <span style={{ color: '#ec4899' }}>ENG</span></span>
+            <img src="/KEiconelogo.jpeg" alt="KABRAK ENG Logo" style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover' }} />
+            <span className="font-bold text-white text-lg">KABRAK <span style={{ color: '#6ee7b7' }}>ENG</span></span>
           </div>
           <div className="hidden md:flex items-center gap-6">
             {NAV_LINKS.map(([href, label]) => (
@@ -262,10 +260,8 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl font-bold" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)', color: 'white' }}>
-                  K
-                </div>
-                <span className="font-bold text-white text-lg">KABRAK <span style={{ color: '#ec4899' }}>ENG</span></span>
+                <img src="/KEiconelogo.jpeg" alt="KABRAK ENG Logo" style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover' }} />
+                <span className="font-bold text-white text-lg">KABRAK <span style={{ color: '#6ee7b7' }}>ENG</span></span>
               </div>
               <p className="text-sm text-slate-400 max-w-sm">{T.footer.tagline}</p>
             </div>
