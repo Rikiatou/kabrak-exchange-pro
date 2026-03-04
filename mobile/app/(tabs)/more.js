@@ -99,7 +99,7 @@ export default function MoreScreen() {
         {isOwner && <MenuItem icon="shield-checkmark-outline" label="Ma Licence" subtitle="Plan, expiration, renouvellement" onPress={() => router.push('/settings/license')} color="#6366f1" />}
         {isOwner && <MenuItem icon="business-outline" label="Mon entreprise" subtitle="Nom, téléphone, adresse" onPress={() => router.push('/settings/business')} color={COLORS.primary} />}
         <MenuItem icon="lock-closed-outline" label={t.settings.changePassword} onPress={() => router.push('/settings/change-password')} color={COLORS.primary} />
-        <MenuItem icon="school-outline" label="Tutoriel" subtitle="Revoir le guide de l'app" onPress={async () => { await resetOnboarding(); router.push('/(auth)/onboarding'); }} color="#8b5cf6" />
+        <MenuItem icon="book-outline" label="Guide d'utilisation" subtitle="FAQ, tutoriels et aide" onPress={() => router.push('/settings/guide')} color="#8b5cf6" />
         <MenuItem icon="information-circle-outline" label={t.settings.about} onPress={() => router.push('/settings/about')} color={COLORS.textSecondary} />
         <MenuItem icon="log-out-outline" label={t.more.logout} danger onPress={handleLogout} />
       </MenuSection>

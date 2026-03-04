@@ -14,6 +14,7 @@ import { formatCurrency, getInitials } from '../../src/utils/helpers';
 import { exportExcel } from '../../src/utils/exportReport';
 import OwnerDashboardScreen from '../owner-dashboard';
 import TooltipGuide from '../../src/components/TooltipGuide';
+import StartupChecklist from '../../src/components/StartupChecklist';
 
 const { width } = Dimensions.get('window');
 const GREEN_DARK = '#071a12';
@@ -227,6 +228,7 @@ export default function DashboardScreen() {
 }
 
 function EmployeeView({ data, isLoading, onRefresh, settings, user, router, t, s, greeting }) {
+  const { language: lang } = useLanguageStore();
   const isManager = user?.teamRole === 'owner' || user?.teamRole === 'manager';
 
   const handleExportTransactions = async () => {
@@ -325,6 +327,9 @@ function EmployeeView({ data, isLoading, onRefresh, settings, user, router, t, s
             </TouchableOpacity>
           )}
         </View>
+
+        {/* Startup Checklist (new users) */}
+        {isManager && <StartupChecklist data={data} settings={settings} lang={lang} />}
 
         {/* Quick actions */}
         <View style={styles.quickRow}>

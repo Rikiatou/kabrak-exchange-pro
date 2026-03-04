@@ -19,38 +19,51 @@ const SLIDES_FR = [
   {
     icon: 'swap-horizontal',
     iconBg: GOLD,
-    title: 'Bienvenue sur\nKABRAK Exchange Pro',
-    desc: 'La solution complète pour gérer votre bureau de change. Simple, rapide et professionnel.',
+    title: 'Bienvenue !',
+    desc: 'KABRAK Exchange Pro gère votre bureau de change de A à Z : clients, transactions, dépôts, reçus et rapports.',
+    tip: 'Suivez ce guide rapide pour démarrer',
+  },
+  {
+    icon: 'list',
+    iconBg: '#10b981',
+    title: 'Démarrage rapide',
+    desc: '1. Ajoutez vos devises\n2. Créez un client\n3. Faites votre 1ère transaction\n4. Partagez le reçu par WhatsApp',
+    tip: '4 étapes pour être opérationnel',
   },
   {
     icon: 'people',
     iconBg: '#3b82f6',
-    title: 'Gérez vos clients',
-    desc: 'Ajoutez vos clients, consultez leur historique de transactions et leur solde en un clic.',
+    title: 'Clients',
+    desc: 'Ajoutez un client avec nom et téléphone. Retrouvez tout son historique : transactions, dettes, versements et reçus.',
+    tip: 'Onglet Clients en bas',
   },
   {
     icon: 'trending-up',
     iconBg: GREEN,
-    title: 'Transactions & Taux',
-    desc: 'Achetez et vendez des devises avec des taux en temps réel. Chaque opération génère un reçu professionnel.',
+    title: 'Transactions',
+    desc: 'Achetez ou vendez des devises. Saisissez le montant, le taux s\'applique automatiquement. Un reçu PDF est généré instantanément.',
+    tip: 'Bouton + sur le dashboard',
   },
   {
     icon: 'wallet',
     iconBg: '#8b5cf6',
-    title: 'Commandes de dépôt',
-    desc: 'Créez une commande, envoyez le code au client par WhatsApp. Il upload son reçu, vous vérifiez et confirmez.',
+    title: 'Dépôts',
+    desc: 'Créez une commande de dépôt → envoyez le code au client par WhatsApp → il upload son reçu → vous vérifiez et confirmez.',
+    tip: 'Menu Dépôts dans les raccourcis',
   },
   {
-    icon: 'notifications',
-    iconBg: '#ef4444',
-    title: 'Notifications en temps réel',
-    desc: 'Soyez alerté quand un client fait un versement, quand un taux change ou quand une action est requise.',
+    icon: 'bar-chart',
+    iconBg: '#f59e0b',
+    title: 'Rapports & Profit',
+    desc: 'Suivez votre profit réel (aujourd\'hui, semaine, mois). Exportez vos données en Excel ou PDF pour votre comptabilité.',
+    tip: 'Onglet Rapports dans le menu',
   },
   {
     icon: 'settings',
     iconBg: '#6366f1',
-    title: 'Personnalisez tout',
-    desc: 'Logo, couleurs, devises, employés, reçus — configurez l\'app à votre image dans les Paramètres.',
+    title: 'Paramètres',
+    desc: 'Personnalisez : nom du business, logo, devises actives, équipe (employés/managers), et notifications push.',
+    tip: 'Onglet Plus → Paramètres',
   },
 ];
 
@@ -58,38 +71,51 @@ const SLIDES_EN = [
   {
     icon: 'swap-horizontal',
     iconBg: GOLD,
-    title: 'Welcome to\nKABRAK Exchange Pro',
-    desc: 'The complete solution to manage your exchange office. Simple, fast and professional.',
+    title: 'Welcome!',
+    desc: 'KABRAK Exchange Pro manages your exchange office end-to-end: clients, transactions, deposits, receipts and reports.',
+    tip: 'Follow this quick guide to get started',
+  },
+  {
+    icon: 'list',
+    iconBg: '#10b981',
+    title: 'Quick Start',
+    desc: '1. Add your currencies\n2. Create a client\n3. Make your 1st transaction\n4. Share the receipt via WhatsApp',
+    tip: '4 steps to be operational',
   },
   {
     icon: 'people',
     iconBg: '#3b82f6',
-    title: 'Manage your clients',
-    desc: 'Add clients, view their transaction history and balance in one tap.',
+    title: 'Clients',
+    desc: 'Add a client with name and phone. Access their full history: transactions, debts, deposits and receipts.',
+    tip: 'Clients tab at the bottom',
   },
   {
     icon: 'trending-up',
     iconBg: GREEN,
-    title: 'Transactions & Rates',
-    desc: 'Buy and sell currencies with real-time rates. Each operation generates a professional receipt.',
+    title: 'Transactions',
+    desc: 'Buy or sell currencies. Enter the amount, the rate applies automatically. A PDF receipt is generated instantly.',
+    tip: '+ button on the dashboard',
   },
   {
     icon: 'wallet',
     iconBg: '#8b5cf6',
-    title: 'Deposit orders',
-    desc: 'Create an order, send the code to your client via WhatsApp. They upload the receipt, you verify and confirm.',
+    title: 'Deposits',
+    desc: 'Create a deposit order → send the code to client via WhatsApp → they upload receipt → you verify and confirm.',
+    tip: 'Deposits menu in shortcuts',
   },
   {
-    icon: 'notifications',
-    iconBg: '#ef4444',
-    title: 'Real-time notifications',
-    desc: 'Get notified when a client makes a deposit, when a rate changes or when action is needed.',
+    icon: 'bar-chart',
+    iconBg: '#f59e0b',
+    title: 'Reports & Profit',
+    desc: 'Track your real profit (today, week, month). Export your data to Excel or PDF for your accounting.',
+    tip: 'Reports tab in the menu',
   },
   {
     icon: 'settings',
     iconBg: '#6366f1',
-    title: 'Customize everything',
-    desc: 'Logo, colors, currencies, employees, receipts — configure the app to match your brand in Settings.',
+    title: 'Settings',
+    desc: 'Customize: business name, logo, active currencies, team (employees/managers), and push notifications.',
+    tip: 'More tab → Settings',
   },
 ];
 
@@ -147,6 +173,12 @@ export default function OnboardingScreen() {
         <Animated.View style={{ opacity }}>
           <Text style={styles.slideTitle}>{item.title}</Text>
           <Text style={styles.slideDesc}>{item.desc}</Text>
+          {item.tip ? (
+            <View style={styles.tipBadge}>
+              <Ionicons name="bulb-outline" size={14} color={GOLD} />
+              <Text style={styles.tipText}>{item.tip}</Text>
+            </View>
+          ) : null}
         </Animated.View>
       </View>
     );
@@ -257,6 +289,12 @@ const styles = StyleSheet.create({
     fontSize: 15, color: 'rgba(255,255,255,0.65)',
     textAlign: 'center', lineHeight: 22, paddingHorizontal: 8,
   },
+  tipBadge: {
+    flexDirection: 'row', alignItems: 'center', alignSelf: 'center', gap: 6,
+    backgroundColor: 'rgba(232,160,32,0.12)', borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 8, marginTop: 16,
+  },
+  tipText: { color: GOLD, fontSize: 12, fontWeight: '700' },
 
   bottom: { paddingBottom: 50, paddingHorizontal: 32, alignItems: 'center' },
 
