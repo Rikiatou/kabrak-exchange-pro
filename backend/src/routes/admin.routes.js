@@ -338,9 +338,9 @@ router.post('/reset-data', adminAuth, async (req, res) => {
     await Alert.destroy({ where: {} });
     await AuditLog.destroy({ where: {} });
     await PaymentProof.destroy({ where: {} });
-    // Reset client balances
-    await Client.update({ totalDebt: 0, totalPaid: 0 }, { where: {} });
-    res.json({ success: true, message: 'Toutes les données ont été réinitialisées.' });
+    // Delete all clients too (full reset)
+    await Client.destroy({ where: {} });
+    res.json({ success: true, message: 'Toutes les données ont été réinitialisées (clients, transactions, dépôts, paiements, etc.).' });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
