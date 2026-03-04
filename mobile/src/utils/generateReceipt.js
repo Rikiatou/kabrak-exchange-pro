@@ -65,7 +65,6 @@ body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#fff;col
   <div class="hd">
     ${logoHTML}
     <div class="bn">${biz}</div>
-    <div class="bs">KABRAK Exchange Pro</div>
     ${phone ? `<div class="bd">Tel: ${phone}</div>` : ''}
     ${address ? `<div class="bd">${address}</div>` : ''}
   </div>
@@ -184,7 +183,6 @@ body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#fff;col
   <div class="hd">
     ${logoHTML}
     <div class="bn">${biz}</div>
-    <div class="bs">KABRAK Exchange Pro</div>
     ${phone ? `<div class="bd">Tel: ${phone}</div>` : ''}
     ${address ? `<div class="bd">${address}</div>` : ''}
   </div>

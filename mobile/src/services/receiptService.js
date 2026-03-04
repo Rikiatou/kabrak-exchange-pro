@@ -148,7 +148,6 @@ td{padding:5px 4px;border-bottom:1px solid #ddd;color:#000;font-size:11px;font-w
   <div class="hd">
     ${logoHTML}
     <h1>${businessName}</h1>
-    <div class="sub">KABRAK Exchange Pro</div>
     <div class="tp">${L.receipt}</div>
     <div class="ref">${transaction.reference}</div>
   </div>
