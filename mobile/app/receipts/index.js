@@ -33,10 +33,10 @@ export default function ReceiptsGalleryScreen() {
 
   const fetchReceipts = useCallback(async () => {
     try {
-      const res = await api.get('/deposits/all-receipts');
+      const res = await api.get('/deposits/all-receipts', { timeout: 30000 });
       setGroups(res.data.data || []);
     } catch (e) {
-      console.error('Error fetching receipts:', e);
+      console.error('Error fetching receipts:', e?.message);
     }
     setLoading(false);
     setRefreshing(false);

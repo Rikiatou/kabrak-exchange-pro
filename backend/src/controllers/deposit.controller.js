@@ -42,7 +42,10 @@ const getDeposits = async (req, res) => {
   try {
     const { status, search } = req.query;
     const ownerId = req.user.teamOwnerId || req.user.id;
-    const where = { userId: ownerId };
+    // Find all team member IDs (owner + employees)
+    const teamUsers = await User.findAll({ where: { [Op.or]: [{ id: ownerId }, { teamOwnerId: ownerId }] }, attributes: ['id'] });
+    const teamIds = teamUsers.map(u => u.id);
+    const where = { userId: { [Op.in]: teamIds } };
     if (status) where.status = status;
     if (search) {
       where[Op.or] = [
@@ -235,11 +238,13 @@ const getClientReceipts = async (req, res) => {
   try {
     const { clientName } = req.params;
     const ownerId = req.user.teamOwnerId || req.user.id;
+    const teamUsers = await User.findAll({ where: { [Op.or]: [{ id: ownerId }, { teamOwnerId: ownerId }] }, attributes: ['id'] });
+    const teamIds = teamUsers.map(u => u.id);
     const deposits = await Deposit.findAll({
       where: {
         clientName: { [Op.like]: `%${clientName}%` },
         receiptImageUrl: { [Op.ne]: null },
-        userId: ownerId,
+        userId: { [Op.in]: teamIds },
       },
       attributes: ['id', 'code', 'clientName', 'amount', 'currency', 'status', 'receiptImageUrl', 'receiptUploadedAt', 'createdAt'],
       order: [['receiptUploadedAt', 'DESC']],
@@ -254,8 +259,10 @@ const getClientReceipts = async (req, res) => {
 const getAllReceipts = async (req, res) => {
   try {
     const ownerId = req.user.teamOwnerId || req.user.id;
+    const teamUsers = await User.findAll({ where: { [Op.or]: [{ id: ownerId }, { teamOwnerId: ownerId }] }, attributes: ['id'] });
+    const teamIds = teamUsers.map(u => u.id);
     const deposits = await Deposit.findAll({
-      where: { receiptImageUrl: { [Op.ne]: null }, userId: ownerId },
+      where: { receiptImageUrl: { [Op.ne]: null }, userId: { [Op.in]: teamIds } },
       attributes: ['id', 'code', 'clientName', 'amount', 'currency', 'status', 'receiptImageUrl', 'receiptUploadedAt', 'createdAt'],
       order: [['receiptUploadedAt', 'DESC']],
     });
