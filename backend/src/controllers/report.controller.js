@@ -11,9 +11,16 @@ const getMonthlyReport = async (req, res) => {
     const endDate = moment(`${y}-${String(m).padStart(2, '0')}-01`).endOf('month').toDate();
 
     const ownerId = req.user.teamOwnerId || req.user.id;
+    
+    // Get all user IDs in this bureau
+    const [teamUsers] = await Transaction.sequelize.query(
+      `SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId`,
+      { replacements: { ownerId } }
+    );
+    const userIds = teamUsers.map(u => u.id);
 
     const transactions = await Transaction.findAll({
-      where: { userId: ownerId, createdAt: { [Op.between]: [startDate, endDate] } },
+      where: { userId: { [Op.in]: userIds }, createdAt: { [Op.between]: [startDate, endDate] } },
       include: [
         { model: Client, as: 'client', attributes: ['id', 'name'], required: false }
       ],
@@ -27,9 +34,9 @@ const getMonthlyReport = async (req, res) => {
     });
 
     // Fetch operators separately to avoid JOIN issues
-    const userIds = [...new Set(transactions.map(t => t.userId).filter(Boolean))];
-    const operators = userIds.length > 0
-      ? await User.findAll({ where: { id: { [Op.in]: userIds } }, attributes: ['id', 'firstName', 'lastName', 'name'] }).catch(() => [])
+    const transactionUserIds = [...new Set(transactions.map(t => t.userId).filter(Boolean))];
+    const operators = transactionUserIds.length > 0
+      ? await User.findAll({ where: { id: { [Op.in]: transactionUserIds } }, attributes: ['id', 'firstName', 'lastName', 'name'] }).catch(() => [])
       : [];
     const operatorMap = {};
     operators.forEach(u => {

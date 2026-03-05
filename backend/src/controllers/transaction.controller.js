@@ -8,7 +8,15 @@ const getAll = async (req, res) => {
   try {
     const { page = 1, limit = 20, status, clientId, currencyFrom, currencyTo, dateFrom, dateTo, amountMin, amountMax, search } = req.query;
     const ownerId = req.user.teamOwnerId || req.user.id;
-    const where = { userId: ownerId };
+    
+    // Get all user IDs in this bureau (owner + team members)
+    const [teamUsers] = await Transaction.sequelize.query(
+      `SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId`,
+      { replacements: { ownerId } }
+    );
+    const userIds = teamUsers.map(u => u.id);
+    
+    const where = { userId: { [Op.in]: userIds } };
     if (status) where.status = status;
     if (clientId) where.clientId = clientId;
     if (currencyFrom) where.currencyFrom = currencyFrom.toUpperCase();
@@ -54,8 +62,16 @@ const getAll = async (req, res) => {
 const getById = async (req, res) => {
   try {
     const ownerId = req.user.teamOwnerId || req.user.id;
+    
+    // Get all user IDs in this bureau
+    const [teamUsers] = await Transaction.sequelize.query(
+      `SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId`,
+      { replacements: { ownerId } }
+    );
+    const userIds = teamUsers.map(u => u.id);
+    
     const transaction = await Transaction.findOne({
-      where: { id: req.params.id, userId: ownerId },
+      where: { id: req.params.id, userId: { [Op.in]: userIds } },
       include: [
         { model: Client, as: 'client' },
         { model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] },

@@ -6,7 +6,15 @@ const getAll = async (req, res) => {
   try {
     const { page = 1, limit = 20, currency, startDate, endDate } = req.query;
     const ownerId = req.user.teamOwnerId || req.user.id;
-    const where = { userId: ownerId };
+    
+    // Get all user IDs in this bureau
+    const [teamUsers] = await CashBook.sequelize.query(
+      `SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId`,
+      { replacements: { ownerId } }
+    );
+    const userIds = teamUsers.map(u => u.id);
+    
+    const where = { userId: { [Op.in]: userIds } };
     if (currency) where.currency = currency;
     if (startDate && endDate) {
       where.date = { [Op.between]: [startDate, endDate] };
@@ -33,8 +41,16 @@ const getToday = async (req, res) => {
   try {
     const ownerId = req.user.teamOwnerId || req.user.id;
     const today = moment().format('YYYY-MM-DD');
+    
+    // Get all user IDs in this bureau
+    const [teamUsers] = await CashBook.sequelize.query(
+      `SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId`,
+      { replacements: { ownerId } }
+    );
+    const userIds = teamUsers.map(u => u.id);
+    
     const entries = await CashBook.findAll({
-      where: { date: today, userId: ownerId },
+      where: { date: today, userId: { [Op.in]: userIds } },
       include: [{ model: User, as: 'operator', attributes: ['id', 'firstName', 'lastName'] }]
     });
     return res.json({ success: true, data: entries });
