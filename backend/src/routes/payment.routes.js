@@ -20,7 +20,7 @@ router.post('/ussd-proof', async (req, res) => {
     console.log('📝 Payment Proof submission:', { userId, plan, amount, reference, phoneNumber });
     
     // Validation de base
-    if (!userId || !plan || !amount || !reference || !phoneNumber) {
+    if (!userId || !plan || amount === undefined || amount === null || !reference || !phoneNumber) {
       console.log('❌ Missing required fields');
       return res.status(400).json({ 
         success: false, 
