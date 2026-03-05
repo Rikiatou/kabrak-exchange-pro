@@ -13,6 +13,14 @@ const getDashboard = async (req, res) => {
     const monthEnd = moment().endOf('month').toDate();
     const sevenDaysAgo = moment().subtract(6, 'days').startOf('day').toDate();
 
+    // Get all user IDs in this bureau (owner + team members)
+    const { User } = require('../models');
+    const [teamUsers] = await sequelize.query(
+      `SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId`,
+      { replacements: { ownerId } }
+    );
+    const userIds = teamUsers.map(u => u.id);
+
     const [
       totalOutstanding,
       totalTransactions,
@@ -36,38 +44,38 @@ const getDashboard = async (req, res) => {
       recentDepositOrders,
       last7Profit,
     ] = await Promise.all([
-      Transaction.sum('amountRemaining', { where: { status: { [Op.in]: ['unpaid', 'partial'] }, userId: ownerId } }),
-      Transaction.count({ where: { userId: ownerId } }),
-      Transaction.count({ where: { status: 'unpaid', userId: ownerId } }),
-      Transaction.count({ where: { status: 'partial', userId: ownerId } }),
-      Transaction.count({ where: { status: 'paid', userId: ownerId } }),
-      Transaction.count({ where: { createdAt: { [Op.between]: [today, todayEnd] }, userId: ownerId } }),
-      Payment.sum('amount', { where: { createdAt: { [Op.between]: [today, todayEnd] }, userId: ownerId } }),
-      Payment.sum('amount', { where: { createdAt: { [Op.between]: [monthStart, monthEnd] }, userId: ownerId } }),
+      Transaction.sum('amountRemaining', { where: { status: { [Op.in]: ['unpaid', 'partial'] }, userId: { [Op.in]: userIds } } }),
+      Transaction.count({ where: { userId: { [Op.in]: userIds } } }),
+      Transaction.count({ where: { status: 'unpaid', userId: { [Op.in]: userIds } } }),
+      Transaction.count({ where: { status: 'partial', userId: { [Op.in]: userIds } } }),
+      Transaction.count({ where: { status: 'paid', userId: { [Op.in]: userIds } } }),
+      Transaction.count({ where: { createdAt: { [Op.between]: [today, todayEnd] }, userId: { [Op.in]: userIds } } }),
+      Payment.sum('amount', { where: { createdAt: { [Op.between]: [today, todayEnd] }, userId: { [Op.in]: userIds } } }),
+      Payment.sum('amount', { where: { createdAt: { [Op.between]: [monthStart, monthEnd] }, userId: { [Op.in]: userIds } } }),
       // Real profit = SUM(profit) from transactions
-      Transaction.sum('profit', { where: { createdAt: { [Op.between]: [today, todayEnd] }, userId: ownerId } }),
-      Transaction.sum('profit', { where: { createdAt: { [Op.between]: [weekStart, weekEnd] }, userId: ownerId } }),
-      Transaction.sum('profit', { where: { createdAt: { [Op.between]: [monthStart, monthEnd] }, userId: ownerId } }),
+      Transaction.sum('profit', { where: { createdAt: { [Op.between]: [today, todayEnd] }, userId: { [Op.in]: userIds } } }),
+      Transaction.sum('profit', { where: { createdAt: { [Op.between]: [weekStart, weekEnd] }, userId: { [Op.in]: userIds } } }),
+      Transaction.sum('profit', { where: { createdAt: { [Op.between]: [monthStart, monthEnd] }, userId: { [Op.in]: userIds } } }),
       // Transaction counts for profit periods
-      Transaction.count({ where: { createdAt: { [Op.between]: [today, todayEnd] }, userId: ownerId } }),
-      Transaction.count({ where: { createdAt: { [Op.between]: [weekStart, weekEnd] }, userId: ownerId } }),
-      Transaction.count({ where: { createdAt: { [Op.between]: [monthStart, monthEnd] }, userId: ownerId } }),
+      Transaction.count({ where: { createdAt: { [Op.between]: [today, todayEnd] }, userId: { [Op.in]: userIds } } }),
+      Transaction.count({ where: { createdAt: { [Op.between]: [weekStart, weekEnd] }, userId: { [Op.in]: userIds } } }),
+      Transaction.count({ where: { createdAt: { [Op.between]: [monthStart, monthEnd] }, userId: { [Op.in]: userIds } } }),
       Client.findAll({
-        where: { totalDebt: { [Op.gt]: 0 }, isActive: true, userId: ownerId },
+        where: { totalDebt: { [Op.gt]: 0 }, isActive: true, userId: { [Op.in]: userIds } },
         order: [['totalDebt', 'DESC']],
         limit: 10,
         attributes: ['id', 'name', 'phone', 'totalDebt', 'totalPaid'],
       }),
       Transaction.findAll({
-        where: { userId: ownerId },
+        where: { userId: { [Op.in]: userIds } },
         order: [['createdAt', 'DESC']],
         limit: 5,
         include: [{ model: Client, as: 'client', attributes: ['id', 'name'] }],
       }),
-      Currency.findAll({ where: { isActive: true, userId: ownerId } }),
+      Currency.findAll({ where: { isActive: true, userId: { [Op.in]: userIds } } }),
       // Last 7 days: count + volume per day
       Transaction.findAll({
-        where: { createdAt: { [Op.gte]: sevenDaysAgo }, userId: ownerId },
+        where: { createdAt: { [Op.gte]: sevenDaysAgo }, userId: { [Op.in]: userIds } },
         attributes: [
           [fn('DATE', col('createdAt')), 'day'],
           [fn('COUNT', col('id')), 'count'],
@@ -79,7 +87,7 @@ const getDashboard = async (req, res) => {
       }),
       // Top currencies by transaction count
       Transaction.findAll({
-        where: { userId: ownerId },
+        where: { userId: { [Op.in]: userIds } },
         attributes: [
           'currencyTo',
           [fn('COUNT', col('id')), 'count'],
@@ -92,14 +100,14 @@ const getDashboard = async (req, res) => {
       }),
       // Recent deposit orders
       DepositOrder.findAll({
-        where: { userId: ownerId },
+        where: { userId: { [Op.in]: userIds } },
         order: [['createdAt', 'DESC']],
         limit: 5,
         include: [{ model: Client, as: 'client', attributes: ['id', 'name'] }],
       }),
       // Last 7 days profit per day
       Transaction.findAll({
-        where: { createdAt: { [Op.gte]: sevenDaysAgo }, userId: ownerId },
+        where: { createdAt: { [Op.gte]: sevenDaysAgo }, userId: { [Op.in]: userIds } },
         attributes: [
           [fn('DATE', col('createdAt')), 'day'],
           [fn('SUM', col('profit')), 'profit'],
