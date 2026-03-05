@@ -7,26 +7,33 @@ const { Op } = require('sequelize');
  * Keeps: users, settings, currencies, license.
  * Deletes: transactions, payments, clients, deposits, deposit orders, cashbook, cash closes, audit logs, alerts.
  */
+// Helper: get all user IDs belonging to the owner's bureau (owner + their team members)
+const getTeamUserIds = async (ownerId) => {
+  const [rows] = await sequelize.query(
+    `SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId`,
+    { replacements: { ownerId } }
+  );
+  return rows.map(r => r.id);
+};
+
 const resetAllData = async (req, res) => {
   const ownerId = req.user.teamOwnerId || req.user.id;
-
   const db = sequelize;
   const t = await db.transaction();
 
   try {
-    // Use raw queries for safe cascaded delete scoped to owner (lowercase table names)
-    await db.query(`DELETE FROM payments WHERE "transactionId" IN (SELECT id FROM transactions WHERE "ownerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
-    await db.query(`DELETE FROM transactions WHERE "ownerId" = :ownerId`, { replacements: { ownerId }, transaction: t });
-    await db.query(`DELETE FROM deposits WHERE "ownerId" = :ownerId`, { replacements: { ownerId }, transaction: t });
-    await db.query(`DELETE FROM deposit_orders WHERE "ownerId" = :ownerId`, { replacements: { ownerId }, transaction: t });
-    await db.query(`DELETE FROM cashbook WHERE "ownerId" = :ownerId`, { replacements: { ownerId }, transaction: t });
-    await db.query(`DELETE FROM cash_closes WHERE "ownerId" = :ownerId`, { replacements: { ownerId }, transaction: t });
-    await db.query(`DELETE FROM alerts WHERE "userId" IN (SELECT id FROM users WHERE "teamOwnerId" = :ownerId OR id = :ownerId)`, { replacements: { ownerId }, transaction: t });
-    await db.query(`DELETE FROM audit_logs WHERE "userId" IN (SELECT id FROM users WHERE "teamOwnerId" = :ownerId OR id = :ownerId)`, { replacements: { ownerId }, transaction: t });
-    await db.query(`DELETE FROM clients WHERE "ownerId" = :ownerId`, { replacements: { ownerId }, transaction: t });
+    // Delete in dependency order using userId (the actual column name)
+    await db.query(`DELETE FROM payments WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
+    await db.query(`DELETE FROM transactions WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
+    await db.query(`DELETE FROM deposits WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
+    await db.query(`DELETE FROM deposit_orders WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
+    await db.query(`DELETE FROM cashbook WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
+    await db.query(`DELETE FROM cash_closes WHERE "closedBy" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
+    await db.query(`DELETE FROM alerts WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
+    await db.query(`DELETE FROM audit_logs WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
+    await db.query(`DELETE FROM clients WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
 
     await t.commit();
-
     return res.json({ success: true, message: 'All data has been reset successfully.' });
   } catch (error) {
     await t.rollback();
@@ -39,8 +46,8 @@ const resetTransactionsOnly = async (req, res) => {
   const ownerId = req.user.teamOwnerId || req.user.id;
   const t = await sequelize.transaction();
   try {
-    await sequelize.query(`DELETE FROM payments WHERE "transactionId" IN (SELECT id FROM transactions WHERE "ownerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
-    await sequelize.query(`DELETE FROM transactions WHERE "ownerId" = :ownerId`, { replacements: { ownerId }, transaction: t });
+    await sequelize.query(`DELETE FROM payments WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
+    await sequelize.query(`DELETE FROM transactions WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
     await t.commit();
     return res.json({ success: true, message: 'Transactions reset.' });
   } catch (error) {
@@ -53,12 +60,11 @@ const resetClientsOnly = async (req, res) => {
   const ownerId = req.user.teamOwnerId || req.user.id;
   const t = await sequelize.transaction();
   try {
-    // Must delete transactions and payments first (FK)
-    await sequelize.query(`DELETE FROM payments WHERE "transactionId" IN (SELECT id FROM transactions WHERE "ownerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
-    await sequelize.query(`DELETE FROM transactions WHERE "ownerId" = :ownerId`, { replacements: { ownerId }, transaction: t });
-    await sequelize.query(`DELETE FROM deposits WHERE "ownerId" = :ownerId`, { replacements: { ownerId }, transaction: t });
-    await sequelize.query(`DELETE FROM deposit_orders WHERE "ownerId" = :ownerId`, { replacements: { ownerId }, transaction: t });
-    await sequelize.query(`DELETE FROM clients WHERE "ownerId" = :ownerId`, { replacements: { ownerId }, transaction: t });
+    await sequelize.query(`DELETE FROM payments WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
+    await sequelize.query(`DELETE FROM transactions WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
+    await sequelize.query(`DELETE FROM deposits WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
+    await sequelize.query(`DELETE FROM deposit_orders WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
+    await sequelize.query(`DELETE FROM clients WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
     await t.commit();
     return res.json({ success: true, message: 'Clients and related data reset.' });
   } catch (error) {
@@ -71,8 +77,8 @@ const resetDepositsOnly = async (req, res) => {
   const ownerId = req.user.teamOwnerId || req.user.id;
   const t = await sequelize.transaction();
   try {
-    await sequelize.query(`DELETE FROM deposits WHERE "ownerId" = :ownerId`, { replacements: { ownerId }, transaction: t });
-    await sequelize.query(`DELETE FROM deposit_orders WHERE "ownerId" = :ownerId`, { replacements: { ownerId }, transaction: t });
+    await sequelize.query(`DELETE FROM deposits WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
+    await sequelize.query(`DELETE FROM deposit_orders WHERE "userId" IN (SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId)`, { replacements: { ownerId }, transaction: t });
     await t.commit();
     return res.json({ success: true, message: 'Deposits reset.' });
   } catch (error) {
