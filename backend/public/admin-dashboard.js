@@ -1,4 +1,4 @@
-const API = 'https://kabrak-exchange-pro-production.up.railway.app/api';
+const API = '/api';
 let token = localStorage.getItem('kabrak_admin_token');
 let allLicenses = [], allPayments = [], allUsers = [];
 let licenseFilter = '', paymentFilter = '';

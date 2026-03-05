@@ -174,10 +174,13 @@
 <!-- Login Screen -->
 <div id="loginScreen">
     <div class="login-card">
-        <div class="login-logo"><i class="fas fa-shield-halved"></i></div>
-        <div class="login-title">KABRAK Admin</div>
-        <div class="login-sub">Panneau d'administration</div>
-        <form id="loginForm">
+        <div class="login-logo" style="width:80px;height:80px;background:linear-gradient(135deg,#064e3b,#065f46);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;border:2px solid rgba(52,211,153,0.3)">
+          <i class="fas fa-shield-halved" style="font-size:30px;color:#34d399"></i>
+        </div>
+        <div class="login-title" style="font-size:22px;font-weight:800">KABRAK <span style="color:#34d399">ENG</span></div>
+        <div class="login-sub" style="font-size:13px;margin-bottom:4px">Panneau d'administration</div>
+        <div style="font-size:11px;color:#374151;margin-bottom:24px;padding:6px 12px;background:rgba(52,211,153,0.06);border-radius:6px;border:1px solid rgba(52,211,153,0.1)">🔒 Accès restreint — Administrateurs uniquement</div>
+        <form id="loginForm" onsubmit="handleLogin(event)">
             <div class="form-group">
                 <label class="form-label">Identifiant</label>
                 <input type="text" id="loginUser" class="form-input" required>
@@ -189,18 +192,6 @@
             <button type="submit" id="loginBtn" class="btn-primary">Se connecter</button>
             <div id="loginError" class="login-error"></div>
         </form>
-        <div style="margin-top:20px;padding:12px 16px;background:rgba(11,110,79,0.12);border:1px solid rgba(11,110,79,0.3);border-radius:10px;">
-            <div style="font-size:11px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Identifiants par défaut</div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                <span style="font-size:12px;color:#9ca3af;">Utilisateur</span>
-                <span style="font-size:13px;font-weight:700;color:#e8a020;font-family:monospace;cursor:pointer" onclick="document.getElementById('loginUser').value='kabrak'">kabrak</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="font-size:12px;color:#9ca3af;">Mot de passe</span>
-                <span style="font-size:13px;font-weight:700;color:#e8a020;font-family:monospace;cursor:pointer" onclick="document.getElementById('loginPass').value='Admin@1234'">Admin@1234</span>
-            </div>
-            <div style="margin-top:8px;font-size:11px;color:#6b7280;text-align:center;">Cliquer pour remplir automatiquement</div>
-        </div>
     </div>
 </div>
 
@@ -209,8 +200,8 @@
     <!-- Sidebar -->
     <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
-            <div class="sidebar-logo-icon"><i class="fas fa-exchange-alt"></i></div>
-            <span class="logo-text">KABRAK Admin</span>
+            <div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#064e3b,#065f46);border:1px solid rgba(52,211,153,0.3)"><i class="fas fa-shield-halved" style="color:#34d399"></i></div>
+            <span class="logo-text">KABRAK <span style="color:#34d399">ENG</span></span>
         </div>
         <nav class="sidebar-nav">
             <button onclick="switchTab('dashboard')" class="nav-item active" data-tab="dashboard">
