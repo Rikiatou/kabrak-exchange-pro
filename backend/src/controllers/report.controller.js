@@ -150,6 +150,16 @@ const getProfitReport = async (req, res) => {
     const y = parseInt(year) || moment().year();
     const m = parseInt(month) || moment().month() + 1;
 
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    console.log('🔍 getProfitReport - user:', req.user.id, req.user.email, 'teamOwnerId:', req.user.teamOwnerId, '→ ownerId:', ownerId);
+    const { sequelize: seq } = require('../models');
+    const [teamUsers] = await seq.query(
+      `SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId`,
+      { replacements: { ownerId } }
+    );
+    const userIds = teamUsers.map(u => u.id);
+    console.log('🔍 getProfitReport - userIds:', userIds);
+
     let startDate, endDate;
     if (period === 'daily') {
       const day = req.query.day || moment().format('YYYY-MM-DD');
@@ -165,7 +175,7 @@ const getProfitReport = async (req, res) => {
     }
 
     const transactions = await Transaction.findAll({
-      where: { createdAt: { [Op.between]: [startDate, endDate] } },
+      where: { createdAt: { [Op.between]: [startDate, endDate] }, userId: { [Op.in]: userIds } },
       order: [['createdAt', 'ASC']]
     });
 
@@ -228,7 +238,7 @@ const getProfitReport = async (req, res) => {
       prevEndDate = moment(startDate).subtract(1, 'month').endOf('month').toDate();
     }
     const prevTransactions = await Transaction.findAll({
-      where: { createdAt: { [Op.between]: [prevStartDate, prevEndDate] } },
+      where: { createdAt: { [Op.between]: [prevStartDate, prevEndDate] }, userId: { [Op.in]: userIds } },
       attributes: ['profit']
     });
     const prevProfit = prevTransactions.reduce((sum, t) => sum + parseFloat(t.profit || 0), 0);
