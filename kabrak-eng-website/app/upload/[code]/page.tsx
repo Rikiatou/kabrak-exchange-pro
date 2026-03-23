@@ -25,12 +25,17 @@ const T = {
     error: "Erreur lors de l'envoi. Veuillez réessayer.",
     fileRequired: 'Veuillez sélectionner un fichier.',
     maxSize: 'Fichier trop volumineux (max 10 MB).',
+    webviewWarning: '⚠️ Vous êtes dans le navigateur WhatsApp',
+    webviewSub: 'Pour ajouter à l\'écran d\'accueil, vous devez ouvrir ce lien dans Safari.',
+    webviewBtn: '🧭 Ouvrir dans Safari',
+    webviewStep: 'Appuyez sur les 3 points ··· en bas → "Ouvrir dans Safari"',
     installTitle: '📲 Accès rapide depuis votre écran d\'accueil',
     installSub: 'Retrouvez cette page en 1 tap — sans chercher le lien',
     installBtn: 'Voir comment installer →',
     installClose: 'Fermer le guide',
     iosTitle: '🍎 Sur iPhone (Safari)',
     iosSteps: [
+      { icon: '0️⃣', text: 'Ouvrez ce lien dans Safari', sub: 'Dans WhatsApp : appuyez sur ··· en bas → "Ouvrir dans Safari"' },
       { icon: '1️⃣', text: 'Appuyez sur le bouton Partager', sub: '(icône carrée avec une flèche ↑ en bas de l\'écran)' },
       { icon: '2️⃣', text: 'Faites défiler et appuyez sur', sub: '"Sur l\'écran d\'accueil"' },
       { icon: '3️⃣', text: 'Appuyez sur « Ajouter »', sub: 'en haut à droite — c\'est fait !' },
@@ -60,12 +65,17 @@ const T = {
     error: 'Error sending. Please try again.',
     fileRequired: 'Please select a file.',
     maxSize: 'File too large (max 10 MB).',
+    webviewWarning: '⚠️ You are in the WhatsApp browser',
+    webviewSub: 'To add to your home screen, you need to open this link in Safari.',
+    webviewBtn: '🧭 Open in Safari',
+    webviewStep: 'Tap the 3 dots ··· at the bottom → "Open in Safari"',
     installTitle: '📲 Quick access from your home screen',
     installSub: 'Find this page in 1 tap — no need to search for the link',
     installBtn: 'See how to install →',
     installClose: 'Close guide',
     iosTitle: '🍎 On iPhone (Safari)',
     iosSteps: [
+      { icon: '0️⃣', text: 'Open this link in Safari first', sub: 'In WhatsApp: tap ··· at the bottom → "Open in Safari"' },
       { icon: '1️⃣', text: 'Tap the Share button', sub: '(square icon with arrow ↑ at the bottom of the screen)' },
       { icon: '2️⃣', text: 'Scroll down and tap', sub: '"Add to Home Screen"' },
       { icon: '3️⃣', text: 'Tap "Add"', sub: 'in the top right — done!' },
@@ -94,6 +104,7 @@ export default function UploadPage() {
   const [showBanner, setShowBanner] = useState(true);
   const [showGuide, setShowGuide] = useState(false);
   const [deviceType, setDeviceType] = useState<'ios' | 'android' | 'other'>('other');
+  const [isIOSWebView, setIsIOSWebView] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const t = T[lang];
@@ -114,9 +125,13 @@ export default function UploadPage() {
 
     // Détecter le type d'appareil pour afficher le bon guide
     const ua = navigator.userAgent;
-    if (/iPhone|iPad|iPod/.test(ua)) setDeviceType('ios');
+    const isIOS = /iPhone|iPad|iPod/.test(ua);
+    const isSafariProper = isIOS && /Version\//.test(ua) && /Safari\//.test(ua);
+    const webview = isIOS && !isSafariProper; // WhatsApp, Instagram, etc.
+    if (isIOS) setDeviceType('ios');
     else if (/Android/.test(ua)) setDeviceType('android');
     else setDeviceType('other');
+    setIsIOSWebView(webview);
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').then((reg) => {
@@ -175,6 +190,35 @@ export default function UploadPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#071a12', color: 'white', fontFamily: 'system-ui, sans-serif', padding: '24px 16px 100px' }}>
+
+      {/* iOS WebView warning — doit ouvrir dans Safari */}
+      {isIOSWebView && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 10001,
+          background: 'linear-gradient(135deg, #7c2d12, #991b1b)',
+          padding: '16px 16px 20px',
+          boxShadow: '0 4px 30px rgba(0,0,0,0.8)',
+        }}>
+          <p style={{ color: 'white', fontWeight: 800, fontSize: 15, margin: '0 0 4px' }}>{t.webviewWarning}</p>
+          <p style={{ color: '#fca5a5', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>{t.webviewSub}</p>
+          <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: '10px 14px', marginBottom: 12 }}>
+            <p style={{ color: '#fed7aa', fontSize: 13, margin: 0, lineHeight: 1.6 }}>👉 {t.webviewStep}</p>
+          </div>
+          <a
+            href={typeof window !== 'undefined' ? window.location.href : '#'}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: 'block', width: '100%', padding: '12px',
+              background: 'white', color: '#991b1b',
+              fontWeight: 800, fontSize: 14, textAlign: 'center',
+              borderRadius: 12, textDecoration: 'none', boxSizing: 'border-box',
+            }}
+          >
+            {t.webviewBtn}
+          </a>
+        </div>
+      )}
 
       {/* Install banner */}
       {showBanner && (
