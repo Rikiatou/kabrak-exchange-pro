@@ -18,6 +18,15 @@ const PaymentProof = require('./paymentProof.model')(sequelize);
 const RateAlert = require('./RateAlert')(sequelize);
 const TrialRequest = require('./TrialRequest')(sequelize);
 const OTP = require('./OTP')(sequelize);
+const Remittance = require('./Remittance')(sequelize);
+const RemittancePayment = require('./RemittancePayment')(sequelize);
+
+// Remittance associations
+User.hasMany(Remittance, { foreignKey: 'userId', as: 'remittances' });
+Remittance.belongsTo(User, { foreignKey: 'userId', as: 'operator' });
+Remittance.hasMany(RemittancePayment, { foreignKey: 'remittanceId', as: 'payments' });
+RemittancePayment.belongsTo(Remittance, { foreignKey: 'remittanceId', as: 'remittance' });
+RemittancePayment.belongsTo(User, { foreignKey: 'userId', as: 'operator' });
 
 // User associations
 User.hasMany(Transaction, { foreignKey: 'userId', as: 'transactions' });
@@ -81,4 +90,6 @@ module.exports = {
   RateAlert,
   TrialRequest,
   OTP,
+  Remittance,
+  RemittancePayment,
 };

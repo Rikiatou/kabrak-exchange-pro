@@ -26,6 +26,7 @@ const licenseRoutes = require('./routes/license.routes');
 const adminRoutes = require('./routes/admin.routes');
 const depositRoutes = require('./routes/deposit.routes');
 const depositOrderRoutes = require('./routes/depositOrder.routes');
+const remittanceRoutes = require('./routes/remittance.routes');
 const clientPortalRoutes = require('./routes/clientPortal.routes');
 const settingRoutes = require('./routes/setting.routes');
 const exportRoutes = require('./routes/export.routes');
@@ -86,14 +87,14 @@ app.use(express.urlencoded({ extended: true }));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests, please try again later.' }
 });
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: 50,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many login attempts, please try again in 15 minutes.' }
@@ -122,6 +123,7 @@ app.use('/api/licenses', licenseRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/deposits', depositRoutes);
 app.use('/api/deposit-orders', depositOrderRoutes);
+app.use('/api/remittances', remittanceRoutes);
 app.use('/api/public/client', clientPortalRoutes);
 app.use('/api/settings', settingRoutes);
 app.use('/api/export', exportRoutes);
