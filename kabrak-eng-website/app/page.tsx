@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { t, Lang } from './translations';
 import { ArrowRight, Check, Menu, X, Globe, Mail, Phone, MapPin, ExternalLink, Sparkles, Star, TrendingUp, Shield, Users, Zap, BarChart3, Smartphone, Clock } from 'lucide-react';
@@ -28,6 +28,21 @@ const WA_ICON = () => (
 export default function Home() {
   const [lang, setLang] = useState<Lang>('fr');
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // iOS PWA: si ouvert depuis l'écran d'accueil et qu'une URL upload est stockée → rediriger
+  useEffect(() => {
+    try {
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (('standalone' in navigator) && (navigator as any).standalone === true);
+      if (isStandalone) {
+        const uploadUrl = localStorage.getItem('kabrak_upload_url');
+        if (uploadUrl && uploadUrl.includes('/upload/')) {
+          window.location.replace(uploadUrl);
+        }
+      }
+    } catch (_) {}
+  }, []);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', company: '', message: '' });
   const [formStatus, setFormStatus] = useState<'idle'|'loading'|'success'|'error'>('idle');
   const T = t[lang];

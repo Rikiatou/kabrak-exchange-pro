@@ -78,6 +78,12 @@ export default function UploadPage() {
       (('standalone' in navigator) && (navigator as any).standalone === true);
     if (isStandalone) setShowBanner(false);
 
+    // Stocker l'URL dans localStorage (fallback fiable si SW tué par iOS)
+    try {
+      localStorage.setItem('kabrak_upload_url', currentUrl);
+      localStorage.setItem('kabrak_upload_code', code);
+    } catch (_) {}
+
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').then((reg) => {
         const sw = reg.installing || reg.waiting || reg.active;
