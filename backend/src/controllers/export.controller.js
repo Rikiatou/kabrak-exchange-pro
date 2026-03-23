@@ -314,8 +314,7 @@ const exportRemittances = async (req, res) => {
     const businessName = await getBusinessName(req);
     const ownerId = req.user.teamOwnerId || req.user.id;
 
-    const { sequelize } = require('../models');
-    const [teamRows] = await sequelize.query(
+    const [teamRows] = await Remittance.sequelize.query(
       `SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId`,
       { replacements: { ownerId } }
     );
@@ -340,9 +339,8 @@ const exportRemittances = async (req, res) => {
     const cols = [
       { header: 'Référence', key: 'ref', width: 20 },
       { header: 'Date', key: 'date', width: 20 },
-      { header: 'Bénéficiaire', key: 'beneficiary', width: 26 },
-      { header: 'Banque', key: 'bank', width: 18 },
-      { header: 'N° Compte', key: 'account', width: 18 },
+      { header: 'Partenaire', key: 'partner', width: 26 },
+      { header: 'Téléphone', key: 'phone', width: 18 },
       { header: 'Devise', key: 'currency', width: 10 },
       { header: 'Total à reverser', key: 'total', width: 18 },
       { header: 'Déjà reversé', key: 'paid', width: 16 },
@@ -360,9 +358,8 @@ const exportRemittances = async (req, res) => {
       const row = ws.addRow({
         ref: r.reference,
         date: moment(r.createdAt).format('DD/MM/YYYY HH:mm'),
-        beneficiary: r.beneficiaryName,
-        bank: r.beneficiaryBank || '—',
-        account: r.beneficiaryAccount || '—',
+        partner: r.beneficiaryName,
+        phone: r.beneficiaryPhone || '—',
         currency: r.currency,
         total: parseFloat(r.totalAmount),
         paid: parseFloat(r.paidAmount),
