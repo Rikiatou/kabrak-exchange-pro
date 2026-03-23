@@ -160,6 +160,32 @@ const addPayment = async (req, res) => {
   }
 };
 
+// DELETE /api/deposit-orders/:orderId/payments/:paymentId — delete a single payment
+const deletePayment = async (req, res) => {
+  try {
+    const { orderId, paymentId } = req.params;
+    const ownerId = req.user.teamOwnerId || req.user.id;
+    const teamUsers = await User.findAll({ where: { [Op.or]: [{ id: ownerId }, { teamOwnerId: ownerId }] }, attributes: ['id'] });
+    const teamIds = teamUsers.map(u => u.id);
+
+    const order = await DepositOrder.findOne({ where: { id: orderId, userId: { [Op.in]: teamIds } } });
+    if (!order) return res.status(404).json({ success: false, message: 'Commande introuvable' });
+
+    const payment = await Deposit.findOne({ where: { id: paymentId, orderId } });
+    if (!payment) return res.status(404).json({ success: false, message: 'Versement introuvable' });
+
+    if (payment.status === 'confirmed') {
+      return res.status(400).json({ success: false, message: 'Impossible de supprimer un versement déjà confirmé' });
+    }
+
+    await payment.destroy();
+    const updatedOrder = await recalcOrder(orderId);
+    return res.json({ success: true, data: updatedOrder });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 // PUT /api/deposit-orders/:id/cancel — cancel order
 const cancelOrder = async (req, res) => {
   try {
@@ -177,6 +203,7 @@ module.exports = {
   getOrders,
   getOrder,
   addPayment,
+  deletePayment,
   cancelOrder,
   recalcOrder,
 };

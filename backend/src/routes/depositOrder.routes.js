@@ -6,6 +6,7 @@ const {
   getOrders,
   getOrder,
   addPayment,
+  deletePayment,
   cancelOrder,
 } = require('../controllers/depositOrder.controller');
 const validate = require('../middleware/validate.middleware');
@@ -18,5 +19,6 @@ router.get('/', getOrders);
 router.get('/:id', getOrder);
 router.post('/:id/payments', validate(schemas.addDepositPayment), addPayment);
 router.put('/:id/cancel', cancelOrder);
+router.delete('/:orderId/payments/:paymentId', deletePayment);
 
 module.exports = router;

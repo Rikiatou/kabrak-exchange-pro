@@ -1,6 +1,6 @@
 const ExcelJS = require('exceljs');
 const { Op } = require('sequelize');
-const { Transaction, Client, Payment, DepositOrder, Deposit, Setting } = require('../models');
+const { Transaction, Client, Payment, DepositOrder, Deposit, Setting, Remittance, RemittancePayment } = require('../models');
 const moment = require('moment');
 
 const GREEN = '0B6E4F';
@@ -307,4 +307,107 @@ const exportClients = async (req, res) => {
   }
 };
 
-module.exports = { exportTransactions, exportDepositOrders, exportClients };
+// GET /api/export/remittances
+const exportRemittances = async (req, res) => {
+  try {
+    const { startDate, endDate, status } = req.query;
+    const businessName = await getBusinessName(req);
+    const ownerId = req.user.teamOwnerId || req.user.id;
+
+    const { sequelize } = require('../models');
+    const [teamRows] = await sequelize.query(
+      `SELECT id FROM users WHERE id = :ownerId OR "teamOwnerId" = :ownerId`,
+      { replacements: { ownerId } }
+    );
+    const teamIds = teamRows.map(r => r.id);
+
+    const where = { userId: { [Op.in]: teamIds } };
+    if (startDate && endDate) where.createdAt = { [Op.between]: [new Date(startDate), new Date(endDate)] };
+    else if (startDate) where.createdAt = { [Op.gte]: new Date(startDate) };
+    else if (endDate) where.createdAt = { [Op.lte]: new Date(endDate) };
+    if (status) where.status = status;
+
+    const remittances = await Remittance.findAll({
+      where,
+      include: [{ model: RemittancePayment, as: 'payments' }],
+      order: [['createdAt', 'DESC']],
+    });
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'KABRAK Exchange Pro';
+    const ws = wb.addWorksheet('Reversements', { views: [{ state: 'frozen', ySplit: 4 }] });
+
+    const cols = [
+      { header: 'Référence', key: 'ref', width: 20 },
+      { header: 'Date', key: 'date', width: 20 },
+      { header: 'Bénéficiaire', key: 'beneficiary', width: 26 },
+      { header: 'Banque', key: 'bank', width: 18 },
+      { header: 'N° Compte', key: 'account', width: 18 },
+      { header: 'Devise', key: 'currency', width: 10 },
+      { header: 'Total à reverser', key: 'total', width: 18 },
+      { header: 'Déjà reversé', key: 'paid', width: 16 },
+      { header: 'Reste', key: 'remaining', width: 16 },
+      { header: 'Nb versements', key: 'payCount', width: 14 },
+      { header: 'Statut', key: 'status', width: 14 },
+      { header: 'Notes', key: 'notes', width: 28 },
+    ];
+    ws.columns = cols;
+
+    const statusLabel = { pending: 'En attente', partial: 'Partiel', completed: 'Complété', cancelled: 'Annulé' };
+    const statusBg = { pending: 'FFFFF3CD', partial: 'FFE0F2FE', completed: `FF${LIGHT_GREEN}`, cancelled: 'FFF3F4F6' };
+
+    remittances.forEach((r, i) => {
+      const row = ws.addRow({
+        ref: r.reference,
+        date: moment(r.createdAt).format('DD/MM/YYYY HH:mm'),
+        beneficiary: r.beneficiaryName,
+        bank: r.beneficiaryBank || '—',
+        account: r.beneficiaryAccount || '—',
+        currency: r.currency,
+        total: parseFloat(r.totalAmount),
+        paid: parseFloat(r.paidAmount),
+        remaining: parseFloat(r.remainingAmount),
+        payCount: (r.payments || []).length,
+        status: statusLabel[r.status] || r.status,
+        notes: r.notes || '—',
+      });
+      const rowBg = i % 2 === 0 ? 'FFFAFAFA' : 'FFFFFFFF';
+      row.eachCell(cell => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+        cell.border = { bottom: { style: 'hair', color: { argb: 'FFEEEEEE' } } };
+        cell.alignment = { vertical: 'middle' };
+      });
+      row.getCell('status').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: statusBg[r.status] || 'FFFFFFFF' } };
+      row.getCell('status').font = { bold: true };
+      ['total', 'paid', 'remaining'].forEach(k => { row.getCell(k).numFmt = '#,##0.00'; });
+    });
+
+    ws.addRow([]);
+    const sumRow = ws.addRow({
+      ref: 'TOTAL',
+      total: remittances.reduce((s, r) => s + parseFloat(r.totalAmount), 0),
+      paid: remittances.reduce((s, r) => s + parseFloat(r.paidAmount), 0),
+      remaining: remittances.reduce((s, r) => s + parseFloat(r.remainingAmount), 0),
+    });
+    sumRow.eachCell(cell => {
+      cell.font = { bold: true };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${LIGHT_GREEN}` } };
+    });
+
+    const period = startDate || endDate
+      ? `${startDate ? moment(startDate).format('DD/MM/YYYY') : '...'} → ${endDate ? moment(endDate).format('DD/MM/YYYY') : '...'}`
+      : moment().format('MMMM YYYY');
+
+    addTitleRows(ws, 'Rapport des Reversements', businessName, period, cols.length);
+    styleHeaderRow(ws, cols.length);
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="reversements_${moment().format('YYYY-MM-DD')}.xlsx"`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { exportTransactions, exportDepositOrders, exportClients, exportRemittances };
