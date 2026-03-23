@@ -25,9 +25,22 @@ const T = {
     error: "Erreur lors de l'envoi. Veuillez réessayer.",
     fileRequired: 'Veuillez sélectionner un fichier.',
     maxSize: 'Fichier trop volumineux (max 10 MB).',
-    installTitle: 'Installer sur votre téléphone',
-    installIos: '↑ iPhone : appuyez sur le bouton Partager puis "Sur l\'écran d\'accueil"',
-    installAndroid: 'Android : menu ⋮ puis "Ajouter à l\'écran d\'accueil"',
+    installTitle: '📲 Accès rapide depuis votre écran d\'accueil',
+    installSub: 'Retrouvez cette page en 1 tap — sans chercher le lien',
+    installBtn: 'Voir comment installer →',
+    installClose: 'Fermer le guide',
+    iosTitle: '🍎 Sur iPhone (Safari)',
+    iosSteps: [
+      { icon: '1️⃣', text: 'Appuyez sur le bouton Partager', sub: '(icône carrée avec une flèche ↑ en bas de l\'écran)' },
+      { icon: '2️⃣', text: 'Faites défiler et appuyez sur', sub: '"Sur l\'écran d\'accueil"' },
+      { icon: '3️⃣', text: 'Appuyez sur « Ajouter »', sub: 'en haut à droite — c\'est fait !' },
+    ],
+    androidTitle: '🤖 Sur Android (Chrome)',
+    androidSteps: [
+      { icon: '1️⃣', text: 'Appuyez sur le menu ⋮', sub: '(3 points en haut à droite de Chrome)' },
+      { icon: '2️⃣', text: 'Appuyez sur', sub: '"Ajouter à l\'écran d\'accueil"' },
+      { icon: '3️⃣', text: 'Appuyez sur « Ajouter »', sub: 'dans la fenêtre qui apparaît' },
+    ],
   },
   en: {
     loading: 'Loading...',
@@ -47,9 +60,22 @@ const T = {
     error: 'Error sending. Please try again.',
     fileRequired: 'Please select a file.',
     maxSize: 'File too large (max 10 MB).',
-    installTitle: 'Install on your phone',
-    installIos: '↑ iPhone: tap the Share button then "Add to Home Screen"',
-    installAndroid: 'Android: menu ⋮ then "Add to Home Screen"',
+    installTitle: '📲 Quick access from your home screen',
+    installSub: 'Find this page in 1 tap — no need to search for the link',
+    installBtn: 'See how to install →',
+    installClose: 'Close guide',
+    iosTitle: '🍎 On iPhone (Safari)',
+    iosSteps: [
+      { icon: '1️⃣', text: 'Tap the Share button', sub: '(square icon with arrow ↑ at the bottom of the screen)' },
+      { icon: '2️⃣', text: 'Scroll down and tap', sub: '"Add to Home Screen"' },
+      { icon: '3️⃣', text: 'Tap "Add"', sub: 'in the top right — done!' },
+    ],
+    androidTitle: '🤖 On Android (Chrome)',
+    androidSteps: [
+      { icon: '1️⃣', text: 'Tap the menu ⋮', sub: '(3 dots in top right of Chrome)' },
+      { icon: '2️⃣', text: 'Tap', sub: '"Add to Home Screen"' },
+      { icon: '3️⃣', text: 'Tap "Add"', sub: 'in the popup that appears' },
+    ],
   },
 };
 
@@ -66,6 +92,8 @@ export default function UploadPage() {
   const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [showBanner, setShowBanner] = useState(true);
+  const [showGuide, setShowGuide] = useState(false);
+  const [deviceType, setDeviceType] = useState<'ios' | 'android' | 'other'>('other');
   const inputRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const t = T[lang];
@@ -83,6 +111,12 @@ export default function UploadPage() {
       localStorage.setItem('kabrak_upload_url', currentUrl);
       localStorage.setItem('kabrak_upload_code', code);
     } catch (_) {}
+
+    // Détecter le type d'appareil pour afficher le bon guide
+    const ua = navigator.userAgent;
+    if (/iPhone|iPad|iPod/.test(ua)) setDeviceType('ios');
+    else if (/Android/.test(ua)) setDeviceType('android');
+    else setDeviceType('other');
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').then((reg) => {
@@ -144,30 +178,119 @@ export default function UploadPage() {
 
       {/* Install banner */}
       {showBanner && (
-        <div style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
-          background: '#0f2d1f', borderTop: '3px solid #0B6E4F',
-          padding: '16px 16px 36px',
-          boxShadow: '0 -4px 30px rgba(0,0,0,0.7)',
-          display: 'flex', alignItems: 'flex-start', gap: 14,
-        }}>
-          <div style={{ fontSize: 32 }}>📲</div>
-          <div style={{ flex: 1 }}>
-            <p style={{ color: 'white', fontWeight: 800, fontSize: 16, margin: '0 0 8px' }}>
-              {t.installTitle}
-            </p>
-            <p style={{ color: '#86efac', fontSize: 13, margin: '0 0 4px', lineHeight: 1.6 }}>
-              {t.installIos}
-            </p>
-            <p style={{ color: '#94a3b8', fontSize: 13, margin: 0, lineHeight: 1.6 }}>
-              {t.installAndroid}
-            </p>
+        <>
+          {/* Guide modal overlay */}
+          {showGuide && (
+            <div style={{
+              position: 'fixed', inset: 0, zIndex: 10000,
+              background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'flex-end',
+            }} onClick={() => setShowGuide(false)}>
+              <div
+                onClick={e => e.stopPropagation()}
+                style={{
+                  width: '100%', background: '#0a1f15',
+                  borderRadius: '24px 24px 0 0', padding: '24px 20px 48px',
+                  border: '1px solid rgba(11,110,79,0.4)',
+                  maxHeight: '85vh', overflowY: 'auto',
+                }}
+              >
+                <div style={{ width: 40, height: 4, background: 'rgba(255,255,255,0.2)', borderRadius: 2, margin: '0 auto 20px' }} />
+
+                {/* iOS steps */}
+                {(deviceType === 'ios' || deviceType === 'other') && (
+                  <div style={{ marginBottom: deviceType === 'other' ? 28 : 0 }}>
+                    <p style={{ color: '#e8a020', fontWeight: 800, fontSize: 16, margin: '0 0 16px' }}>{t.iosTitle}</p>
+                    {t.iosSteps.map((step, i) => (
+                      <div key={i} style={{
+                        display: 'flex', gap: 14, alignItems: 'flex-start',
+                        background: 'rgba(255,255,255,0.04)', borderRadius: 14,
+                        padding: '14px 16px', marginBottom: 10,
+                        border: '1px solid rgba(255,255,255,0.07)',
+                      }}>
+                        <span style={{ fontSize: 22, lineHeight: 1 }}>{step.icon}</span>
+                        <div>
+                          <p style={{ color: 'white', fontWeight: 700, fontSize: 14, margin: '0 0 4px' }}>{step.text}</p>
+                          <p style={{ color: '#86efac', fontSize: 13, margin: 0, lineHeight: 1.5 }}>{step.sub}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {/* Visual hint for iOS share button */}
+                    {deviceType === 'ios' && (
+                      <div style={{ background: 'rgba(11,110,79,0.15)', border: '1px solid rgba(11,110,79,0.3)', borderRadius: 12, padding: '12px 16px', marginTop: 8, textAlign: 'center' }}>
+                        <p style={{ color: '#4ade80', fontSize: 13, margin: 0 }}>💡 Le bouton Partager ressemble à : <strong style={{ fontSize: 18 }}>⎙</strong> (carré avec flèche vers le haut)</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Divider for 'other' devices */}
+                {deviceType === 'other' && (
+                  <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', margin: '4px 0 24px' }} />
+                )}
+
+                {/* Android steps */}
+                {(deviceType === 'android' || deviceType === 'other') && (
+                  <div>
+                    <p style={{ color: '#86efac', fontWeight: 800, fontSize: 16, margin: '0 0 16px' }}>{t.androidTitle}</p>
+                    {t.androidSteps.map((step, i) => (
+                      <div key={i} style={{
+                        display: 'flex', gap: 14, alignItems: 'flex-start',
+                        background: 'rgba(255,255,255,0.04)', borderRadius: 14,
+                        padding: '14px 16px', marginBottom: 10,
+                        border: '1px solid rgba(255,255,255,0.07)',
+                      }}>
+                        <span style={{ fontSize: 22, lineHeight: 1 }}>{step.icon}</span>
+                        <div>
+                          <p style={{ color: 'white', fontWeight: 700, fontSize: 14, margin: '0 0 4px' }}>{step.text}</p>
+                          <p style={{ color: '#86efac', fontSize: 13, margin: 0, lineHeight: 1.5 }}>{step.sub}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <button
+                  onClick={() => { setShowGuide(false); setShowBanner(false); }}
+                  style={{ width: '100%', marginTop: 20, padding: '14px', borderRadius: 14, background: '#0B6E4F', color: 'white', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer' }}
+                >
+                  ✅ {t.installClose}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Bottom banner */}
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
+            background: 'linear-gradient(135deg, #0a2d1a, #0f3d24)',
+            borderTop: '2px solid #0B6E4F',
+            padding: '14px 16px 32px',
+            boxShadow: '0 -6px 40px rgba(0,0,0,0.8)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+              <div style={{ fontSize: 28 }}>📲</div>
+              <div style={{ flex: 1 }}>
+                <p style={{ color: 'white', fontWeight: 800, fontSize: 15, margin: 0 }}>{t.installTitle}</p>
+                <p style={{ color: '#86efac', fontSize: 12, margin: '2px 0 0', opacity: 0.9 }}>{t.installSub}</p>
+              </div>
+              <button
+                onClick={() => setShowBanner(false)}
+                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#94a3b8', fontSize: 16, cursor: 'pointer', padding: '6px 10px', borderRadius: 8, flexShrink: 0 }}
+              >✕</button>
+            </div>
+            <button
+              onClick={() => setShowGuide(true)}
+              style={{
+                width: '100%', padding: '13px', borderRadius: 14,
+                background: '#0B6E4F', color: 'white',
+                fontWeight: 800, fontSize: 15, border: 'none', cursor: 'pointer',
+                boxShadow: '0 4px 15px rgba(11,110,79,0.5)',
+              }}
+            >
+              {t.installBtn}
+            </button>
           </div>
-          <button
-            onClick={() => setShowBanner(false)}
-            style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', fontSize: 18, cursor: 'pointer', padding: '6px 12px', borderRadius: 8 }}
-          >✕</button>
-        </div>
+        </>
       )}
 
       {/* Header */}
