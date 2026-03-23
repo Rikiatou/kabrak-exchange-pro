@@ -338,6 +338,7 @@ function EmployeeView({ data, isLoading, onRefresh, settings, user, router, t, s
             { icon: 'swap-horizontal', label: t.transactions.new, color: '#0B6E4F', route: '/transactions/new' },
             { icon: 'person-add-outline', label: t.clients.new, color: '#0369a1', route: '/clients/new' },
             { icon: 'wallet-outline', label: t.more.deposits, color: '#0369a1', route: '/deposits' },
+            { icon: 'arrow-up-circle-outline', label: 'Reversements', color: '#d97706', route: '/remittances' },
             isManager && { icon: 'images-outline', label: 'Galerie reçus', color: '#0891b2', route: '/receipts' },
             isManager && { icon: 'bar-chart-outline', label: t.more.reports, color: '#7c3aed', route: '/reports' },
             isManager && { icon: 'download-outline', label: 'Export Excel', color: '#059669', onPress: handleExportTransactions },
