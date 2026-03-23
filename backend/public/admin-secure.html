@@ -3,310 +3,511 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KABRAK Admin - Login</title>
+    <title>KABRAK Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #071a12; }
-        .green-accent { color: #e8a020; }
-        .btn-green { background: #0B6E4F; }
-        .btn-green:hover { background: #0a5d41; }
+        body { background: #071a12; font-family: system-ui, sans-serif; }
+        .gold { color: #e8a020; }
+        .bg-green { background: #0B6E4F; }
+        .bg-green:hover { background: #0a5d41; }
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+        .sidebar-link { display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:8px; cursor:pointer; color:rgba(255,255,255,0.7); transition:all 0.2s; }
+        .sidebar-link:hover, .sidebar-link.active { background:rgba(11,110,79,0.3); color:#fff; border-left:3px solid #0B6E4F; }
+        .badge { padding:2px 10px; border-radius:999px; font-size:11px; font-weight:700; }
+        .tab { display:none; }
+        .tab.active { display:block; }
+        input, select, textarea { background:#0f2d1f; border:1px solid rgba(255,255,255,0.12); color:white; border-radius:8px; padding:8px 12px; width:100%; }
+        input::placeholder, textarea::placeholder { color:rgba(255,255,255,0.3); }
+        table { width:100%; border-collapse:collapse; }
+        th { text-align:left; padding:10px 12px; font-size:12px; color:rgba(255,255,255,0.5); border-bottom:1px solid rgba(255,255,255,0.08); text-transform:uppercase; }
+        td { padding:10px 12px; font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align:middle; }
+        tr:hover td { background:rgba(255,255,255,0.03); }
+        .btn { padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; border:none; }
+        .btn-primary { background:#0B6E4F; color:white; }
+        .btn-primary:hover { background:#0a5d41; }
+        .btn-warn { background:#d97706; color:white; }
+        .btn-danger { background:#dc2626; color:white; }
+        .btn-gray { background:rgba(255,255,255,0.1); color:white; }
+        .stat-card { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:20px; }
+        #toast { position:fixed; bottom:24px; right:24px; z-index:9999; padding:12px 20px; border-radius:10px; font-weight:700; font-size:14px; display:none; }
     </style>
 </head>
-<body class="min-h-screen text-white flex items-center justify-center">
-    <div class="bg-gray-800 p-8 rounded-lg max-w-md w-full mx-4">
-        <h1 class="text-2xl font-bold green-accent mb-6 text-center">🔐 KABRAK Admin</h1>
-        
-        <div id="loginForm">
-            <h2 class="text-lg mb-4">Connexion Administrateur</h2>
-            <form onsubmit="login(event)">
-                <div class="mb-4">
-                    <label class="block mb-2">Nom d'utilisateur:</label>
-                    <input type="text" id="username" class="w-full p-2 bg-gray-700 rounded" required>
-                </div>
-                <div class="mb-4">
-                    <label class="block mb-2">Mot de passe:</label>
-                    <input type="password" id="password" class="w-full p-2 bg-gray-700 rounded" required>
-                </div>
-                <button type="submit" class="w-full btn-green py-2 rounded hover:bg-green-600">
-                    Se connecter
-                </button>
-            </form>
-            <div id="loginError" class="text-red-500 mt-4 hidden"></div>
+<body class="min-h-screen text-white">
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- LOGIN -->
+<div id="loginPage" class="min-h-screen flex items-center justify-center">
+  <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:40px;width:100%;max-width:400px;">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="font-size:48px;margin-bottom:8px;">💱</div>
+      <h1 style="font-size:22px;font-weight:800;color:#e8a020;">KABRAK Admin</h1>
+      <p style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:4px;">Panneau d'administration</p>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:12px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;">Nom d'utilisateur</label>
+      <input type="text" id="loginUser" placeholder="kabrak" style="font-size:15px;">
+    </div>
+    <div style="margin-bottom:24px;">
+      <label style="font-size:12px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;">Mot de passe</label>
+      <input type="password" id="loginPass" placeholder="••••••••" style="font-size:15px;" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button onclick="doLogin()" class="btn btn-primary" style="width:100%;padding:12px;font-size:15px;">Se connecter</button>
+    <div id="loginErr" style="color:#f87171;font-size:13px;margin-top:12px;text-align:center;display:none;"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none;min-height:100vh;">
+
+  <!-- Sidebar -->
+  <div style="position:fixed;top:0;left:0;bottom:0;width:220px;background:#051510;border-right:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;z-index:100;">
+    <div style="padding:24px 20px 16px;">
+      <div style="font-size:18px;font-weight:800;color:#e8a020;">💱 KABRAK</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;">Admin Panel</div>
+    </div>
+    <nav style="flex:1;padding:8px 12px;display:flex;flex-direction:column;gap:4px;">
+      <div class="sidebar-link active" onclick="showTab('dashboard',this)">📊 Dashboard</div>
+      <div class="sidebar-link" onclick="showTab('users',this)">👥 Utilisateurs</div>
+      <div class="sidebar-link" onclick="showTab('licenses',this)">🔑 Licences</div>
+      <div class="sidebar-link" onclick="showTab('payments',this)">💳 Paiements <span id="payBadge" style="background:#dc2626;color:white;border-radius:999px;font-size:10px;font-weight:700;padding:1px 6px;margin-left:4px;display:none;"></span></div>
+      <div class="sidebar-link" onclick="showTab('create',this)">➕ Créer licence</div>
+    </nav>
+    <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,0.07);">
+      <button onclick="doLogout()" class="btn btn-danger" style="width:100%;">Déconnexion</button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div style="margin-left:220px;padding:32px;min-height:100vh;">
+
+    <!-- DASHBOARD TAB -->
+    <div id="tab-dashboard" class="tab active">
+      <h2 style="font-size:22px;font-weight:800;margin-bottom:24px;">📊 Dashboard</h2>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;">
+        <div class="stat-card">
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px;">UTILISATEURS</div>
+          <div id="dTotalUsers" style="font-size:28px;font-weight:800;color:#e8a020;">—</div>
+          <div id="dActiveUsers" style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;"></div>
         </div>
-
-        <div id="adminPanel" class="hidden">
-            <div class="mb-4 flex justify-between items-center">
-                <h2 class="text-lg">Gestion des Licences</h2>
-                <button onclick="logout()" class="px-3 py-1 bg-red-600 rounded text-sm hover:bg-red-700">
-                    Déconnexion
-                </button>
-            </div>
-
-            <!-- Stats -->
-            <div class="grid grid-cols-3 gap-4 mb-6">
-                <div class="bg-gray-700 p-3 rounded text-center">
-                    <div class="text-2xl font-bold green-accent" id="totalLicenses">0</div>
-                    <div class="text-xs">Total</div>
-                </div>
-                <div class="bg-gray-700 p-3 rounded text-center">
-                    <div class="text-2xl font-bold text-yellow-500" id="pendingLicenses">0</div>
-                    <div class="text-xs">Attente</div>
-                </div>
-                <div class="bg-gray-700 p-3 rounded text-center">
-                    <div class="text-2xl font-bold text-green-500" id="activeLicenses">0</div>
-                    <div class="text-xs">Actives</div>
-                </div>
-            </div>
-
-            <!-- Licences List -->
-            <div class="bg-gray-700 rounded p-4 max-h-96 overflow-y-auto">
-                <h3 class="font-semibold mb-3">Licences</h3>
-                <div id="licensesList" class="space-y-2">
-                    <div class="text-center text-gray-500">Chargement...</div>
-                </div>
-            </div>
+        <div class="stat-card">
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px;">LICENCES ACTIVES</div>
+          <div id="dActiveLic" style="font-size:28px;font-weight:800;color:#0B6E4F;">—</div>
+          <div id="dExpiringSoon" style="font-size:12px;color:#d97706;margin-top:4px;"></div>
         </div>
+        <div class="stat-card">
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px;">PAIEMENTS EN ATTENTE</div>
+          <div id="dPendingPay" style="font-size:28px;font-weight:800;color:#dc2626;">—</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;">à valider</div>
+        </div>
+        <div class="stat-card">
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px;">TOTAL LICENCES</div>
+          <div id="dTotalLic" style="font-size:28px;font-weight:800;color:white;">—</div>
+          <div id="dExpiredLic" style="font-size:12px;color:#dc2626;margin-top:4px;"></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="card" style="padding:20px;">
+          <h3 style="font-size:14px;font-weight:700;margin-bottom:16px;color:rgba(255,255,255,0.7);">🆕 Derniers inscrits</h3>
+          <div id="dRecentUsers"></div>
+        </div>
+        <div class="card" style="padding:20px;">
+          <h3 style="font-size:14px;font-weight:700;margin-bottom:16px;color:rgba(255,255,255,0.7);">💳 Derniers paiements</h3>
+          <div id="dRecentPay"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- Action Modal -->
-    <div id="actionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-        <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
-            <h3 class="text-xl font-semibold mb-4" id="modalTitle">Action</h3>
-            <div id="modalContent"></div>
-            <div class="flex gap-3 mt-4">
-                <button onclick="closeModal()" class="px-4 py-2 bg-gray-600 rounded hover:bg-gray-700">Annuler</button>
-                <button id="modalConfirm" class="px-4 py-2 btn-green rounded hover:bg-green-600">Confirmer</button>
-            </div>
-        </div>
+    <!-- USERS TAB -->
+    <div id="tab-users" class="tab">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <h2 style="font-size:22px;font-weight:800;">👥 Utilisateurs</h2>
+        <button onclick="loadUsers()" class="btn btn-gray">🔄 Actualiser</button>
+      </div>
+      <div class="card" style="overflow:hidden;">
+        <table>
+          <thead><tr><th>Nom</th><th>Email</th><th>Bureau</th><th>Rôle</th><th>Statut</th><th>Dernière connexion</th><th>Actions</th></tr></thead>
+          <tbody id="usersTable"><tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.3);padding:24px;">Chargement...</td></tr></tbody>
+        </table>
+      </div>
     </div>
 
-    <script>
-        const API_URL = 'https://kabrak-exchange-pro-production.up.railway.app/api';
-        let adminToken = localStorage.getItem('kabrakAdminToken');
-        let currentLicenseId = null;
+    <!-- LICENSES TAB -->
+    <div id="tab-licenses" class="tab">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <h2 style="font-size:22px;font-weight:800;">🔑 Licences</h2>
+        <button onclick="loadLicenses()" class="btn btn-gray">🔄 Actualiser</button>
+      </div>
+      <div class="card" style="overflow:hidden;">
+        <table>
+          <thead><tr><th>Bureau</th><th>Email</th><th>Plan</th><th>Statut</th><th>Expiration</th><th>Clé</th><th>Actions</th></tr></thead>
+          <tbody id="licensesTable"><tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.3);padding:24px;">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
 
-        // Check if already logged in
-        if (adminToken) {
-            showAdminPanel();
-        }
+    <!-- PAYMENTS TAB -->
+    <div id="tab-payments" class="tab">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <h2 style="font-size:22px;font-weight:800;">💳 Paiements</h2>
+        <div style="display:flex;gap:8px;">
+          <select id="payFilter" onchange="loadPayments()" style="width:auto;padding:6px 12px;">
+            <option value="">Tous</option>
+            <option value="pending">En attente</option>
+            <option value="validated">Validés</option>
+            <option value="rejected">Rejetés</option>
+          </select>
+          <button onclick="loadPayments()" class="btn btn-gray">🔄 Actualiser</button>
+        </div>
+      </div>
+      <div class="card" style="overflow:hidden;">
+        <table>
+          <thead><tr><th>Bureau</th><th>Email</th><th>Plan</th><th>Montant</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody id="paymentsTable"><tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.3);padding:24px;">Chargement...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
 
-        // Login
-        async function login(event) {
-            event.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('loginError');
+    <!-- CREATE LICENSE TAB -->
+    <div id="tab-create" class="tab">
+      <h2 style="font-size:22px;font-weight:800;margin-bottom:24px;">➕ Créer une licence</h2>
+      <div class="card" style="padding:28px;max-width:500px;">
+        <div style="display:grid;gap:16px;">
+          <div>
+            <label style="font-size:12px;color:rgba(255,255,255,0.5);display:block;margin-bottom:6px;">Email du propriétaire *</label>
+            <input type="email" id="cEmail" placeholder="bureau@exemple.com">
+          </div>
+          <div>
+            <label style="font-size:12px;color:rgba(255,255,255,0.5);display:block;margin-bottom:6px;">Nom du bureau *</label>
+            <input type="text" id="cBusiness" placeholder="Bureau de Change XYZ">
+          </div>
+          <div>
+            <label style="font-size:12px;color:rgba(255,255,255,0.5);display:block;margin-bottom:6px;">Nom complet</label>
+            <input type="text" id="cName" placeholder="Jean Dupont">
+          </div>
+          <div>
+            <label style="font-size:12px;color:rgba(255,255,255,0.5);display:block;margin-bottom:6px;">Téléphone</label>
+            <input type="text" id="cPhone" placeholder="+237 6XX XXX XXX">
+          </div>
+          <div>
+            <label style="font-size:12px;color:rgba(255,255,255,0.5);display:block;margin-bottom:6px;">Pays</label>
+            <input type="text" id="cCountry" placeholder="Cameroun">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="font-size:12px;color:rgba(255,255,255,0.5);display:block;margin-bottom:6px;">Plan</label>
+              <select id="cPlan">
+                <option value="trial">Trial (14j)</option>
+                <option value="monthly">Mensuel (30j)</option>
+                <option value="annual" selected>Annuel (365j)</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;color:rgba(255,255,255,0.5);display:block;margin-bottom:6px;">Durée (jours)</label>
+              <input type="number" id="cDays" value="365" min="1">
+            </div>
+          </div>
+          <button onclick="createLicense()" class="btn btn-primary" style="padding:12px;font-size:15px;margin-top:8px;">Créer la licence</button>
+          <div id="createResult" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
 
-            try {
-                const response = await fetch(`${API_URL}/admin/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
+  </div>
+</div>
 
-                const data = await response.json();
-                
-                if (response.ok) {
-                    adminToken = data.token;
-                    localStorage.setItem('kabrakAdminToken', adminToken);
-                    showAdminPanel();
-                } else {
-                    errorDiv.textContent = data.error || 'Erreur de connexion';
-                    errorDiv.classList.remove('hidden');
-                }
-            } catch (e) {
-                errorDiv.textContent = 'Erreur réseau';
-                errorDiv.classList.remove('hidden');
-            }
-        }
+<!-- MODAL -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center;">
+  <div style="background:#0f2d1f;border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:28px;width:100%;max-width:420px;margin:16px;">
+    <h3 id="modalTitle" style="font-size:18px;font-weight:800;margin-bottom:16px;"></h3>
+    <div id="modalBody" style="margin-bottom:20px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeModal()" class="btn btn-gray" style="flex:1;">Annuler</button>
+      <button id="modalOk" class="btn btn-primary" style="flex:1;">Confirmer</button>
+    </div>
+  </div>
+</div>
 
-        // Logout
-        function logout() {
-            adminToken = null;
-            localStorage.removeItem('kabrakAdminToken');
-            document.getElementById('loginForm').classList.remove('hidden');
-            document.getElementById('adminPanel').classList.add('hidden');
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        }
 
-        // Show admin panel
-        function showAdminPanel() {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('adminPanel').classList.remove('hidden');
-            loadStats();
-            loadLicenses();
-        }
 
-        // API calls with auth
-        async function apiCall(endpoint, options = {}) {
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${adminToken}`,
-                ...options.headers
-            };
-            return fetch(`${API_URL}${endpoint}`, { ...options, headers });
-        }
+<script>
+const API = 'https://kabrak-exchange-pro-production.up.railway.app/api';
+let token = localStorage.getItem('kabrakAdminToken');
 
-        // Load stats
-        async function loadStats() {
-            try {
-                const response = await apiCall('/admin/licenses/stats');
-                const stats = await response.json();
-                document.getElementById('totalLicenses').textContent = stats.total || 0;
-                document.getElementById('pendingLicenses').textContent = stats.pending || 0;
-                document.getElementById('activeLicenses').textContent = stats.active || 0;
-            } catch (e) {
-                console.error('Error loading stats:', e);
-            }
-        }
+function api(endpoint, opts = {}) {
+  return fetch(API + endpoint, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, ...(opts.headers || {}) }
+  }).then(r => r.json());
+}
 
-        // Load licenses
-        async function loadLicenses() {
-            try {
-                const response = await apiCall('/admin/licenses');
-                const licenses = await response.json();
-                
-                const listDiv = document.getElementById('licensesList');
-                listDiv.innerHTML = '';
-                
-                licenses.forEach(license => {
-                    const statusColor = license.status === 'active' ? 'text-green-500' : 
-                                     license.status === 'pending' ? 'text-yellow-500' : 'text-red-500';
-                    const statusText = license.status === 'active' ? 'Actif' : 
-                                      license.status === 'pending' ? 'Attente' : 'Expiré';
-                    
-                    const expiryDate = license.expiresAt ? new Date(license.expiresAt).toLocaleDateString('fr-FR') : 'N/A';
-                    
-                    const licenseDiv = document.createElement('div');
-                    licenseDiv.className = 'bg-gray-600 p-3 rounded';
-                    licenseDiv.innerHTML = `
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <div class="font-semibold">${license.businessName}</div>
-                                <div class="text-sm text-gray-300">${license.ownerEmail}</div>
-                            </div>
-                            <div class="${statusColor} text-sm">${statusText}</div>
-                        </div>
-                        <div class="text-sm text-gray-400 mb-2">
-                            Plan: ${license.plan || 'trial'} | Expire: ${expiryDate}
-                        </div>
-                        <div class="flex gap-2">
-                            ${license.status === 'pending' ? `<button onclick="approveLicense('${license.id}')" class="px-2 py-1 btn-green text-xs rounded">Approuver</button>` : ''}
-                            <button onclick="extendLicense('${license.id}')" class="px-2 py-1 bg-blue-600 text-xs rounded hover:bg-blue-700">Étendre</button>
-                            <button onclick="changePlan('${license.id}')" class="px-2 py-1 bg-purple-600 text-xs rounded hover:bg-purple-700">Plan</button>
-                        </div>
-                    `;
-                    listDiv.appendChild(licenseDiv);
-                });
-            } catch (e) {
-                console.error('Error loading licenses:', e);
-                document.getElementById('licensesList').innerHTML = '<div class="text-center text-red-500">Erreur de chargement</div>';
-            }
-        }
+function toast(msg, ok = true) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = ok ? '#0B6E4F' : '#dc2626';
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
 
-        // Action functions
-        function approveLicense(id) {
-            currentLicenseId = id;
-            document.getElementById('modalTitle').textContent = 'Approuver Licence';
-            document.getElementById('modalContent').innerHTML = `
-                <label class="block mb-2">Durée (jours):</label>
-                <select id="approveDays" class="w-full p-2 bg-gray-700 rounded">
-                    <option value="30">30 jours</option>
-                    <option value="90" selected>90 jours</option>
-                    <option value="180">180 jours</option>
-                    <option value="365">1 an</option>
-                </select>
-            `;
-            document.getElementById('modalConfirm').onclick = confirmApprove;
-            document.getElementById('actionModal').classList.remove('hidden');
-        }
+function fmt(d) { return d ? new Date(d).toLocaleDateString('fr-FR') : '—'; }
+function fmtdt(d) { return d ? new Date(d).toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—'; }
 
-        function extendLicense(id) {
-            currentLicenseId = id;
-            document.getElementById('modalTitle').textContent = 'Étendre Licence';
-            document.getElementById('modalContent').innerHTML = `
-                <label class="block mb-2">Ajouter (jours):</label>
-                <select id="extendDays" class="w-full p-2 bg-gray-700 rounded">
-                    <option value="7">7 jours</option>
-                    <option value="30" selected>30 jours</option>
-                    <option value="90">90 jours</option>
-                    <option value="365">1 an</option>
-                </select>
-            `;
-            document.getElementById('modalConfirm').onclick = confirmExtend;
-            document.getElementById('actionModal').classList.remove('hidden');
-        }
+function statusBadge(s) {
+  const map = { active:'#0B6E4F', pending:'#d97706', expired:'#6b7280', trial:'#7c3aed', validated:'#0B6E4F', rejected:'#dc2626', suspended:'#dc2626' };
+  const label = { active:'Actif', pending:'Attente', expired:'Expiré', trial:'Trial', validated:'Validé', rejected:'Rejeté', suspended:'Suspendu' };
+  return `<span style="background:${map[s]||'#374151'};color:white;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700;">${label[s]||s}</span>`;
+}
 
-        function changePlan(id) {
-            currentLicenseId = id;
-            document.getElementById('modalTitle').textContent = 'Changer Plan';
-            document.getElementById('modalContent').innerHTML = `
-                <label class="block mb-2">Nouveau plan:</label>
-                <select id="newPlan" class="w-full p-2 bg-gray-700 rounded">
-                    <option value="basic">Basic</option>
-                    <option value="pro">Pro</option>
-                    <option value="premium">Premium</option>
-                </select>
-            `;
-            document.getElementById('modalConfirm').onclick = confirmPlan;
-            document.getElementById('actionModal').classList.remove('hidden');
-        }
+// ---- AUTH ----
+if (token) showApp();
 
-        // Confirm actions
-        async function confirmApprove() {
-            const days = document.getElementById('approveDays').value;
-            try {
-                const response = await apiCall(`/admin/licenses/${currentLicenseId}/approve`, {
-                    method: 'POST',
-                    body: JSON.stringify({ days: parseInt(days) })
-                });
-                if (response.ok) {
-                    closeModal();
-                    loadLicenses();
-                    loadStats();
-                }
-            } catch (e) {
-                console.error('Error approving license:', e);
-            }
-        }
+async function doLogin() {
+  const u = document.getElementById('loginUser').value;
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+  err.style.display = 'none';
+  try {
+    const data = await fetch(API + '/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p })
+    }).then(r => r.json());
+    if (data.token) {
+      token = data.token;
+      localStorage.setItem('kabrakAdminToken', token);
+      showApp();
+    } else {
+      err.textContent = data.error || 'Identifiants incorrects';
+      err.style.display = 'block';
+    }
+  } catch (e) {
+    err.textContent = 'Erreur réseau';
+    err.style.display = 'block';
+  }
+}
 
-        async function confirmExtend() {
-            const days = document.getElementById('extendDays').value;
-            try {
-                const response = await apiCall(`/admin/licenses/${currentLicenseId}/extend`, {
-                    method: 'POST',
-                    body: JSON.stringify({ days: parseInt(days) })
-                });
-                if (response.ok) {
-                    closeModal();
-                    loadLicenses();
-                    loadStats();
-                }
-            } catch (e) {
-                console.error('Error extending license:', e);
-            }
-        }
+function doLogout() {
+  localStorage.removeItem('kabrakAdminToken');
+  token = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+}
 
-        async function confirmPlan() {
-            const plan = document.getElementById('newPlan').value;
-            try {
-                const response = await apiCall(`/admin/licenses/${currentLicenseId}/plan`, {
-                    method: 'POST',
-                    body: JSON.stringify({ plan })
-                });
-                if (response.ok) {
-                    closeModal();
-                    loadLicenses();
-                }
-            } catch (e) {
-                console.error('Error changing plan:', e);
-            }
-        }
+function showApp() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadDashboard();
+}
 
-        function closeModal() {
-            document.getElementById('actionModal').classList.add('hidden');
-        }
-    </script>
+// ---- TABS ----
+function showTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'users') loadUsers();
+  if (name === 'licenses') loadLicenses();
+  if (name === 'payments') loadPayments();
+}
+
+// ---- DASHBOARD ----
+async function loadDashboard() {
+  try {
+    const d = await api('/admin/dashboard');
+    if (!d.success) return;
+    const { users, licenses, payments, recentUsers, recentPayments } = d.data;
+    document.getElementById('dTotalUsers').textContent = users.total;
+    document.getElementById('dActiveUsers').textContent = users.active + ' actifs';
+    document.getElementById('dActiveLic').textContent = licenses.active;
+    document.getElementById('dExpiringSoon').textContent = licenses.expiringSoon + ' expirent sous 7j';
+    document.getElementById('dPendingPay').textContent = payments.pending;
+    document.getElementById('dTotalLic').textContent = licenses.total;
+    // badge
+    if (payments.pending > 0) {
+      const b = document.getElementById('payBadge');
+      b.textContent = payments.pending;
+      b.style.display = 'inline';
+    }
+    // recent users
+    document.getElementById('dRecentUsers').innerHTML = (recentUsers || []).map(u => `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+        <div><div style="font-size:13px;font-weight:600;">${u.businessName || u.email}</div><div style="font-size:11px;color:rgba(255,255,255,0.4);">${u.email}</div></div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);">${fmt(u.createdAt)}</div>
+      </div>`).join('') || '<p style="color:rgba(255,255,255,0.3);font-size:13px;">Aucun</p>';
+    // recent payments
+    document.getElementById('dRecentPay').innerHTML = (recentPayments || []).map(p => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+        <div><div style="font-size:13px;font-weight:600;">${p.user?.businessName || p.user?.email || '—'}</div><div style="font-size:11px;color:rgba(255,255,255,0.4);">${p.plan||'—'}</div></div>
+        ${statusBadge(p.status)}
+      </div>`).join('') || '<p style="color:rgba(255,255,255,0.3);font-size:13px;">Aucun</p>';
+  } catch(e) {}
+}
+
+// ---- USERS ----
+async function loadUsers() {
+  document.getElementById('usersTable').innerHTML = '<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.3);padding:24px;">Chargement...</td></tr>';
+  try {
+    const d = await api('/admin/users');
+    const users = d.data || [];
+    document.getElementById('usersTable').innerHTML = users.map(u => `
+      <tr>
+        <td style="font-weight:600;">${u.firstName||''} ${u.lastName||''}</td>
+        <td style="color:rgba(255,255,255,0.6);">${u.email}</td>
+        <td>${u.businessName||'—'}</td>
+        <td><span style="font-size:11px;color:#7c3aed;font-weight:700;">${u.teamRole||u.role||'—'}</span></td>
+        <td>${statusBadge(u.isActive ? 'active' : 'suspended')}</td>
+        <td style="color:rgba(255,255,255,0.4);font-size:12px;">${fmtdt(u.lastLogin)}</td>
+        <td><button onclick="toggleUser('${u.id}','${u.isActive}')" class="btn ${u.isActive ? 'btn-danger' : 'btn-primary'}">${u.isActive ? 'Désactiver' : 'Activer'}</button></td>
+      </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.3);padding:24px;">Aucun utilisateur</td></tr>';
+  } catch(e) { document.getElementById('usersTable').innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f87171;padding:24px;">Erreur</td></tr>'; }
+}
+
+async function toggleUser(id, isActive) {
+  await api('/admin/users/' + id + '/toggle', { method: 'PUT' });
+  toast('Statut mis à jour');
+  loadUsers();
+}
+
+// ---- LICENSES ----
+async function loadLicenses() {
+  document.getElementById('licensesTable').innerHTML = '<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.3);padding:24px;">Chargement...</td></tr>';
+  try {
+    const d = await api('/admin/licenses');
+    const list = Array.isArray(d) ? d : (d.data || []);
+    document.getElementById('licensesTable').innerHTML = list.map(l => {
+      const days = l.expiresAt ? Math.ceil((new Date(l.expiresAt) - new Date()) / 86400000) : 0;
+      const daysColor = days < 7 ? '#dc2626' : days < 30 ? '#d97706' : '#4ade80';
+      return `<tr>
+        <td style="font-weight:600;">${l.businessName||'—'}</td>
+        <td style="color:rgba(255,255,255,0.6);font-size:12px;">${l.ownerEmail}</td>
+        <td><span style="font-size:11px;color:#7c3aed;font-weight:700;">${l.plan||'—'}</span></td>
+        <td>${statusBadge(l.status)}</td>
+        <td style="font-size:12px;"><span style="color:${daysColor};">${fmt(l.expiresAt)}</span>${days > 0 ? `<br><span style="font-size:10px;color:${daysColor};">${days}j restants</span>` : ''}</td>
+        <td style="font-size:11px;color:rgba(255,255,255,0.4);font-family:monospace;">${l.licenseKey||'—'}</td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;">
+          ${l.status==='pending' ? `<button onclick="approveLic('${l.id}')" class="btn btn-primary">✅ Approuver</button>` : ''}
+          <button onclick="extendLic('${l.id}')" class="btn btn-warn">+ Étendre</button>
+          <button onclick="suspendLic('${l.id}')" class="btn btn-danger">⛔</button>
+        </td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.3);padding:24px;">Aucune licence</td></tr>';
+  } catch(e) { document.getElementById('licensesTable').innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f87171;padding:24px;">Erreur</td></tr>'; }
+}
+
+function approveLic(id) {
+  openModal('✅ Approuver la licence', `
+    <label style="font-size:12px;color:rgba(255,255,255,0.5);display:block;margin-bottom:6px;">Durée</label>
+    <select id="mDays" style="background:#0f2d1f;border:1px solid rgba(255,255,255,0.12);color:white;border-radius:8px;padding:8px 12px;width:100%;">
+      <option value="14">14 jours (trial)</option><option value="30">30 jours</option>
+      <option value="90">90 jours</option><option value="180">6 mois</option><option value="365" selected>1 an</option>
+    </select>`, async () => {
+    const days = +document.getElementById('mDays').value;
+    await api('/admin/licenses/' + id + '/approve', { method: 'POST', body: JSON.stringify({ days }) });
+    toast('Licence approuvée ✅'); closeModal(); loadLicenses(); loadDashboard();
+  });
+}
+
+function extendLic(id) {
+  openModal('➕ Étendre la licence', `
+    <label style="font-size:12px;color:rgba(255,255,255,0.5);display:block;margin-bottom:6px;">Ajouter</label>
+    <select id="mDays" style="background:#0f2d1f;border:1px solid rgba(255,255,255,0.12);color:white;border-radius:8px;padding:8px 12px;width:100%;">
+      <option value="7">7 jours</option><option value="30" selected>30 jours</option>
+      <option value="90">90 jours</option><option value="365">1 an</option>
+    </select>`, async () => {
+    const days = +document.getElementById('mDays').value;
+    await api('/admin/licenses/' + id + '/extend', { method: 'POST', body: JSON.stringify({ days }) });
+    toast('Licence étendue ✅'); closeModal(); loadLicenses();
+  });
+}
+
+function suspendLic(id) {
+  openModal('⛔ Suspendre la licence', '<p style="color:rgba(255,255,255,0.7);">Voulez-vous suspendre cette licence ?</p>', async () => {
+    await api('/admin/licenses/' + id + '/suspend', { method: 'POST' });
+    toast('Licence suspendue', false); closeModal(); loadLicenses();
+  });
+}
+
+// ---- PAYMENTS ----
+async function loadPayments() {
+  document.getElementById('paymentsTable').innerHTML = '<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.3);padding:24px;">Chargement...</td></tr>';
+  const status = document.getElementById('payFilter').value;
+  try {
+    const d = await api('/admin/payments' + (status ? '?status=' + status : ''));
+    const list = d.data || [];
+    document.getElementById('paymentsTable').innerHTML = list.map(p => `
+      <tr>
+        <td style="font-weight:600;">${p.user?.businessName||'—'}</td>
+        <td style="color:rgba(255,255,255,0.6);font-size:12px;">${p.user?.email||'—'}</td>
+        <td><span style="font-size:11px;color:#7c3aed;font-weight:700;">${p.plan||'—'}</span></td>
+        <td style="font-weight:700;color:#e8a020;">${p.amount ? p.amount.toLocaleString('fr-FR') + ' ' + (p.currency||'') : '—'}</td>
+        <td style="font-size:12px;color:rgba(255,255,255,0.4);">${fmtdt(p.createdAt)}</td>
+        <td>${statusBadge(p.status)}</td>
+        <td style="display:flex;gap:4px;">
+          ${p.status==='pending' ? `<button onclick="validatePay('${p.id}')" class="btn btn-primary">✅ Valider</button><button onclick="rejectPay('${p.id}')" class="btn btn-danger">❌</button>` : '—'}
+        </td>
+      </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.3);padding:24px;">Aucun paiement</td></tr>';
+  } catch(e) {}
+}
+
+async function validatePay(id) {
+  openModal('✅ Valider le paiement', '<p style="color:rgba(255,255,255,0.7);">Confirmer la validation ? La licence sera activée automatiquement.</p>', async () => {
+    await api('/admin/payments/' + id + '/validate', { method: 'POST' });
+    toast('Paiement validé ✅'); closeModal(); loadPayments(); loadDashboard();
+  });
+}
+
+async function rejectPay(id) {
+  openModal('❌ Rejeter le paiement', '<p style="color:rgba(255,255,255,0.7);">Confirmer le rejet de ce paiement ?</p>', async () => {
+    await api('/admin/payments/' + id + '/reject', { method: 'POST' });
+    toast('Paiement rejeté', false); closeModal(); loadPayments();
+  }, true);
+}
+
+// ---- CREATE LICENSE ----
+async function createLicense() {
+  const email = document.getElementById('cEmail').value.trim();
+  const business = document.getElementById('cBusiness').value.trim();
+  const name = document.getElementById('cName').value.trim();
+  const phone = document.getElementById('cPhone').value.trim();
+  const country = document.getElementById('cCountry').value.trim();
+  const plan = document.getElementById('cPlan').value;
+  const days = +document.getElementById('cDays').value;
+  const res = document.getElementById('createResult');
+  if (!email || !business) { toast('Email et nom du bureau requis', false); return; }
+  try {
+    const d = await api('/admin/licenses', { method: 'POST', body: JSON.stringify({ ownerEmail: email, businessName: business, ownerName: name, ownerPhone: phone, country, plan, days }) });
+    res.style.display = 'block';
+    if (d.license) {
+      res.style.background = 'rgba(11,110,79,0.2)';
+      res.style.border = '1px solid rgba(11,110,79,0.4)';
+      res.style.borderRadius = '8px';
+      res.style.padding = '12px';
+      res.innerHTML = `<p style="color:#4ade80;font-weight:700;margin-bottom:8px;">✅ Licence créée !</p>
+        <p style="font-size:13px;color:rgba(255,255,255,0.7);">Clé : <code style="color:#e8a020;font-weight:800;">${d.license.licenseKey}</code></p>
+        <p style="font-size:13px;color:rgba(255,255,255,0.7);">Expire : ${fmt(d.license.expiresAt)}</p>`;
+      toast('Licence créée ✅');
+    } else {
+      res.innerHTML = `<p style="color:#f87171;">${d.error || 'Erreur'}</p>`;
+      toast('Erreur création', false);
+    }
+  } catch(e) { toast('Erreur réseau', false); }
+}
+
+// ---- MODAL ----
+let modalCallback = null;
+function openModal(title, body, onOk, danger = false) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = body;
+  const btn = document.getElementById('modalOk');
+  btn.className = 'btn ' + (danger ? 'btn-danger' : 'btn-primary');
+  btn.style.flex = '1';
+  modalCallback = onOk;
+  document.getElementById('modal').style.display = 'flex';
+}
+function closeModal() { document.getElementById('modal').style.display = 'none'; modalCallback = null; }
+document.getElementById('modalOk').addEventListener('click', () => { if (modalCallback) modalCallback(); });
+document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
+</script>
 </body>
 </html>
