@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     name,
     short_name: 'Versement',
     start_url: startUrl,
-    scope: '/',
+    scope: '/upload/',
     display: 'standalone',
     background_color: '#071a12',
     theme_color: '#0B6E4F',

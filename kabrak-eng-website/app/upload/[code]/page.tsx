@@ -25,13 +25,13 @@ const T = {
     error: "Erreur lors de l'envoi. Veuillez réessayer.",
     fileRequired: 'Veuillez sélectionner un fichier.',
     maxSize: 'Fichier trop volumineux (max 10 MB).',
-    webviewWarning: '⚠️ Vous êtes dans le navigateur WhatsApp',
-    webviewSub: 'Pour ajouter à l\'écran d\'accueil, vous devez ouvrir ce lien dans Safari.',
+    webviewWarning: '⚠️ Ouvrez dans Safari pour continuer',
+    webviewSub: 'Pour ajouter à l\'écran d\'accueil correctement, ce lien doit être ouvert dans Safari.',
     webviewBtn: '🧭 Ouvrir dans Safari',
-    webviewStep: 'Appuyez sur les 3 points ··· en bas → "Ouvrir dans Safari"',
-    installTitle: '📲 Accès rapide depuis votre écran d\'accueil',
-    installSub: 'Retrouvez cette page en 1 tap — sans chercher le lien',
-    installBtn: 'Voir comment installer →',
+    webviewStep: 'Dans WhatsApp : appuyez sur ··· en bas à droite → "Ouvrir dans Safari"',
+    installTitle: '📲 Installer sur votre écran d\'accueil',
+    installSub: '⚠️ Si vous êtes sur WhatsApp → ouvrez d\'abord dans Safari',
+    installBtn: 'Voir le guide →',
     installClose: 'Fermer le guide',
     iosTitle: '🍎 Sur iPhone (Safari)',
     iosSteps: [
@@ -65,13 +65,13 @@ const T = {
     error: 'Error sending. Please try again.',
     fileRequired: 'Please select a file.',
     maxSize: 'File too large (max 10 MB).',
-    webviewWarning: '⚠️ You are in the WhatsApp browser',
-    webviewSub: 'To add to your home screen, you need to open this link in Safari.',
+    webviewWarning: '⚠️ Open in Safari to continue',
+    webviewSub: 'To correctly add to your home screen, this link must be opened in Safari.',
     webviewBtn: '🧭 Open in Safari',
-    webviewStep: 'Tap the 3 dots ··· at the bottom → "Open in Safari"',
-    installTitle: '📲 Quick access from your home screen',
-    installSub: 'Find this page in 1 tap — no need to search for the link',
-    installBtn: 'See how to install →',
+    webviewStep: 'In WhatsApp: tap ··· at the bottom right → "Open in Safari"',
+    installTitle: '📲 Install on your home screen',
+    installSub: '⚠️ Using WhatsApp? Open in Safari first',
+    installBtn: 'See the guide →',
     installClose: 'Close guide',
     iosTitle: '🍎 On iPhone (Safari)',
     iosSteps: [
@@ -126,8 +126,11 @@ export default function UploadPage() {
     // Détecter le type d'appareil pour afficher le bon guide
     const ua = navigator.userAgent;
     const isIOS = /iPhone|iPad|iPod/.test(ua);
-    const isSafariProper = isIOS && /Version\//.test(ua) && /Safari\//.test(ua);
-    const webview = isIOS && !isSafariProper; // WhatsApp, Instagram, etc.
+    // WhatsApp/Instagram/FB utilisent SFSafariViewController (meme UA que Safari)
+    // On détecte via FB/FBAN, Instagram, ou absence de standalone support
+    const isInAppBrowser = /FBAN|FBAV|Instagram|WhatsApp|Twitter/.test(ua);
+    const isSafariProper = isIOS && /Version\//.test(ua) && /Safari\//.test(ua) && !isInAppBrowser;
+    const webview = isIOS && (!isSafariProper || isInAppBrowser);
     if (isIOS) setDeviceType('ios');
     else if (/Android/.test(ua)) setDeviceType('android');
     else setDeviceType('other');
