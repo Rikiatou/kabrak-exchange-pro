@@ -52,8 +52,8 @@ const checkAndGenerateAlerts = async (req, res) => {
       if (!existing) {
         const alert = await Alert.create({
           type: 'debt_threshold',
-          title: 'High Client Debt',
-          message: `Client ${client.name} has an outstanding debt of ${parseFloat(client.totalDebt).toLocaleString()}`,
+          title: 'Créance client élevée',
+          message: `Le client ${client.name} a une dette impayée de ${parseFloat(client.totalDebt).toLocaleString('fr-FR')} XAF`,
           entityId: client.id,
           entityType: 'client',
           severity: 'warning',
@@ -73,8 +73,8 @@ const checkAndGenerateAlerts = async (req, res) => {
       if (!existing) {
         const alert = await Alert.create({
           type: 'low_stock',
-          title: 'Low Currency Stock',
-          message: `${currency.code} stock is low: ${parseFloat(currency.stockAmount).toLocaleString()} ${currency.symbol}`,
+          title: `Stock bas : ${currency.code}`,
+          message: `Le stock de ${currency.code} est faible : ${parseFloat(currency.stockAmount).toLocaleString('fr-FR')} ${currency.symbol}. Pensez à reapprovisionner.`,
           entityId: currency.id,
           entityType: 'currency',
           severity: 'warning',
@@ -84,7 +84,7 @@ const checkAndGenerateAlerts = async (req, res) => {
       }
     }
 
-    return res.json({ success: true, message: `${generated.length} alerts generated.`, data: generated });
+    return res.json({ success: true, message: `${generated.length} alerte(s) générée(s).`, data: generated });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }

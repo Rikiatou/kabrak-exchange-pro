@@ -88,7 +88,7 @@ export default function AlertsScreen() {
   const FILTERS = [
     { key: 'all', label: t.common.all },
     { key: 'unread', label: `${t.alerts.markRead}${unreadCount > 0 ? ` (${unreadCount})` : ''}` },
-    { key: 'critical', label: 'Critiques' }
+    { key: 'critical', label: 'Critiques ⚠️' }
   ];
 
   return (
@@ -132,7 +132,7 @@ export default function AlertsScreen() {
               <Ionicons name="notifications-off-outline" size={60} color={COLORS.textMuted} />
               <Text style={styles.emptyText}>{t.alerts.noAlerts}</Text>
               <TouchableOpacity style={styles.emptyBtn} onPress={handleCheck}>
-                <Text style={styles.emptyBtnText}>Vérifier maintenant</Text>
+                <Text style={styles.emptyBtnText}>{t.alerts.check || 'Vérifier maintenant'}</Text>
               </TouchableOpacity>
             </View>
           )
