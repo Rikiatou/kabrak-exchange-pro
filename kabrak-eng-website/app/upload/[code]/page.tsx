@@ -78,43 +78,6 @@ export default function UploadPage() {
     if (isStandalone) setShowBanner(false);
   }, []);
 
-  // iOS PWA meta tags — blob manifests are NOT supported on Safari iOS
-  // We inject apple-specific meta tags so that "Add to Home Screen" opens this exact URL
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const currentUrl = window.location.href;
-    document.title = `Versement — ${businessName}`;
-
-    const setMeta = (name: string, content: string) => {
-      let el = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
-      if (!el) { el = document.createElement('meta'); el.name = name; document.head.appendChild(el); }
-      el.content = content;
-    };
-    const setMetaProp = (prop: string, content: string) => {
-      let el = document.querySelector<HTMLMetaElement>(`meta[property="${prop}"]`);
-      if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
-      el.content = content;
-    };
-
-    // Apple PWA meta tags (iOS reads these for Add to Home Screen)
-    setMeta('apple-mobile-web-app-capable', 'yes');
-    setMeta('apple-mobile-web-app-status-bar-style', 'black-translucent');
-    setMeta('apple-mobile-web-app-title', `Versement — ${businessName}`);
-    setMeta('theme-color', '#0B6E4F');
-
-    // Dynamic manifest via API route with the current URL encoded
-    const encoded = encodeURIComponent(currentUrl);
-    const name = encodeURIComponent(`Versement — ${businessName}`);
-    let link = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
-    if (!link) { link = document.createElement('link'); link.rel = 'manifest'; document.head.appendChild(link); }
-    link.href = `/api/manifest?start_url=${encoded}&name=${name}`;
-
-    // Apple touch icon
-    let iconLink = document.querySelector<HTMLLinkElement>('link[rel="apple-touch-icon"]');
-    if (!iconLink) { iconLink = document.createElement('link'); iconLink.rel = 'apple-touch-icon'; document.head.appendChild(iconLink); }
-    iconLink.href = '/KEiconelogo.jpeg';
-  }, [businessName]);
-
   useEffect(() => {
     Promise.all([
       fetch(`${API}/api/deposits/public/${code}`).then(r => r.json()),
