@@ -223,6 +223,7 @@ export default function OwnerDashboardScreen() {
             { icon: 'swap-horizontal', label: 'Nouvelle Tx', color: GREEN_MAIN, route: '/transactions/new' },
             { icon: 'person-add-outline', label: 'Nouveau client', color: '#0369a1', route: '/clients/new' },
             { icon: 'wallet-outline', label: 'Dépôts', color: '#0369a1', route: '/deposits' },
+            { icon: 'arrow-up-circle-outline', label: 'Reversements', color: '#d97706', route: '/remittances' },
             { icon: 'images-outline', label: 'Galerie reçus', color: '#0891b2', route: '/receipts' },
             { icon: 'bar-chart-outline', label: 'Rapports', color: '#7c3aed', route: '/reports' },
           ].map((q) => (
