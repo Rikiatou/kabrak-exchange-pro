@@ -272,6 +272,7 @@ function EmployeeView({ data, isLoading, onRefresh, settings, user, router, t, s
               {settings?.businessName || 'KABRAK'} {!settings?.businessName && <Text style={styles.logoTextGold}>Exchange Pro</Text>}
             </Text>
             <View style={{ flex: 1 }} />
+            
             <TouchableOpacity style={styles.headerIconBtn} onPress={() => router.push('/search')}>
               <Ionicons name="search-outline" size={20} color="rgba(255,255,255,0.7)" />
             </TouchableOpacity>

@@ -134,7 +134,7 @@ const refreshToken = async (req, res) => {
     }
     const newToken = generateAccessToken(user);
     const newRefreshToken = generateRefreshToken(user);
-    return res.json({ success: true, data: { token: newToken, refreshToken: newRefreshToken, expiresIn: ACCESS_EXPIRES } });
+    return res.json({ success: true, data: { token: newToken, refreshToken: newRefreshToken, expiresIn: ACCESS_EXPIRES, user } });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
@@ -242,6 +242,9 @@ const register = async (req, res) => {
           firstName: user.firstName,
           lastName: user.lastName,
           businessName: user.businessName,
+          role: user.role,
+          teamRole: user.teamRole,
+          teamOwnerId: user.teamOwnerId,
         },
         token,
         refreshToken: rt,

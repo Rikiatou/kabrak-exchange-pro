@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import api from '../services/api';
-import { fetchWithCache } from '../services/offlineCache';
 
 const useReportStore = create((set) => ({
   profitData: null,
@@ -9,12 +8,10 @@ const useReportStore = create((set) => ({
   error: null,
 
   fetchProfitReport: async (params = {}) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, profitData: null });
     try {
-      const { data } = await fetchWithCache(`profit_${params.period || 'monthly'}`, async () => {
-        const response = await api.get('/reports/profit', { params });
-        return response.data.data;
-      });
+      const response = await api.get('/reports/profit', { params });
+      const data = response.data.data;
       set({ profitData: data, isLoading: false });
       return { success: true, data };
     } catch (error) {

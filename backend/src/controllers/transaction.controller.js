@@ -125,14 +125,17 @@ const create = async (req, res) => {
     let buyRateUsed = null;
     let sellRateUsed = null;
 
-    const currFromObj = await Currency.findOne({ where: { code: currencyFrom.toUpperCase(), isActive: true } });
-    const currToObj = await Currency.findOne({ where: { code: currencyTo.toUpperCase(), isActive: true } });
+    const txOwnerId = req.user.teamOwnerId || req.user.id;
+    const currFromObj = await Currency.findOne({ where: { code: currencyFrom.toUpperCase(), isActive: true, userId: txOwnerId } })
+      || await Currency.findOne({ where: { code: currencyFrom.toUpperCase(), isActive: true } });
+    const currToObj = await Currency.findOne({ where: { code: currencyTo.toUpperCase(), isActive: true, userId: txOwnerId } })
+      || await Currency.findOne({ where: { code: currencyTo.toUpperCase(), isActive: true } });
 
     if (currFromObj && currToObj) {
-      const fromBuy = parseFloat(currFromObj.buyRate || currFromObj.currentRate);
-      const fromSell = parseFloat(currFromObj.sellRate || currFromObj.currentRate);
-      const toBuy = parseFloat(currToObj.buyRate || currToObj.currentRate);
-      const toSell = parseFloat(currToObj.sellRate || currToObj.currentRate);
+      const fromBuy = parseFloat(currFromObj.buyRate || currFromObj.currentRate || 1);
+      const fromSell = parseFloat(currFromObj.sellRate || currFromObj.currentRate || 1);
+      const toBuy = parseFloat(currToObj.buyRate || currToObj.currentRate || 1);
+      const toSell = parseFloat(currToObj.sellRate || currToObj.currentRate || 1);
 
       if (txType === 'sell') {
         // Bureau sells currencyFrom, receives currencyTo from client

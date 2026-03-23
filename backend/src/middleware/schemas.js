@@ -4,11 +4,11 @@ const Joi = require('joi');
 exports.register = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
-  firstName: Joi.string().min(2).max(100).required(),
+  firstName: Joi.string().min(2).max(100).allow('', null).optional(),
   lastName: Joi.string().min(2).max(100).allow('', null).optional(),
-  businessName: Joi.string().max(100).allow('', null),
+  businessName: Joi.string().min(2).max(100).allow('', null).optional(),
   phone: Joi.string().max(30).allow('', null),
-});
+}).or('firstName', 'businessName');
 
 exports.login = Joi.object({
   email: Joi.string().email().required(),

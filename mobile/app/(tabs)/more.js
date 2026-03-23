@@ -34,7 +34,7 @@ function MenuSection({ title, children }) {
 
 export default function MoreScreen() {
   const { user, logout } = useAuthStore();
-  const { t } = useLanguageStore();
+  const { t, language, toggleLanguage } = useLanguageStore();
   const router = useRouter();
   const isOwner = user?.teamRole === 'owner';
   const isManager = user?.teamRole === 'owner' || user?.teamRole === 'manager';
@@ -78,7 +78,8 @@ export default function MoreScreen() {
       </View>
 
       <MenuSection title={t.more.title}>
-        <MenuItem icon="wallet-outline" label={t.more.deposits} onPress={() => router.push('/deposits')} color="#0369a1" />
+        <MenuItem icon="wallet-outline" label={t.more.deposits} subtitle="Versements clients en attente" onPress={() => router.push('/deposits')} color="#0369a1" />
+        <MenuItem icon="arrow-up-circle-outline" label="Reversements" subtitle="Paiements bureau vers banques" onPress={() => router.push('/remittances')} color="#d97706" />
         <MenuItem icon="notifications-outline" label={t.more.alerts} onPress={() => router.push('/alerts')} color={COLORS.danger} />
         {isManager && <MenuItem icon="book-outline" label={t.more.cashbook} onPress={() => router.push('/cashbook')} color={COLORS.warning} />}
         {isManager && <MenuItem icon="bar-chart-outline" label={t.more.reports} onPress={() => router.push('/reports')} color="#7b1fa2" />}
@@ -99,6 +100,7 @@ export default function MoreScreen() {
         {isOwner && <MenuItem icon="shield-checkmark-outline" label="Ma Licence" subtitle="Plan, expiration, renouvellement" onPress={() => router.push('/settings/license')} color="#6366f1" />}
         {isOwner && <MenuItem icon="business-outline" label="Mon entreprise" subtitle="Nom, téléphone, adresse" onPress={() => router.push('/settings/business')} color={COLORS.primary} />}
         <MenuItem icon="lock-closed-outline" label={t.settings.changePassword} onPress={() => router.push('/settings/change-password')} color={COLORS.primary} />
+        <MenuItem icon="language-outline" label={language === 'fr' ? '🇫🇷 Français → English' : '🇬🇧 English → Français'} subtitle={language === 'fr' ? 'Changer la langue en anglais' : 'Switch language to French'} onPress={toggleLanguage} color="#0891b2" />
         <MenuItem icon="book-outline" label="Guide d'utilisation" subtitle="FAQ, tutoriels et aide" onPress={() => router.push('/settings/guide')} color="#8b5cf6" />
         {isOwner && <MenuItem icon="trash-outline" label="Réinitialiser les données" subtitle="Supprimer transactions, clients..." onPress={() => router.push('/settings/reset-data')} color={COLORS.danger} />}
         <MenuItem icon="information-circle-outline" label={t.settings.about} onPress={() => router.push('/settings/about')} color={COLORS.textSecondary} />

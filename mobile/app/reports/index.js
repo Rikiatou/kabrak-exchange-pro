@@ -133,11 +133,11 @@ export default function ReportsScreen() {
               </TouchableOpacity>
               <TouchableOpacity style={[styles.exportBtn, { backgroundColor: '#0369a1' }]} onPress={() => handleExportExcel('transactions')} disabled={!!exporting}>
                 {exporting === 'transactions' ? <ActivityIndicator size="small" color={COLORS.white} /> : <Ionicons name="grid-outline" size={18} color={COLORS.white} />}
-                <Text style={styles.exportBtnText}>{language === 'fr' ? 'Excel Trans.' : 'Excel Trans.'}</Text>
+                <Text style={styles.exportBtnText}>Excel Transactions</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.exportBtn, { backgroundColor: '#7b1fa2' }]} onPress={() => handleExportExcel('clients')} disabled={!!exporting}>
                 {exporting === 'clients' ? <ActivityIndicator size="small" color={COLORS.white} /> : <Ionicons name="people-outline" size={18} color={COLORS.white} />}
-                <Text style={styles.exportBtnText}>{language === 'fr' ? 'Excel Clients' : 'Excel Clients'}</Text>
+                <Text style={styles.exportBtnText}>Excel Clients</Text>
               </TouchableOpacity>
             </View>
 
@@ -203,7 +203,7 @@ export default function ReportsScreen() {
             {/* By Operator */}
             {report.byOperator?.length > 0 && (
               <View style={styles.card}>
-                <Text style={styles.sectionTitle}>👤 Performance par employé</Text>
+                <Text style={styles.sectionTitle}>👤 Performance par opérateur</Text>
                 {report.byOperator.map((op, i) => (
                   <View key={i} style={styles.currencyRow}>
                     <View style={[styles.currencyCode, { backgroundColor: '#6366f1' }]}>
@@ -211,7 +211,7 @@ export default function ReportsScreen() {
                     </View>
                     <View style={styles.currencyData}>
                       <Text style={styles.currencyTotal}>{op.name}</Text>
-                      <Text style={styles.currencyCount}>{op.count} transaction{op.count > 1 ? 's' : ''}</Text>
+                      <Text style={styles.currencyCount}>{op.count} transaction{op.count > 1 ? 's' : ''} · {lang === 'fr' ? 'vol.' : 'vol.'}</Text>
                     </View>
                     <View style={styles.currencyPaid}>
                       <Text style={[styles.currencyTotal, { color: '#0B6E4F' }]}>{formatCurrency(op.volume)}</Text>

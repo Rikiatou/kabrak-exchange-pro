@@ -17,7 +17,7 @@ if (!isExpoGo) {
 }
 
 export default function RootLayout() {
-  const { loadUser } = useAuthStore();
+  useAuthStore();
   const { init } = useLanguageStore();
   const router = useRouter();
   const wasOffline = useRef(false);
@@ -34,7 +34,6 @@ export default function RootLayout() {
   };
 
   useEffect(() => {
-    loadUser();
     init();
 
     // Deep linking handler - ouvre automatiquement les reçus via URL

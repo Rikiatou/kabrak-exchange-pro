@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../../src/services/api';
 import useLicenseStore from '../../src/store/licenseStore';
 import * as SecureStore from 'expo-secure-store';
@@ -53,9 +54,17 @@ export default function RegisterTrialScreen() {
         deviceId, // Include device ID
       });
 
-      const { token, user } = registerRes.data.data || registerRes.data;
+      const { token, refreshToken, user } = registerRes.data.data || registerRes.data;
       if (token) {
         await SecureStore.setItemAsync('auth_token', token);
+        if (refreshToken) await SecureStore.setItemAsync('refresh_token', refreshToken);
+        await SecureStore.setItemAsync('cached_user', JSON.stringify(user));
+        await AsyncStorage.setItem('last_user_id', String(user.id));
+        // Clear stale offline cache from previous account
+        const allKeys = await AsyncStorage.getAllKeys();
+        const cacheKeys = allKeys.filter(k => k.startsWith('offline_cache_'));
+        if (cacheKeys.length > 0) await AsyncStorage.multiRemove(cacheKeys);
+        await AsyncStorage.removeItem('hasSeenWelcome');
       }
 
       // 2. Activer le trial automatiquement

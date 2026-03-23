@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAuthStore from '../src/store/authStore';
 import useLicenseStore from '../src/store/licenseStore';
 import useLanguageStore from '../src/store/languageStore';
@@ -21,31 +22,36 @@ export default function Index() {
       const authState = useAuthStore.getState();
 
       // Team members (cashier/manager) don't have their own license
-      // They share the owner's license — bypass license check
       const isTeamMember = authState.isAuthenticated && authState.user?.teamOwnerId;
       if (isTeamMember) {
+        const seen = await AsyncStorage.getItem('hasSeenWelcome');
+        if (seen) { router.replace('/(tabs)/dashboard'); return; }
+        await AsyncStorage.setItem('hasSeenWelcome', '1');
         router.replace('/(auth)/welcome-back');
         return;
       }
 
-      // For owners/standalone users: check license
       if (authState.isAuthenticated) {
-        // Try fetching license from backend first
-        const { fetchMyLicense } = useLicenseStore.getState();
-        await fetchMyLicense();
+        const seen = await AsyncStorage.getItem('hasSeenWelcome');
+        if (seen) {
+          // Already saw welcome — go direct, check license in background
+          router.replace('/(tabs)/dashboard');
+          useLicenseStore.getState().fetchMyLicense().catch(() => {});
+          return;
+        }
+        // First time — check license before showing welcome-back
+        await loadStoredLicense();
+        const fallback = useLicenseStore.getState();
+        if (!fallback.isValid) {
+          const { fetchMyLicense } = useLicenseStore.getState();
+          await fetchMyLicense().catch(() => {});
+        }
         const licState = useLicenseStore.getState();
         if (licState.isValid) {
+          await AsyncStorage.setItem('hasSeenWelcome', '1');
           router.replace('/(auth)/welcome-back');
         } else {
-          // Fallback: check local storage
-          await loadStoredLicense();
-          const fallback = useLicenseStore.getState();
-          if (fallback.isValid) {
-            checkOnline().catch(() => {});
-            router.replace('/(auth)/welcome-back');
-          } else {
-            router.replace('/(auth)/license');
-          }
+          router.replace('/(auth)/license');
         }
       } else {
         // Not authenticated: check stored license for display purposes

@@ -27,12 +27,8 @@ export const getCachedData = async (key) => {
 };
 
 export const isOnline = async () => {
-  try {
-    const state = await NetInfo.fetch();
-    return state.isConnected && state.isInternetReachable !== false;
-  } catch {
-    return true;
-  }
+  const state = await NetInfo.fetch();
+  return state.isConnected && state.isInternetReachable !== false;
 };
 
 /**

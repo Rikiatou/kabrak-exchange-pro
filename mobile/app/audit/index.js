@@ -16,6 +16,7 @@ const ACTION_COLORS = {
   DELETE: COLORS.danger,
   OPEN_DAY: COLORS.primary,
   CLOSE_DAY: COLORS.secondary,
+  LOGIN: '#7c3aed',
 };
 
 const ACTION_ICONS = {
@@ -24,6 +25,16 @@ const ACTION_ICONS = {
   DELETE: 'trash-outline',
   OPEN_DAY: 'sunny-outline',
   CLOSE_DAY: 'moon-outline',
+  LOGIN: 'log-in-outline',
+};
+
+const ACTION_LABELS_FR = {
+  CREATE: 'CRÉATION',
+  UPDATE: 'MODIFICATION',
+  DELETE: 'SUPPRESSION',
+  LOGIN: 'CONNEXION',
+  OPEN_DAY: 'OUVERTURE',
+  CLOSE_DAY: 'CLÔTURE',
 };
 
 function AuditItem({ log }) {
@@ -36,7 +47,7 @@ function AuditItem({ log }) {
       </View>
       <View style={styles.logBody}>
         <View style={styles.logTop}>
-          <Text style={styles.logAction}>{log.action}</Text>
+          <Text style={styles.logAction}>{ACTION_LABELS_FR[log.action] || log.action}</Text>
           <View style={[styles.entityBadge, { backgroundColor: `${color}18` }]}>
             <Text style={[styles.entityText, { color }]}>{log.entity?.toUpperCase()}</Text>
           </View>
