@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import api from '../services/api';
+import useAuthStore from './authStore';
 
 const useDepositOrderStore = create((set, get) => ({
   orders: [],
@@ -19,8 +20,9 @@ const useDepositOrderStore = create((set, get) => ({
 
   createOrder: async (data) => {
     try {
-      const res = await api.post('/deposit-orders', data);
-      await get().fetchOrders({}); // fetch all, no filter
+      const pushToken = useAuthStore.getState().expoPushToken;
+      const res = await api.post('/deposit-orders', { ...data, expoPushToken: pushToken || undefined });
+      await get().fetchOrders({});
       return { success: true, data: res.data.data };
     } catch (e) {
       return { success: false, message: e.response?.data?.message || 'Error' };
@@ -39,6 +41,16 @@ const useDepositOrderStore = create((set, get) => ({
   addPayment: async (orderId, data) => {
     try {
       const res = await api.post(`/deposit-orders/${orderId}/payments`, data);
+      await get().fetchOrders();
+      return { success: true, data: res.data.data };
+    } catch (e) {
+      return { success: false, message: e.response?.data?.message || 'Error' };
+    }
+  },
+
+  deletePayment: async (orderId, paymentId) => {
+    try {
+      const res = await api.delete(`/deposit-orders/${orderId}/payments/${paymentId}`);
       await get().fetchOrders();
       return { success: true, data: res.data.data };
     } catch (e) {

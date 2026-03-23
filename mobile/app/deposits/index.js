@@ -95,7 +95,7 @@ function OrderCard({ order, lang, onPress }) {
 export default function DepositsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { orders, loading, fetchOrders, createOrder, addPayment, cancelOrder } = useDepositOrderStore();
+  const { orders, loading, fetchOrders, createOrder, addPayment, cancelOrder, deletePayment } = useDepositOrderStore();
   const { confirmDeposit, rejectDeposit } = useDepositStore();
   const { language: lang } = useLanguageStore();
   const { clients, fetchClients, createClient } = useClientStore();
@@ -253,6 +253,27 @@ export default function DepositsScreen() {
           style: 'destructive',
           onPress: async () => {
             const res = await rejectDeposit(payment.id);
+            if (res.success) {
+              const refreshed = await useDepositOrderStore.getState().getOrder(selected.id);
+              if (refreshed.success) setSelected(refreshed.data);
+              load();
+            } else Alert.alert('Erreur', res.message);
+          }
+        }
+      ]
+    );
+  };
+
+  const handleDeletePayment = (payment) => {
+    Alert.alert(
+      lang === 'fr' ? 'Supprimer versement' : 'Delete payment',
+      lang === 'fr' ? `Supprimer le versement de ${fmt(payment.amount)} ${selected?.currency} ?` : `Delete payment of ${fmt(payment.amount)} ${selected?.currency}?`,
+      [
+        { text: lang === 'fr' ? 'Annuler' : 'Cancel', style: 'cancel' },
+        {
+          text: lang === 'fr' ? 'Supprimer' : 'Delete', style: 'destructive',
+          onPress: async () => {
+            const res = await deletePayment(selected.id, payment.id);
             if (res.success) {
               const refreshed = await useDepositOrderStore.getState().getOrder(selected.id);
               if (refreshed.success) setSelected(refreshed.data);
@@ -629,6 +650,9 @@ export default function DepositsScreen() {
                               </TouchableOpacity>
                               <TouchableOpacity onPress={() => handleRejectPayment(p)} style={[styles.payIconBtn, { backgroundColor: COLORS.dangerLight }]}>
                                 <Ionicons name="close" size={16} color={COLORS.danger} />
+                              </TouchableOpacity>
+                              <TouchableOpacity onPress={() => handleDeletePayment(p)} style={[styles.payIconBtn, { backgroundColor: '#fee2e2' }]}>
+                                <Ionicons name="trash-outline" size={14} color={COLORS.danger} />
                               </TouchableOpacity>
                             </View>
                           )}

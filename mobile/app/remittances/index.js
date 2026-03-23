@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import useRemittanceStore from '../../src/store/remittanceStore';
 import useLanguageStore from '../../src/store/languageStore';
+import { exportExcel } from '../../src/utils/exportReport';
 
 const STATUS_CFG = {
   pending:   { label: 'En attente', labelEn: 'Pending',   color: '#d97706', bg: '#fef3c7', icon: 'time-outline' },
@@ -83,6 +84,18 @@ export default function RemittancesScreen() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [payForm, setPayForm] = useState(EMPTY_PAY);
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await exportExcel('remittances', filterStatus ? { status: filterStatus } : {});
+    } catch (e) {
+      Alert.alert('Erreur', e.message || 'Export échoué');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const load = useCallback(() => {
     const p = {};
@@ -177,9 +190,17 @@ export default function RemittancesScreen() {
           <Ionicons name="arrow-back" size={24} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.title}>{lang === 'fr' ? 'Reversements' : 'Remittances'}</Text>
-        <TouchableOpacity style={styles.addBtn} onPress={() => setShowNew(true)}>
-          <Ionicons name="add" size={22} color={COLORS.white} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity style={styles.addBtn} onPress={handleExport} disabled={exporting}>
+            {exporting
+              ? <ActivityIndicator size="small" color={COLORS.white} />
+              : <Ionicons name="download-outline" size={20} color={COLORS.white} />
+            }
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addBtn} onPress={() => setShowNew(true)}>
+            <Ionicons name="add" size={22} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Stats banner */}
