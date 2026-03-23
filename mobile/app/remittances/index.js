@@ -53,7 +53,6 @@ function RemittanceCard({ item, lang, onPress }) {
           <Text style={styles.cardName} numberOfLines={1}>{item.beneficiaryName}</Text>
           <Text style={styles.cardRef}>{item.reference}</Text>
         </View>
-        {item.beneficiaryBank ? <Text style={styles.cardBank}>{item.beneficiaryBank}</Text> : null}
         <ProgressBar paid={paid} total={total} />
         <View style={styles.cardRow}>
           <Text style={styles.cardAmount}>{fmt(paid)} / {fmt(total)} {item.currency}</Text>
@@ -68,7 +67,7 @@ function RemittanceCard({ item, lang, onPress }) {
   );
 }
 
-const EMPTY_FORM = { beneficiaryName: '', beneficiaryBank: '', beneficiaryAccount: '', beneficiaryPhone: '', totalAmount: '', currency: 'FCFA', notes: '' };
+const EMPTY_FORM = { beneficiaryName: '', beneficiaryPhone: '', totalAmount: '', currency: 'FCFA', notes: '' };
 const EMPTY_PAY = { amount: '', reference: '', notes: '' };
 
 export default function RemittancesScreen() {
@@ -275,14 +274,12 @@ export default function RemittancesScreen() {
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <Text style={styles.sectionNote}>
                 {lang === 'fr'
-                  ? 'Enregistrez un reversement que vous devez effectuer vers une banque ou un fournisseur de devises.'
-                  : 'Record a remittance you need to make to a bank or currency provider.'}
+                  ? 'Enregistrez un reversement que vous devez effectuer vers un partenaire.'
+                  : 'Record a remittance you need to make to a partner.'}
               </Text>
 
               {[
-                { key: 'beneficiaryName', label: lang === 'fr' ? 'Bénéficiaire *' : 'Beneficiary *', placeholder: 'Banque / Fournisseur', required: true },
-                { key: 'beneficiaryBank', label: lang === 'fr' ? 'Banque / Institution' : 'Bank / Institution', placeholder: 'SGBC, Ecobank, Coris...' },
-                { key: 'beneficiaryAccount', label: lang === 'fr' ? 'N° Compte (optionnel)' : 'Account No. (optional)', placeholder: '001-XXXX-XXXX' },
+                { key: 'beneficiaryName', label: lang === 'fr' ? 'Nom du partenaire *' : 'Partner name *', placeholder: lang === 'fr' ? 'Ex: Western Union, Ria...' : 'Ex: Western Union, Ria...', required: true },
                 { key: 'beneficiaryPhone', label: lang === 'fr' ? 'Téléphone (optionnel)' : 'Phone (optional)', placeholder: '+237 6XX XXX XXX', keyboard: 'phone-pad' },
               ].map(f => (
                 <View key={f.key} style={styles.fieldGroup}>
@@ -387,9 +384,7 @@ export default function RemittancesScreen() {
 
                   {/* Info rows */}
                   {[
-                    { label: lang === 'fr' ? 'Bénéficiaire' : 'Beneficiary', value: selected.beneficiaryName },
-                    { label: lang === 'fr' ? 'Banque' : 'Bank', value: selected.beneficiaryBank || '—' },
-                    { label: lang === 'fr' ? 'N° Compte' : 'Account', value: selected.beneficiaryAccount || '—' },
+                    { label: lang === 'fr' ? 'Partenaire' : 'Partner', value: selected.beneficiaryName },
                     { label: lang === 'fr' ? 'Téléphone' : 'Phone', value: selected.beneficiaryPhone || '—' },
                     { label: lang === 'fr' ? 'Devise' : 'Currency', value: selected.currency },
                     { label: 'Notes', value: selected.notes || '—' },

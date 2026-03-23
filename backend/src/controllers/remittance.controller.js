@@ -71,16 +71,16 @@ const getOne = async (req, res) => {
 const create = async (req, res) => {
   try {
     const ownerId = req.user.teamOwnerId || req.user.id;
-    const { beneficiaryName, beneficiaryBank, beneficiaryAccount, beneficiaryPhone, totalAmount, currency, notes, dueDate } = req.body;
+    const { beneficiaryName, beneficiaryPhone, totalAmount, currency, notes, dueDate } = req.body;
 
     if (!beneficiaryName || !totalAmount) {
-      return res.status(400).json({ success: false, message: 'Bénéficiaire et montant total requis' });
+      return res.status(400).json({ success: false, message: 'Nom du partenaire et montant total requis' });
     }
 
     const remittance = await Remittance.create({
       beneficiaryName,
-      beneficiaryBank: beneficiaryBank || null,
-      beneficiaryAccount: beneficiaryAccount || null,
+      beneficiaryBank: null,
+      beneficiaryAccount: null,
       beneficiaryPhone: beneficiaryPhone || null,
       totalAmount: parseFloat(totalAmount),
       currency: currency || 'FCFA',
