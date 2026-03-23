@@ -70,12 +70,27 @@ export default function UploadPage() {
   const cameraRef = useRef<HTMLInputElement>(null);
   const t = T[lang];
 
-  // Hide banner if already in standalone mode (installed)
+  // Register service worker + store current URL for iOS PWA redirect
   useEffect(() => {
+    const currentUrl = window.location.href;
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
       (('standalone' in navigator) && (navigator as any).standalone === true);
     if (isStandalone) setShowBanner(false);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        const sw = reg.installing || reg.waiting || reg.active;
+        const send = (s: ServiceWorker) => s.postMessage({ type: 'STORE_URL', url: currentUrl });
+        if (reg.active) {
+          send(reg.active);
+        } else if (sw) {
+          sw.addEventListener('statechange', () => {
+            if (sw.state === 'activated') send(sw);
+          });
+        }
+      }).catch(() => {});
+    }
   }, []);
 
   useEffect(() => {
