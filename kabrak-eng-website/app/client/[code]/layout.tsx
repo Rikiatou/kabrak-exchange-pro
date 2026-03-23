@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 
 interface Props {
@@ -17,13 +18,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   } catch {}
 
-  const pageTitle = `Versement — ${businessName}`;
-  const pageUrl = `https://exchange.kabrakeng.com/upload/${code}`;
+  const pageTitle = `Portail client — ${businessName}`;
+  const pageUrl = `https://exchange.kabrakeng.com/client/${code}`;
 
   return {
     title: pageTitle,
-    description: `Envoyez votre reçu de versement — ${businessName}`,
-    manifest: `/api/manifest?start_url=${encodeURIComponent(pageUrl)}&name=${encodeURIComponent(pageTitle)}&scope=${encodeURIComponent('/upload/')}`,
+    description: `Suivez vos commandes et envoyez vos reçus — ${businessName}`,
+    manifest: `/api/manifest?start_url=${encodeURIComponent(pageUrl)}&name=${encodeURIComponent(pageTitle)}&scope=${encodeURIComponent('/client/')}`,
     appleWebApp: {
       capable: true,
       title: pageTitle,
@@ -36,6 +37,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function UploadLayout({ children }: { children: React.ReactNode }) {
+export default function ClientPortalLayout({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }

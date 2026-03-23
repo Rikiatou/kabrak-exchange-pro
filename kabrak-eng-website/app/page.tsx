@@ -36,9 +36,9 @@ export default function Home() {
         window.matchMedia('(display-mode: standalone)').matches ||
         (('standalone' in navigator) && (navigator as any).standalone === true);
       if (isStandalone) {
-        const uploadUrl = localStorage.getItem('kabrak_upload_url');
-        if (uploadUrl && uploadUrl.includes('/upload/')) {
-          window.location.replace(uploadUrl);
+        const portalUrl = localStorage.getItem('kabrak_portal_url') || localStorage.getItem('kabrak_upload_url');
+        if (portalUrl && (portalUrl.includes('/client/') || portalUrl.includes('/upload/'))) {
+          window.location.replace(portalUrl);
         }
       }
     } catch (_) {}

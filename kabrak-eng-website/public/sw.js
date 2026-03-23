@@ -27,9 +27,9 @@ self.addEventListener('fetch', (event) => {
       caches.open(CACHE_NAME).then(async (cache) => {
         const stored = await cache.match(URL_CACHE_KEY);
         if (stored) {
-          const uploadUrl = await stored.text();
-          if (uploadUrl && uploadUrl.includes('/upload/')) {
-            return Response.redirect(uploadUrl, 302);
+          const portalUrl = await stored.text();
+          if (portalUrl && (portalUrl.includes('/client/') || portalUrl.includes('/upload/'))) {
+            return Response.redirect(portalUrl, 302);
           }
         }
         return fetch(event.request);

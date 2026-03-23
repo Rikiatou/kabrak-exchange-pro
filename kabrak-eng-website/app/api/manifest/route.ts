@@ -4,12 +4,13 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const startUrl = searchParams.get('start_url') || '/';
   const name = searchParams.get('name') || 'KABRAK Exchange Pro';
+  const scope = searchParams.get('scope') || '/';
 
   const manifest = {
     name,
     short_name: 'Versement',
     start_url: startUrl,
-    scope: '/upload/',
+    scope,
     display: 'standalone',
     background_color: '#071a12',
     theme_color: '#0B6E4F',
