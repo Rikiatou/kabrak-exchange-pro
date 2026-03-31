@@ -18,15 +18,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } catch {}
 
   const pageTitle = `Versement — ${businessName}`;
-  const pageUrl = `https://exchange.kabrakeng.com/upload/${code}`;
+  const pageUrl = `/upload/${code}`;
 
   return {
     title: pageTitle,
     description: `Envoyez votre reçu de versement — ${businessName}`,
-    manifest: `/api/manifest?start_url=${encodeURIComponent(pageUrl)}&name=${encodeURIComponent(pageTitle)}&scope=${encodeURIComponent('/upload/')}`,
+    manifest: `/api/manifest?start_url=${encodeURIComponent(pageUrl)}&name=${encodeURIComponent(businessName || 'Versement')}&scope=${encodeURIComponent('/')}`,
     appleWebApp: {
       capable: true,
-      title: pageTitle,
+      title: businessName || 'Versement',
       statusBarStyle: 'black-translucent',
     },
     other: {

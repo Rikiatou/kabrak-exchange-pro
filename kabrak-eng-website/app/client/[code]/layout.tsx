@@ -19,15 +19,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } catch {}
 
   const pageTitle = `Portail client — ${businessName}`;
-  const pageUrl = `https://exchange.kabrakeng.com/client/${code}`;
+  const pageUrl = `/client/${code}`;
 
   return {
     title: pageTitle,
     description: `Suivez vos commandes et envoyez vos reçus — ${businessName}`,
-    manifest: `/api/manifest?start_url=${encodeURIComponent(pageUrl)}&name=${encodeURIComponent(pageTitle)}&scope=${encodeURIComponent('/client/')}`,
+    manifest: `/api/manifest?start_url=${encodeURIComponent(pageUrl)}&name=${encodeURIComponent(businessName || 'Portail')}&scope=${encodeURIComponent('/')}`,
     appleWebApp: {
       capable: true,
-      title: pageTitle,
+      title: businessName || 'Portail',
       statusBarStyle: 'black-translucent',
     },
     other: {
