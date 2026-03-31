@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   RefreshControl, Alert, Modal, TextInput, ScrollView,
-  ActivityIndicator, Clipboard, Image, Dimensions, Linking
+  ActivityIndicator, Clipboard, Image, Dimensions, Linking,
+  KeyboardAvoidingView, Platform
 } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +14,7 @@ import useLanguageStore from '../../src/store/languageStore';
 import useClientStore from '../../src/store/clientStore';
 import useSettingStore from '../../src/store/settingStore';
 import { shareDepositReceipt } from '../../src/utils/generateReceipt';
+import { parseCleanNumber } from '../../src/utils/helpers';
 import useAuthStore from '../../src/store/authStore';
 import TooltipGuide from '../../src/components/TooltipGuide';
 
@@ -34,7 +36,12 @@ const PAY_STATUS = {
   rejected:         { label: 'Rejeté',     labelEn: 'Rejected',      color: '#dc2626', bg: '#fee2e2', icon: 'close-circle-outline' },
 };
 
-function fmt(n) { return parseFloat(n || 0).toLocaleString('fr-FR'); }
+function fmt(n) {
+  const v = parseFloat(n || 0);
+  return Number.isInteger(v)
+    ? v.toLocaleString('fr-FR', { maximumFractionDigits: 0 })
+    : v.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
+}
 
 function Badge({ cfg, lang }) {
   return (
@@ -182,9 +189,9 @@ export default function DepositsScreen() {
     setSaving(true);
     const result = await createOrder({
       ...form,
-      totalAmount: parseFloat(form.totalAmount.replace(/\s/g, '')),
-      amountForeign: form.amountForeign ? parseFloat(String(form.amountForeign).replace(/\s/g, '')) : null,
-      rate: form.rate ? parseFloat(String(form.rate).replace(/\s/g, '')) : null,
+      totalAmount: parseCleanNumber(form.totalAmount),
+      amountForeign: form.amountForeign ? parseCleanNumber(form.amountForeign) : null,
+      rate: form.rate ? parseCleanNumber(form.rate) : null,
       expoPushToken: expoPushToken || null,
     });
     setSaving(false);
@@ -208,7 +215,7 @@ export default function DepositsScreen() {
       return;
     }
     setSaving(true);
-    const result = await addPayment(selected.id, { amount: parseFloat(payForm.amount.replace(/\s/g, '')), notes: payForm.notes });
+    const result = await addPayment(selected.id, { amount: parseCleanNumber(payForm.amount), notes: payForm.notes });
     setSaving(false);
     if (result.success) {
       setShowAddPayment(false);
@@ -416,6 +423,7 @@ export default function DepositsScreen() {
 
       {/* ── NEW ORDER MODAL ── */}
       <Modal visible={showNew} animationType="slide" transparent>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <View style={styles.modalHeader}>
@@ -564,6 +572,7 @@ export default function DepositsScreen() {
             </ScrollView>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* ── ORDER DETAIL MODAL ── */}
@@ -744,6 +753,7 @@ export default function DepositsScreen() {
 
       {/* ── ADD PAYMENT MODAL ── */}
       <Modal visible={showAddPayment} animationType="slide" transparent>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <View style={styles.modalOverlay}>
           <View style={[styles.modalBox, { maxHeight: '55%' }]}>
             <View style={styles.modalHeader}>
@@ -785,6 +795,7 @@ export default function DepositsScreen() {
             </TouchableOpacity>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );

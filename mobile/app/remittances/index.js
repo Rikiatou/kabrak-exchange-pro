@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   RefreshControl, Alert, Modal, TextInput, ScrollView,
-  ActivityIndicator
+  ActivityIndicator, KeyboardAvoidingView, Platform
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/colors';
 import useRemittanceStore from '../../src/store/remittanceStore';
 import useLanguageStore from '../../src/store/languageStore';
 import { exportExcel } from '../../src/utils/exportReport';
+import { parseCleanNumber } from '../../src/utils/helpers';
 
 const STATUS_CFG = {
   pending:   { label: 'En attente', labelEn: 'Pending',   color: '#d97706', bg: '#fef3c7', icon: 'time-outline' },
@@ -18,7 +19,12 @@ const STATUS_CFG = {
   cancelled: { label: 'Annulé',     labelEn: 'Cancelled', color: '#dc2626', bg: '#fee2e2', icon: 'close-circle-outline' },
 };
 
-function fmt(n) { return parseFloat(n || 0).toLocaleString('fr-FR'); }
+function fmt(n) {
+  const v = parseFloat(n || 0);
+  return Number.isInteger(v)
+    ? v.toLocaleString('fr-FR', { maximumFractionDigits: 0 })
+    : v.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
+}
 
 function Badge({ status, lang }) {
   const cfg = STATUS_CFG[status] || STATUS_CFG.pending;
@@ -113,7 +119,7 @@ export default function RemittancesScreen() {
     setSaving(true);
     const result = await create({
       ...form,
-      totalAmount: parseFloat(String(form.totalAmount).replace(/\s/g, '')),
+      totalAmount: parseCleanNumber(form.totalAmount),
     });
     setSaving(false);
     if (result.success) {
@@ -133,7 +139,7 @@ export default function RemittancesScreen() {
     }
     setSaving(true);
     const result = await addPayment(selected.id, {
-      amount: parseFloat(String(payForm.amount).replace(/\s/g, '')),
+      amount: parseCleanNumber(payForm.amount),
       reference: payForm.reference || undefined,
       notes: payForm.notes || undefined,
     });
@@ -263,6 +269,7 @@ export default function RemittancesScreen() {
 
       {/* ── NEW REMITTANCE MODAL ── */}
       <Modal visible={showNew} animationType="slide" transparent>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <View style={styles.modalHeader}>
@@ -343,6 +350,7 @@ export default function RemittancesScreen() {
             </ScrollView>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* ── DETAIL MODAL ── */}
@@ -449,6 +457,7 @@ export default function RemittancesScreen() {
 
       {/* ── ADD PAYMENT MODAL ── */}
       <Modal visible={showAddPay} animationType="slide" transparent>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <View style={styles.modalOverlay}>
           <View style={[styles.modalBox, { maxHeight: '55%' }]}>
             <View style={styles.modalHeader}>
@@ -504,6 +513,7 @@ export default function RemittancesScreen() {
             </ScrollView>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );

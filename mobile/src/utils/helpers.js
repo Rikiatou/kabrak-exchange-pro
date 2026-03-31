@@ -3,7 +3,23 @@ import { fr } from 'date-fns/locale';
 
 export const formatCurrency = (amount, currencyCode = '') => {
   const num = parseFloat(amount || 0);
-  return `${num.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currencyCode}`;
+  const formatted = Number.isInteger(num)
+    ? num.toLocaleString('fr-FR', { maximumFractionDigits: 0 })
+    : num.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
+  return currencyCode ? `${formatted} ${currencyCode}` : formatted;
+};
+
+export const parseCleanNumber = (str) => {
+  if (!str) return 0;
+  // Remove spaces and non-breaking spaces (thousand separators)
+  // Replace comma used as decimal separator, keep dot
+  const cleaned = String(str).replace(/[\s\u00A0]/g, '').replace(/,/g, '.');
+  // If multiple dots, only keep last as decimal (e.g. 170.100.000 → 170100000)
+  const parts = cleaned.split('.');
+  if (parts.length > 2) {
+    return parseFloat(parts.join(''));
+  }
+  return parseFloat(cleaned) || 0;
 };
 
 export const formatDate = (date) => {
