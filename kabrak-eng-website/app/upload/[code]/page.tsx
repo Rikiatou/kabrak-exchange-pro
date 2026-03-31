@@ -388,7 +388,7 @@ export default function UploadPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#94a3b8', fontSize: 13 }}>{t.amount}</span>
                 <span style={{ color: 'white', fontWeight: 700, fontSize: 16 }}>
-                  {parseFloat(deposit.amount).toLocaleString('fr-FR')} {deposit.currency}
+                  {(() => { const v = parseFloat(deposit.amount); return Number.isInteger(v) ? v.toLocaleString('fr-FR', { maximumFractionDigits: 0 }) : v.toLocaleString('fr-FR', { maximumFractionDigits: 2 }); })()} {deposit.currency}
                 </span>
               </div>
               {deposit.bank && (

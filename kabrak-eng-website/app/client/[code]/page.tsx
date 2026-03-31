@@ -155,7 +155,10 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
 };
 
 function fmt(n: string | number) {
-  return parseFloat(String(n || 0)).toLocaleString('fr-FR');
+  const v = parseFloat(String(n || 0));
+  return Number.isInteger(v)
+    ? v.toLocaleString('fr-FR', { maximumFractionDigits: 0 })
+    : v.toLocaleString('fr-FR', { maximumFractionDigits: 2 });
 }
 
 export default function ClientPortalPage() {
