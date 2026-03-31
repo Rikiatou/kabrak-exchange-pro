@@ -102,7 +102,7 @@ function OrderCard({ order, lang, onPress }) {
 export default function DepositsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { orders, loading, fetchOrders, createOrder, addPayment, cancelOrder, deletePayment } = useDepositOrderStore();
+  const { orders, loading, fetchOrders, createOrder, cancelOrder, deletePayment } = useDepositOrderStore();
   const { confirmDeposit, rejectDeposit } = useDepositStore();
   const { language: lang } = useLanguageStore();
   const { clients, fetchClients, createClient } = useClientStore();
@@ -111,7 +111,6 @@ export default function DepositsScreen() {
 
   const [showNew, setShowNew] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
-  const [showAddPayment, setShowAddPayment] = useState(false);
   const [selected, setSelected] = useState(null);
   const [filterStatus, setFilterStatus] = useState('');
   const [search, setSearch] = useState('');
@@ -139,7 +138,6 @@ export default function DepositsScreen() {
   const [savingClient, setSavingClient] = useState(false);
 
   const [form, setForm] = useState({ clientName: '', clientPhone: '', clientId: null, amountForeign: '', foreignCurrency: 'EUR', rate: '', totalAmount: '', currency: 'FCFA', bank: '', notes: '' });
-  const [payForm, setPayForm] = useState({ amount: '', notes: '' });
 
   const load = useCallback(() => {
     const params = {};
@@ -204,25 +202,6 @@ export default function DepositsScreen() {
       setSelected(result.data);
       setShowDetail(true);
       load(); // force refresh
-    } else {
-      Alert.alert(lang === 'fr' ? 'Erreur' : 'Error', result.message);
-    }
-  };
-
-  const handleAddPayment = async () => {
-    if (!payForm.amount) {
-      Alert.alert(lang === 'fr' ? 'Erreur' : 'Error', lang === 'fr' ? 'Montant requis' : 'Amount required');
-      return;
-    }
-    setSaving(true);
-    const result = await addPayment(selected.id, { amount: parseCleanNumber(payForm.amount), notes: payForm.notes });
-    setSaving(false);
-    if (result.success) {
-      setShowAddPayment(false);
-      setPayForm({ amount: '', notes: '' });
-      const refreshed = await useDepositOrderStore.getState().getOrder(selected.id);
-      if (refreshed.success) setSelected(refreshed.data);
-      load();
     } else {
       Alert.alert(lang === 'fr' ? 'Erreur' : 'Error', result.message);
     }
@@ -703,14 +682,6 @@ export default function DepositsScreen() {
                     })}
                   </View>
 
-                  {/* Add payment button */}
-                  {selected.status !== 'completed' && selected.status !== 'cancelled' && (
-                    <TouchableOpacity style={styles.addPayBtn} onPress={() => setShowAddPayment(true)}>
-                      <Ionicons name="add-circle-outline" size={18} color={COLORS.white} />
-                      <Text style={styles.addPayBtnText}>{lang === 'fr' ? '+ Ajouter un versement' : '+ Add payment'}</Text>
-                    </TouchableOpacity>
-                  )}
-
                   {/* Cancel order */}
                   {selected.status !== 'completed' && selected.status !== 'cancelled' && (
                     <TouchableOpacity style={styles.cancelBtn} onPress={() => handleCancelOrder(selected)}>
@@ -751,52 +722,6 @@ export default function DepositsScreen() {
         </View>
       </Modal>
 
-      {/* ── ADD PAYMENT MODAL ── */}
-      <Modal visible={showAddPayment} animationType="slide" transparent>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalBox, { maxHeight: '55%' }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{lang === 'fr' ? '+ Ajouter un versement' : '+ Add payment'}</Text>
-              <TouchableOpacity onPress={() => setShowAddPayment(false)}>
-                <Ionicons name="close" size={22} color={COLORS.textSecondary} />
-              </TouchableOpacity>
-            </View>
-            {selected && (
-              <View style={styles.remainingHint}>
-                <Ionicons name="information-circle-outline" size={14} color={COLORS.info} />
-                <Text style={styles.remainingHintText}>{lang === 'fr' ? 'Restant' : 'Remaining'}: {fmt(selected.remainingAmount)} {selected.currency}</Text>
-              </View>
-            )}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>{lang === 'fr' ? 'Montant du versement *' : 'Payment amount *'}</Text>
-              <TextInput
-                style={styles.fieldInput}
-                placeholder={`max ${fmt(selected?.remainingAmount)}`}
-                placeholderTextColor={COLORS.textMuted}
-                value={payForm.amount}
-                onChangeText={v => setPayForm(p => ({ ...p, amount: v }))}
-                keyboardType="numeric"
-                autoFocus
-              />
-            </View>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>{lang === 'fr' ? 'Notes' : 'Notes'}</Text>
-              <TextInput
-                style={styles.fieldInput}
-                placeholder={lang === 'fr' ? 'Optionnel...' : 'Optional...'}
-                placeholderTextColor={COLORS.textMuted}
-                value={payForm.notes}
-                onChangeText={v => setPayForm(p => ({ ...p, notes: v }))}
-              />
-            </View>
-            <TouchableOpacity style={styles.submitBtn} onPress={handleAddPayment} disabled={saving}>
-              {saving ? <ActivityIndicator color={COLORS.white} /> : <Text style={styles.submitText}>{lang === 'fr' ? 'Créer & Envoyer lien' : 'Create & Send link'}</Text>}
-            </TouchableOpacity>
-          </View>
-        </View>
-        </KeyboardAvoidingView>
-      </Modal>
     </View>
   );
 }
@@ -885,14 +810,8 @@ const styles = StyleSheet.create({
   receiptClose: { position: 'absolute', top: 52, right: 20, zIndex: 10 },
   receiptImage: { width: SCREEN_W, height: SCREEN_H * 0.8 },
 
-  addPayBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: RADIUS.lg, paddingVertical: 14, marginTop: SPACING.md },
-  addPayBtnText: { color: COLORS.white, fontWeight: '700', fontSize: FONTS.sizes.sm },
-
   cancelBtn: { alignItems: 'center', paddingVertical: 12, marginTop: SPACING.sm },
   cancelBtnText: { fontSize: FONTS.sizes.sm, color: COLORS.danger, fontWeight: '600' },
-
-  remainingHint: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#e0f2fe', borderRadius: RADIUS.md, padding: SPACING.sm, marginBottom: SPACING.md },
-  remainingHintText: { fontSize: FONTS.sizes.sm, color: '#0369a1', fontWeight: '600' },
 
   calcRow: { flexDirection: 'row', marginBottom: SPACING.md },
   calcResult: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#e6f4ef', borderRadius: RADIUS.md, padding: SPACING.sm, marginBottom: SPACING.md, borderWidth: 1, borderColor: COLORS.primary },
