@@ -28,6 +28,7 @@ const WA_ICON = () => (
 export default function Home() {
   const [lang, setLang] = useState<Lang>('fr');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   // PWA launch: redirect to saved portal(s)
   useEffect(() => {
@@ -38,22 +39,34 @@ export default function Home() {
       if (isStandalone) {
         const portals: string[] = JSON.parse(localStorage.getItem('kabrak_portals') || '[]');
         const valid = portals.filter((p: string) => p.includes('/client/') || p.includes('/upload/'));
-        if (valid.length === 1) {
+        if (valid.length >= 1) {
           window.location.replace(valid[0]);
-        } else if (valid.length > 1) {
-          window.location.replace('/choose-client');
-        } else {
-          const fallback = localStorage.getItem('kabrak_portal_url');
-          if (fallback && (fallback.includes('/client/') || fallback.includes('/upload/'))) {
-            window.location.replace(fallback);
-          }
+          return;
+        }
+        const fallback = localStorage.getItem('kabrak_portal_url');
+        if (fallback && (fallback.includes('/client/') || fallback.includes('/upload/'))) {
+          window.location.replace(fallback);
+          return;
         }
       }
     } catch (_) {}
+    setChecking(false);
   }, []);
+
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', company: '', message: '' });
   const [formStatus, setFormStatus] = useState<'idle'|'loading'|'success'|'error'>('idle');
   const T = t[lang];
+
+  if (checking) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#071a12', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>💱</div>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>KABRAK Exchange Pro</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
