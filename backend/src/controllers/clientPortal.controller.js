@@ -61,7 +61,12 @@ const submitClientPayment = async (req, res) => {
       return res.status(400).json({ success: false, message: 'orderId et montant requis / orderId and amount required' });
     }
 
-    const order = await DepositOrder.findOne({ where: { id: orderId, clientId: client.id } });
+    const order = await DepositOrder.findOne({
+      where: {
+        id: orderId,
+        [Op.or]: [{ clientId: client.id }, { clientName: client.name }]
+      }
+    });
     if (!order) return res.status(404).json({ success: false, message: 'Commande introuvable / Order not found' });
     if (order.status === 'completed' || order.status === 'cancelled') {
       return res.status(400).json({ success: false, message: 'Cette commande est déjà terminée / Order already completed' });
