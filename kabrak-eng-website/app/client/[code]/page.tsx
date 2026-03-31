@@ -227,13 +227,15 @@ export default function ClientPortalPage() {
 
     const ua = navigator.userAgent;
     const isIOS = /iPhone|iPad|iPod/.test(ua);
-    const isInAppBrowser = /FBAN|FBAV|Instagram|WhatsApp|Twitter/.test(ua);
+    const isInAppBrowser = /FBAN|FBAV|Instagram|WhatsApp|Twitter|Line|Snapchat|TikTok/.test(ua);
     const isSafariProper = isIOS && /Version\//.test(ua) && /Safari\//.test(ua) && !isInAppBrowser;
     const webview = isIOS && (!isSafariProper || isInAppBrowser);
     if (isIOS) setDeviceType('ios');
     else if (/Android/.test(ua)) setDeviceType('android');
     else setDeviceType('other');
     setIsIOSWebView(webview);
+    // On iOS, always show banner unless already standalone
+    if (isIOS && !isStandalone) setShowBanner(true);
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').then((reg) => {
@@ -311,13 +313,32 @@ export default function ClientPortalPage() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#071a12', color: 'white', fontFamily: 'system-ui, sans-serif', padding: '24px 16px 120px' }}>
       {isIOSWebView && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 10001, background: 'linear-gradient(135deg, #7c2d12, #991b1b)', padding: '16px 16px 20px', boxShadow: '0 4px 30px rgba(0,0,0,0.8)' }}>
-          <p style={{ color: 'white', fontWeight: 800, fontSize: 15, margin: '0 0 4px' }}>{t.webviewWarning}</p>
-          <p style={{ color: '#fca5a5', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>{t.webviewSub}</p>
-          <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: '10px 14px', marginBottom: 12 }}>
-            <p style={{ color: '#fed7aa', fontSize: 13, margin: 0, lineHeight: 1.6 }}>👉 {t.webviewStep}</p>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: '#071a12', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px' }}>
+          <div style={{ fontSize: 56, marginBottom: 16 }}>🧭</div>
+          <h1 style={{ color: 'white', fontWeight: 900, fontSize: 22, textAlign: 'center', margin: '0 0 12px', lineHeight: 1.3 }}>
+            Ouvrez dans Safari
+          </h1>
+          <p style={{ color: '#fca5a5', fontSize: 15, textAlign: 'center', margin: '0 0 28px', lineHeight: 1.6 }}>
+            WhatsApp ne permet pas d&apos;installer cette app correctement.{'\n'}Ouvrez ce lien dans Safari pour continuer.
+          </p>
+          <div style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: '16px 18px', marginBottom: 28 }}>
+            {[
+              { n: '1', t: 'Appuyez sur ··· en bas à droite' },
+              { n: '2', t: 'Choisissez "Ouvrir dans Safari"' },
+              { n: '3', t: 'Ajoutez à l\'écran d\'accueil depuis Safari ⬆️' },
+            ].map((s) => (
+              <div key={s.n} style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
+                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#0B6E4F', color: 'white', fontWeight: 800, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.n}</div>
+                <p style={{ color: '#e2e8f0', fontSize: 14, margin: 0, lineHeight: 1.4 }}>{s.t}</p>
+              </div>
+            ))}
           </div>
-          <a href={typeof window !== 'undefined' ? window.location.href : '#'} target="_blank" rel="noreferrer" style={{ display: 'block', width: '100%', padding: '12px', background: 'white', color: '#991b1b', fontWeight: 800, fontSize: 14, textAlign: 'center', borderRadius: 12, textDecoration: 'none', boxSizing: 'border-box' }}>{t.webviewBtn}</a>
+          <a href={`x-safari-https://exchange.kabrakeng.com/client/${code}`} style={{ display: 'block', width: '100%', padding: '16px', background: '#0B6E4F', color: 'white', fontWeight: 800, fontSize: 16, textAlign: 'center', borderRadius: 14, textDecoration: 'none', boxSizing: 'border-box', boxShadow: '0 4px 20px rgba(11,110,79,0.5)' }}>
+            🧭 Ouvrir dans Safari
+          </a>
+          <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11, marginTop: 12, textAlign: 'center' }}>
+            exchange.kabrakeng.com/client/{code}
+          </p>
         </div>
       )}
 
