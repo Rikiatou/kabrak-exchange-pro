@@ -407,7 +407,13 @@ export default function ClientPortalPage() {
               </div>
               <button onClick={() => setShowBanner(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#94a3b8', fontSize: 16, cursor: 'pointer', padding: '6px 10px', borderRadius: 8, flexShrink: 0 }}>✕</button>
             </div>
-            <button onClick={() => setShowGuide(true)} style={{ width: '100%', padding: '13px', borderRadius: 14, background: '#0B6E4F', color: 'white', fontWeight: 800, fontSize: 15, border: 'none', cursor: 'pointer', boxShadow: '0 4px 15px rgba(11,110,79,0.5)' }}>{t.installBtn}</button>
+            {deviceType === 'ios' ? (
+              <a href={`/pwa/${code}`} style={{ display: 'block', width: '100%', padding: '13px', borderRadius: 14, background: '#0B6E4F', color: 'white', fontWeight: 800, fontSize: 15, textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box', boxShadow: '0 4px 15px rgba(11,110,79,0.5)' }}>
+                📲 Installer l&apos;app
+              </a>
+            ) : (
+              <button onClick={() => setShowGuide(true)} style={{ width: '100%', padding: '13px', borderRadius: 14, background: '#0B6E4F', color: 'white', fontWeight: 800, fontSize: 15, border: 'none', cursor: 'pointer', boxShadow: '0 4px 15px rgba(11,110,79,0.5)' }}>{t.installBtn}</button>
+            )}
           </div>
         </>
       )}

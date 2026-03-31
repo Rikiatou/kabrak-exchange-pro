@@ -19,12 +19,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } catch {}
 
   const pageTitle = `Portail client — ${businessName}`;
-  const pageUrl = `/client/${code}`;
+  const pwaUrl = `/pwa/${code}`;
 
   return {
     title: pageTitle,
     description: `Suivez vos commandes et envoyez vos reçus — ${businessName}`,
-    manifest: `/api/manifest?start_url=${encodeURIComponent(pageUrl)}&name=${encodeURIComponent(businessName || 'Portail')}&scope=${encodeURIComponent(pageUrl)}`,
+    manifest: `/api/manifest?start_url=${encodeURIComponent(pwaUrl)}&name=${encodeURIComponent(businessName || 'Portail')}&scope=%2F`,
     appleWebApp: {
       capable: true,
       title: businessName || 'Portail',
