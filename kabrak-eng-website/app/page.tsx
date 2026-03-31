@@ -29,16 +29,24 @@ export default function Home() {
   const [lang, setLang] = useState<Lang>('fr');
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // iOS PWA: si ouvert depuis l'écran d'accueil et qu'une URL upload est stockée → rediriger
+  // PWA launch: redirect to saved portal(s)
   useEffect(() => {
     try {
       const isStandalone =
         window.matchMedia('(display-mode: standalone)').matches ||
         (('standalone' in navigator) && (navigator as any).standalone === true);
       if (isStandalone) {
-        const portalUrl = localStorage.getItem('kabrak_portal_url') || localStorage.getItem('kabrak_upload_url');
-        if (portalUrl && (portalUrl.includes('/client/') || portalUrl.includes('/upload/'))) {
-          window.location.replace(portalUrl);
+        const portals: string[] = JSON.parse(localStorage.getItem('kabrak_portals') || '[]');
+        const valid = portals.filter((p: string) => p.includes('/client/') || p.includes('/upload/'));
+        if (valid.length === 1) {
+          window.location.replace(valid[0]);
+        } else if (valid.length > 1) {
+          window.location.replace('/choose-client');
+        } else {
+          const fallback = localStorage.getItem('kabrak_portal_url');
+          if (fallback && (fallback.includes('/client/') || fallback.includes('/upload/'))) {
+            window.location.replace(fallback);
+          }
         }
       }
     } catch (_) {}

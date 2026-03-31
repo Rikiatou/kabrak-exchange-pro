@@ -216,8 +216,12 @@ export default function ClientPortalPage() {
     if (isStandalone) setShowBanner(false);
 
     try {
+      let portals: string[] = JSON.parse(localStorage.getItem('kabrak_portals') || '[]');
+      portals = portals.filter((p: string) => p !== currentUrl);
+      portals.unshift(currentUrl);
+      portals = portals.slice(0, 5);
+      localStorage.setItem('kabrak_portals', JSON.stringify(portals));
       localStorage.setItem('kabrak_portal_url', currentUrl);
-      localStorage.setItem('kabrak_upload_url', currentUrl);
       localStorage.setItem('kabrak_portal_code', code);
     } catch (_) {}
 
