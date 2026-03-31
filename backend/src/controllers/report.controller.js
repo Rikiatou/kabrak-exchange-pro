@@ -244,6 +244,55 @@ const getProfitReport = async (req, res) => {
     const prevProfit = prevTransactions.reduce((sum, t) => sum + parseFloat(t.profit || 0), 0);
     const profitChange = prevProfit !== 0 ? ((totalProfit - prevProfit) / Math.abs(prevProfit)) * 100 : (totalProfit > 0 ? 100 : 0);
 
+    // ── Deposit / encaissement metrics for the period ──
+    const depositOrders = await DepositOrder.findAll({
+      where: { userId: { [Op.in]: userIds } },
+      include: [{
+        model: Deposit,
+        as: 'payments',
+        attributes: ['id', 'amount', 'currency', 'status', 'createdAt'],
+        required: false,
+      }],
+      attributes: ['id', 'totalAmount', 'receivedAmount', 'remainingAmount', 'currency', 'status', 'createdAt'],
+    });
+
+    // All-time deposit totals (cumulative)
+    const allConfirmedDeposits = depositOrders.reduce((sum, o) => {
+      const confirmed = (o.payments || []).filter(p => p.status === 'confirmed');
+      return sum + confirmed.reduce((s, p) => s + parseFloat(p.amount || 0), 0);
+    }, 0);
+
+    const allPendingDeposits = depositOrders.reduce((sum, o) => {
+      const pending = (o.payments || []).filter(p => p.status === 'receipt_uploaded' || p.status === 'pending');
+      return sum + pending.reduce((s, p) => s + parseFloat(p.amount || 0), 0);
+    }, 0);
+
+    const allRemainingDeposits = depositOrders
+      .filter(o => o.status !== 'completed' && o.status !== 'cancelled')
+      .reduce((sum, o) => sum + parseFloat(o.remainingAmount || 0), 0);
+
+    const totalDepositOrders = depositOrders.length;
+    const completedOrders = depositOrders.filter(o => o.status === 'completed').length;
+    const partialOrders = depositOrders.filter(o => o.status === 'partial').length;
+    const pendingOrders = depositOrders.filter(o => o.status === 'pending').length;
+
+    // Period-scoped deposit totals
+    const periodOrders = depositOrders.filter(o => {
+      const d = new Date(o.createdAt);
+      return d >= startDate && d <= endDate;
+    });
+    const periodConfirmed = periodOrders.reduce((sum, o) => {
+      const confirmed = (o.payments || []).filter(p => p.status === 'confirmed');
+      return sum + confirmed.reduce((s, p) => s + parseFloat(p.amount || 0), 0);
+    }, 0);
+    const periodPending = periodOrders.reduce((sum, o) => {
+      const pending = (o.payments || []).filter(p => p.status === 'receipt_uploaded' || p.status === 'pending');
+      return sum + pending.reduce((s, p) => s + parseFloat(p.amount || 0), 0);
+    }, 0);
+    const periodRemaining = periodOrders
+      .filter(o => o.status !== 'completed' && o.status !== 'cancelled')
+      .reduce((sum, o) => sum + parseFloat(o.remainingAmount || 0), 0);
+
     return res.json({
       success: true,
       data: {
@@ -256,6 +305,21 @@ const getProfitReport = async (req, res) => {
           avgProfitPerTransaction: totalTransactions > 0 ? Math.round((totalProfit / totalTransactions) * 100) / 100 : 0,
           profitChange: Math.round(profitChange * 100) / 100,
           previousPeriodProfit: Math.round(prevProfit * 100) / 100
+        },
+        deposits: {
+          // Period-scoped
+          periodConfirmed: Math.round(periodConfirmed * 100) / 100,
+          periodPending: Math.round(periodPending * 100) / 100,
+          periodRemaining: Math.round(periodRemaining * 100) / 100,
+          periodOrderCount: periodOrders.length,
+          // All-time cumulative
+          allConfirmed: Math.round(allConfirmedDeposits * 100) / 100,
+          allPending: Math.round(allPendingDeposits * 100) / 100,
+          allRemaining: Math.round(allRemainingDeposits * 100) / 100,
+          totalOrders: totalDepositOrders,
+          completedOrders,
+          partialOrders,
+          pendingOrders,
         },
         byCurrencyPair: Object.values(byCurrencyPair).sort((a, b) => b.profit - a.profit),
         byType: Object.entries(byType).map(([type, profit]) => ({

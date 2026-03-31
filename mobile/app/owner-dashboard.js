@@ -148,6 +148,7 @@ export default function OwnerDashboardScreen() {
 
   const summary = dashData?.summary || {};
   const profit = profitData?.summary || {};
+  const dep = profitData?.deposits || {};
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
 
@@ -194,8 +195,8 @@ export default function OwnerDashboardScreen() {
 
           {/* Profit Hero Card */}
           <View style={s.heroCard}>
-            <View>
-              <Text style={s.heroLabel}>PROFIT TOTAL ({period === 'daily' ? "Aujourd'hui" : period === 'weekly' ? 'Cette semaine' : 'Ce mois'})</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={s.heroLabel}>PROFIT CHANGE ({period === 'daily' ? "Aujourd'hui" : period === 'weekly' ? 'Cette semaine' : 'Ce mois'})</Text>
               <Text style={[s.heroAmount, { color: (profit.totalProfit || 0) >= 0 ? '#10b981' : '#ef4444' }]}>
                 {(profit.totalProfit || 0) >= 0 ? '+' : ''}{formatCurrency(profit.totalProfit || 0)}
               </Text>
@@ -210,9 +211,33 @@ export default function OwnerDashboardScreen() {
                 </Text>
               </View>
             </View>
-            <View style={{ alignItems: 'flex-end', gap: 6 }}>
+            <View style={{ alignItems: 'flex-end', gap: 4 }}>
               <Text style={s.heroStat}>{profit.totalTransactions || 0} tx</Text>
               <Text style={s.heroStatSub}>{profit.profitableCount || 0} ✓ · {profit.lossCount || 0} ✗</Text>
+            </View>
+          </View>
+
+          {/* Encaissement Card */}
+          <View style={s.encaisseCard}>
+            <Text style={s.encaisseTitle}>💰 ENCAISSEMENTS DÉPÔTS — CUMULATIF</Text>
+            <View style={s.encaisseRow}>
+              <View style={s.encaisseItem}>
+                <Text style={s.encaisseVal}>{formatCurrency(dep.allConfirmed || 0)}</Text>
+                <Text style={s.encaisseLabel}>✅ Confirmé</Text>
+              </View>
+              <View style={s.encaisseDivider} />
+              <View style={s.encaisseItem}>
+                <Text style={[s.encaisseVal, { color: GOLD }]}>{formatCurrency(dep.allPending || 0)}</Text>
+                <Text style={s.encaisseLabel}>⏳ En attente</Text>
+              </View>
+              <View style={s.encaisseDivider} />
+              <View style={s.encaisseItem}>
+                <Text style={[s.encaisseVal, { color: '#ef4444' }]}>{formatCurrency(dep.allRemaining || 0)}</Text>
+                <Text style={s.encaisseLabel}>📋 Restant dû</Text>
+              </View>
+            </View>
+            <View style={s.encaisseFooter}>
+              <Text style={s.encaisseFooterText}>{dep.totalOrders || 0} commandes · {dep.completedOrders || 0} soldées · {dep.partialOrders || 0} partielles · {dep.pendingOrders || 0} en attente</Text>
             </View>
           </View>
         </View>
@@ -254,13 +279,18 @@ export default function OwnerDashboardScreen() {
         {/* Key Metrics */}
         <View style={s.metricsRow}>
           <StatCard icon="cash-outline" label="Profit moyen/tx" value={formatCurrency(profit.avgProfitPerTransaction || 0)} color={GREEN_MAIN} onPress={() => router.push('/reports')} />
-          <StatCard icon="alert-circle-outline" label="Impayés (MPA)" value={summary.unpaidCount || 0} sub={summary.unpaidCount > 0 ? '⚠' : null} color="#dc2626" onPress={() => router.push('/(tabs)/transactions?status=unpaid')} />
+          <StatCard icon="alert-circle-outline" label="Impayés MPA" value={summary.unpaidCount || 0} sub={summary.unpaidCount > 0 ? '⚠' : null} color="#dc2626" onPress={() => router.push('/(tabs)/transactions?status=unpaid')} />
           <StatCard icon="today-outline" label="Tx aujourd'hui" value={summary.todayTransactions || 0} color="#0369a1" onPress={() => { const today = new Date().toISOString().split('T')[0]; router.push(`/(tabs)/transactions?dateFrom=${today}&dateTo=${today}`); }} />
         </View>
         <View style={s.metricsRow}>
-          <StatCard icon="wallet-outline" label="Encaissé (mois)" value={formatCurrency(summary.monthPayments || 0)} color="#7c3aed" onPress={() => router.push('/cashbook')} />
+          <StatCard icon="checkmark-circle-outline" label="Dépôts confirmés" value={formatCurrency(dep.periodConfirmed || 0)} color={GREEN_MAIN} onPress={() => router.push('/deposits')} />
+          <StatCard icon="time-outline" label="Reçus en attente" value={formatCurrency(dep.periodPending || 0)} color={GOLD} onPress={() => router.push('/deposits')} />
+          <StatCard icon="wallet-outline" label="Reste à encaisser" value={formatCurrency(dep.periodRemaining || 0)} color="#ef4444" onPress={() => router.push('/deposits')} />
+        </View>
+        <View style={s.metricsRow}>
           <StatCard icon="people-outline" label="Équipe" value={team.length} color="#0891b2" onPress={() => router.push('/settings/team')} />
-          <StatCard icon="shield-checkmark-outline" label="Dette totale" value={formatCurrency(summary.totalOutstanding || 0)} color="#d97706" onPress={() => router.push('/(tabs)/clients')} />
+          <StatCard icon="shield-checkmark-outline" label="Dette clients" value={formatCurrency(summary.totalOutstanding || 0)} color="#d97706" onPress={() => router.push('/(tabs)/clients')} />
+          <StatCard icon="book-outline" label="Cashbook" value={formatCurrency(summary.monthPayments || 0)} color="#7c3aed" onPress={() => router.push('/cashbook')} />
         </View>
 
         {/* Profit Chart */}
@@ -432,6 +462,16 @@ const s = StyleSheet.create({
   heroBadgeText: { fontSize: 11, fontWeight: '600' },
   heroStat: { fontSize: 16, fontWeight: '800', color: WHITE },
   heroStatSub: { fontSize: 11, color: 'rgba(255,255,255,0.4)' },
+
+  encaisseCard: { marginHorizontal: 20, marginTop: 10, backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 16, padding: 16 },
+  encaisseTitle: { fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: '700', letterSpacing: 0.8, marginBottom: 12 },
+  encaisseRow: { flexDirection: 'row', alignItems: 'center' },
+  encaisseItem: { flex: 1, alignItems: 'center' },
+  encaisseVal: { fontSize: 15, fontWeight: '800', color: '#10b981', marginBottom: 3 },
+  encaisseLabel: { fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: '600' },
+  encaisseDivider: { width: 1, height: 36, backgroundColor: 'rgba(255,255,255,0.1)' },
+  encaisseFooter: { marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
+  encaisseFooterText: { fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'center' },
 
   periodRow: { flexDirection: 'row', paddingHorizontal: 16, paddingTop: 16, gap: 8 },
   periodBtn: { flex: 1, paddingVertical: 10, borderRadius: 10, backgroundColor: WHITE, alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0' },
