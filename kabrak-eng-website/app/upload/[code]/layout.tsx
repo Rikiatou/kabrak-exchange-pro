@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: pageTitle,
     description: `Envoyez votre reçu de versement — ${businessName}`,
-    manifest: `/api/manifest?start_url=${encodeURIComponent(pageUrl)}&name=${encodeURIComponent(businessName || 'Versement')}&scope=${encodeURIComponent('/')}`,
+    manifest: `/api/manifest?start_url=${encodeURIComponent(pageUrl)}&name=${encodeURIComponent(businessName || 'Versement')}&scope=${encodeURIComponent(pageUrl)}`,
     appleWebApp: {
       capable: true,
       title: businessName || 'Versement',

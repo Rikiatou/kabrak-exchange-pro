@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: pageTitle,
     description: `Suivez vos commandes et envoyez vos reçus — ${businessName}`,
-    manifest: `/api/manifest?start_url=${encodeURIComponent(pageUrl)}&name=${encodeURIComponent(businessName || 'Portail')}&scope=${encodeURIComponent('/')}`,
+    manifest: `/api/manifest?start_url=${encodeURIComponent(pageUrl)}&name=${encodeURIComponent(businessName || 'Portail')}&scope=${encodeURIComponent(pageUrl)}`,
     appleWebApp: {
       capable: true,
       title: businessName || 'Portail',
