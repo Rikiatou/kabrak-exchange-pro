@@ -226,8 +226,18 @@ export default function ClientPortalPage() {
     } catch (_) {}
 
     const ua = navigator.userAgent;
-    const isIOS = /iPhone|iPad|iPod/.test(ua);
-    const isInAppBrowser = /FBAN|FBAV|Instagram|WhatsApp|Twitter|Line|Snapchat|TikTok/.test(ua);
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    const isInAppBrowser = (
+      /WhatsApp/i.test(ua) ||
+      /FBAN|FBAV/i.test(ua) ||
+      /Instagram/i.test(ua) ||
+      /Messenger/i.test(ua) ||
+      /Twitter/i.test(ua) ||
+      /Line/i.test(ua) ||
+      /Snapchat/i.test(ua) ||
+      /TikTok/i.test(ua) ||
+      (/wv/.test(ua) && isIOS)
+    );
     const isSafariProper = isIOS && /Version\//.test(ua) && /Safari\//.test(ua) && !isInAppBrowser;
     const webview = isIOS && (!isSafariProper || isInAppBrowser);
     if (isIOS) setDeviceType('ios');
@@ -339,6 +349,13 @@ export default function ClientPortalPage() {
           <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11, marginTop: 12, textAlign: 'center' }}>
             exchange.kabrakeng.com/client/{code}
           </p>
+        </div>
+      )}
+
+      {/* DEBUG TEMPORAIRE — à retirer après test */}
+      {!isIOSWebView && typeof window !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent) && !((window.matchMedia('(display-mode: standalone)').matches) || (navigator as any).standalone) && (
+        <div style={{ position: 'fixed', bottom: 80, left: 8, right: 8, zIndex: 99998, background: 'rgba(0,0,0,0.85)', borderRadius: 10, padding: '10px 12px', fontSize: 10, color: '#aaa', wordBreak: 'break-all' }}>
+          <strong style={{ color: '#f59e0b' }}>DEBUG UA:</strong> {typeof window !== 'undefined' ? navigator.userAgent : ''}
         </div>
       )}
 
