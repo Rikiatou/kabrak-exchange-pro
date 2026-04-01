@@ -67,7 +67,7 @@ export default function RootLayout() {
 
     // NetInfo: offline banner + auto sync
     const unsubscribeNet = NetInfo.addEventListener(async (state) => {
-      const online = state.isConnected && state.isInternetReachable !== false;
+      const online = state.isConnected !== false && state.isInternetReachable !== false;
       if (online && wasOffline.current) {
         wasOffline.current = false;
         setIsOffline(false);
